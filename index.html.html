@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Taxi Al Balad | Live GPS, Radar & Central Dispatch</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --primary-gold: #eab308;
+            --primary-yellow: #f59e0b;
+            --header-brown: #24160a;
+            --header-dark: #190f07;
+            --bg-dark: #0f1015;
+            --card-bg: #181920;
+            --card-border: rgba(234, 179, 8, 0.4);
+            --whatsapp-green: #25d366;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Cairo', 'Montserrat', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        [dir="ltr"] body, [dir="ltr"] * {
+            font-family: 'Montserrat', 'Cairo', sans-serif;
+        }
+
+        /* ÜST MENÜ */
+        .top-navbar {
+            width: 100%;
+            background: rgba(25, 15, 7, 0.98);
+            border-bottom: 2px solid var(--primary-gold);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-inner {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo i {
+            font-size: 1.8rem;
+            color: var(--primary-gold);
+        }
+
+        .brand-logo h1 {
+            font-size: 1.2rem;
+            font-weight: 900;
+        }
+
+        .nav-switcher {
+            display: flex;
+            background: #0b0c10;
+            padding: 4px;
+            border-radius: 12px;
+            gap: 4px;
+            border: 1px solid var(--card-border);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-gold);
+            color: #000;
+        }
+
+        .btn-lang {
+            background: rgba(234, 179, 8, 0.2);
+            color: var(--primary-gold);
+            border: 1.5px solid var(--primary-gold);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .app-view {
+            display: none;
+            flex: 1;
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 1.8rem 1.2rem 3rem;
+        }
+
+        .app-view.active {
+            display: block;
+        }
+
+        /* 1. YOLCU EKRANI */
+        .passenger-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 1.8rem;
+            align-items: start;
+        }
+
+        .map-card {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 20px;
+            padding: 1.2rem;
+        }
+
+        .map-mode-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 0.8rem;
+        }
+
+        .btn-mode {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: #101117;
+            color: var(--text-muted);
+        }
+
+        .btn-mode.active-pickup {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .btn-mode.active-dest {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        #passengerMapContainer {
+            width: 100%;
+            height: 380px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+        }
+
+        .booking-card {
+            background: linear-gradient(145deg, rgba(48, 27, 12, 0.98) 0%, rgba(30, 18, 10, 0.98) 100%);
+            border: 2px solid var(--primary-gold);
+            border-radius: 20px;
+            padding: 1.8rem 1.4rem;
+        }
+
+        .booking-card h3 {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+
+        /* HIZLI MERKEZ İLETİŞİM ŞERİDİ */
+        .direct-chat-btn-wrap {
+            background: rgba(37, 211, 102, 0.12);
+            border: 1.5px dashed var(--whatsapp-green);
+            border-radius: 14px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .btn-quick-direct-driver {
+            width: 100%;
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+            color: #ffffff;
+            border: none;
+            padding: 13px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.35);
+        }
+
+        .btn-quick-direct-driver:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+        }
+
+        .divider-or {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--text-muted);
+            margin: 1.2rem 0;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .divider-or::before, .divider-or::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .divider-or:not(:empty)::before { margin-left: .5em; }
+        .divider-or:not(:empty)::after { margin-right: .5em; }
+
+        [dir="ltr"] .divider-or:not(:empty)::before { margin-left: 0; margin-right: .5em; }
+        [dir="ltr"] .divider-or:not(:empty)::after { margin-right: 0; margin-left: .5em; }
+
+        .form-group {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 11px 13px;
+            background-color: #ffffff;
+            border: 1.5px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            color: #111827;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .btn-book-action {
+            width: 100%;
+            background: linear-gradient(135deg, #f59e0b 0%, var(--primary-gold) 100%);
+            color: #000;
+            border: none;
+            padding: 13px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(234, 179, 8, 0.3);
+        }
+
+        .live-status-box {
+            display: none;
+            background: #0f1015;
+            border: 1.5px solid var(--primary-gold);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* 2. SÜRÜCÜ EKRANI */
+        .driver-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .driver-card {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-gold);
+            border-radius: 24px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        .driver-avatar {
+            width: 80px;
+            height: 80px;
+            background: rgba(234, 179, 8, 0.2);
+            color: var(--primary-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 0 auto 1rem;
+            border: 2px solid var(--primary-gold);
+        }
+
+        .gps-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .credit-meter {
+            background: #0f1015;
+            border-radius: 14px;
+            padding: 1.2rem;
+            margin: 1.2rem 0;
+            border: 1px solid var(--card-border);
+        }
+
+        .credit-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary-gold);
+            line-height: 1;
+            margin: 0.4rem 0;
+        }
+
+        .expiry-date-label {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: inline-block;
+        }
+
+        .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+        .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .badge-busy { background: rgba(234, 179, 8, 0.2); color: var(--accent-gold); }
+
+        .toggle-status-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            margin-top: 0.8rem;
+        }
+
+        .btn-online { background: var(--accent-green); color: #000; }
+        .btn-offline { background: var(--accent-red); color: #fff; }
+
+        .incoming-job-card {
+            display: none;
+            background: linear-gradient(145deg, #1c1810 0%, #17120a 100%);
+            border: 2px solid #22c55e;
+            border-radius: 16px;
+            padding: 1.2rem;
+            margin-top: 1.5rem;
+            text-align: right;
+            animation: pulse-border 1.5s infinite;
+        }
+
+        [dir="ltr"] .incoming-job-card {
+            text-align: left;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+            70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        .btn-accept-job {
+            width: 100%;
+            background: #25d366;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* 3. ADMİN EKRANI */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.gold { background: rgba(234, 179, 8, 0.15); color: var(--primary-gold); }
+        .stat-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+        .stat-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .stat-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+        .stat-info h4 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+
+        .stat-info p {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .panel-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .panel-header h3 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #adminRadarMapContainer {
+            width: 100%;
+            height: 420px;
+            border-radius: 14px;
+            border: 2px solid var(--card-border);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: inherit;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #12131a;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .btn-action {
+            background: var(--primary-gold);
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+
+        /* GİRİŞ MODALLARI */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-gold);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: var(--accent-green);
+            color: #000;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px 16px;
+            position: fixed;
+            z-index: 99999;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-weight: 700;
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.3s, fadeout 0.3s 2.5s;
+        }
+
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+        @media (max-width: 900px) {
+            .passenger-grid {
+                grid-template-columns: 1fr;
+            }
+            .nav-inner {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ÜST MENÜ -->
+    <header class="top-navbar">
+        <div class="nav-inner">
+            <div class="brand-logo">
+                <i class="fa-solid fa-taxi"></i>
+                <div>
+                    <h1>TAXI AL BALAD <span>CONNECT</span></h1>
+                </div>
+            </div>
+
+            <div class="nav-switcher">
+                <button class="tab-btn active" onclick="switchView('passenger')" id="tabPassengerBtn">
+                    <i class="fa-solid fa-map-location-dot"></i> <span id="t-tab-passenger">تطبيق الراكب</span>
+                </button>
+                <button class="tab-btn" onclick="openDriverAuth()" id="tabDriverBtn">
+                    <i class="fa-solid fa-car"></i> <span id="t-tab-driver">شاشة السائق</span>
+                </button>
+                <button class="tab-btn" onclick="openAdminAuth()" id="tabAdminBtn">
+                    <i class="fa-solid fa-user-shield"></i> <span id="t-tab-admin">لوحة الإدارة والرادار</span>
+                </button>
+            </div>
+
+            <button class="btn-lang" onclick="toggleLanguage()" id="langBtn">
+                <i class="fa-solid fa-globe"></i> English
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- 1. YOLCU EKRANI -->
+        <section id="view-passenger" class="app-view active">
+            <div class="passenger-grid">
+                <div class="map-card">
+                    <div class="map-mode-selector">
+                        <button type="button" class="btn-mode active-pickup" id="btnModePickup" onclick="setMapMode('pickup')">
+                            <i class="fa-solid fa-location-dot" style="color: var(--accent-green);"></i>
+                            <span id="t-p-mode1">1. مكان ركوبك (أخضر)</span>
+                        </button>
+                        <button type="button" class="btn-mode" id="btnModeDest" onclick="setMapMode('dest')">
+                            <i class="fa-solid fa-flag-checkered" style="color: var(--accent-red);"></i>
+                            <span id="t-p-mode2">2. وجهة النزول (أحمر)</span>
+                        </button>
+                    </div>
+
+                    <div id="passengerMapContainer"></div>
+                    <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 8px; display: block;" id="t-p-maphint">
+                        💡 يظهر على الخريطة سيارات التكسي المتاحة والقريبة منك مباشرة.
+                    </small>
+                </div>
+
+                <div class="booking-card">
+                    <h3 id="t-p-formhead">طلب تكسي وتواصل مع الإدارة</h3>
+
+                    <!-- MERKEZE DOĞRUDAN BAĞLANMA BUTONU (+963 962 750 014) -->
+                    <div class="direct-chat-btn-wrap">
+                        <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px;" id="t-p-direct-desc">
+                            💬 هل تريد التحدث مع الإدارة فوراً لحجز أقرب تكسي؟
+                        </p>
+                        <button type="button" class="btn-quick-direct-driver" onclick="quickDirectChatWithCentral()">
+                            <i class="fa-brands fa-whatsapp" style="font-size: 1.3rem;"></i>
+                            <span id="t-p-btndirect">محادثة الإدارة مباشرة عبر واتساب</span>
+                        </button>
+                    </div>
+
+                    <div class="divider-or" id="t-p-divider">أو حدد تفاصيل مشوارك بالخريطة</div>
+
+                    <form onsubmit="passengerSendRideRequest(event)">
+                        <div class="form-group">
+                            <label style="color: var(--accent-green);">
+                                <span><i class="fa-solid fa-location-dot"></i> <span id="t-p-lblpickup">مكان الانطلاق</span></span>
+                                <button type="button" onclick="getUserGPS()" style="background: var(--primary-gold); border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; cursor: pointer;">GPS 🎯</button>
+                            </label>
+                            <input type="text" id="passPickupInput" class="form-input" placeholder="حدد على الخريطة..." required>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="color: var(--accent-red);">
+                                <span><i class="fa-solid fa-flag-checkered"></i> <span id="t-p-lbldest">نقطة الوصول</span></span>
+                            </label>
+                            <input type="text" id="passDestInput" class="form-input" placeholder="حدد على الخريطة..." required>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="color: var(--primary-gold);">
+                                <span><i class="fa-solid fa-user"></i> <span id="t-p-lblname">اسمك / رقم هاتفك</span></span>
+                            </label>
+                            <input type="text" id="passNameInput" class="form-input" placeholder="مثال: سامي (0933112233)" required>
+                        </div>
+
+                        <button type="submit" class="btn-book-action">
+                            <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i>
+                            <span id="t-p-btnsubmit">إرسال تفاصيل الخريطة للإدارة على واتساب</span>
+                        </button>
+                    </form>
+
+                    <div id="passengerStatusBox" class="live-status-box"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. SÜRÜCÜ EKRANI -->
+        <section id="view-driver" class="app-view">
+            <div class="driver-container">
+                <div class="driver-card">
+                    <div class="driver-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                    <h2 id="driverScreenName" style="font-size: 1.4rem; margin-bottom: 2px;">-</h2>
+                    <p id="driverScreenCar" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 6px;">-</p>
+                    
+                    <div class="gps-badge" id="driverGpsBadge">
+                        <i class="fa-solid fa-location-crosshairs"></i> <span id="driverGpsStatus">جاري تحديد موقعك الحي...</span>
+                    </div>
+
+                    <div class="credit-meter">
+                        <div style="font-size: 0.85rem; color: var(--text-muted);" id="t-d-lblcredit">الأيام المتبقية في اشتراكك</div>
+                        <div class="credit-number" id="driverScreenDays">0</div>
+                        <div class="expiry-date-label" id="driverScreenExpiryDate">ينتهي في: --</div>
+                        <div id="driverScreenStatusBadge" class="badge badge-active" style="margin-top: 8px;">-</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-around; margin-bottom: 1.2rem;">
+                        <div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem;" id="t-d-lbljobs">المشاوير المستلمة</div>
+                            <div style="font-size: 1.3rem; font-weight: 800; color: var(--primary-gold);" id="driverScreenJobs">0</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem;" id="t-d-lblstate">حالة الاستقبال</div>
+                            <div style="font-size: 1.1rem; font-weight: 800; color: var(--accent-green);" id="driverScreenOnlineText">-</div>
+                        </div>
+                    </div>
+
+                    <button class="toggle-status-btn btn-online" id="driverToggleOnlineBtn" onclick="toggleCurrentDriverOnline()"></button>
+
+                    <div id="driverIncomingJobBox" class="incoming-job-card">
+                        <div style="color: var(--accent-green); font-weight: 900; font-size: 1.1rem; margin-bottom: 8px;">
+                            <i class="fa-solid fa-bell"></i> <span id="t-d-incomingtitle">وصلك إشعار مشوار من الإدارة!</span>
+                        </div>
+                        <div style="font-size: 0.92rem; line-height: 1.6;" id="driverJobDetailsContent"></div>
+                        <button class="btn-accept-job" onclick="driverAcceptJobAndOpenCentralWA()">
+                            <i class="fa-brands fa-whatsapp"></i> <span id="t-d-btnaccept">التواصل مع الإدارة لتأكيد المشوار</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ADMİN EKRANI -->
+        <section id="view-admin" class="app-view">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon gold"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-info">
+                        <h4 id="t-a-stat1">إجمالي السائقين</h4>
+                        <p id="adminStatDrivers">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="stat-info">
+                        <h4 id="t-a-stat2">اشتراك ساري ومتاح</h4>
+                        <p id="adminStatActive">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fa-solid fa-car-side"></i></div>
+                    <div class="stat-info">
+                        <h4 id="t-a-stat3">المشاوير المنفذة</h4>
+                        <p id="adminStatJobs">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="fa-solid fa-calendar-xmark"></i></div>
+                    <div class="stat-info">
+                        <h4 id="t-a-stat4">اشتراك منتهي (0 يوم)</h4>
+                        <p id="adminStatExpired">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RADAR HARİTASI -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-radar" style="color: var(--primary-gold);"></i> <span id="t-a-radartitle">رادار مراقبة مواقع السائقين الحية</span></h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">
+                        <span style="color: var(--accent-green);">● متاح</span> | 
+                        <span style="color: var(--primary-gold);">● في استراحة</span> | 
+                        <span style="color: var(--accent-red);">● منتهي الاشتراك</span>
+                    </div>
+                </div>
+                <div id="adminRadarMapContainer"></div>
+                <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 8px; display: block;" id="t-a-radarhint">
+                    💡 انقر على أي سيارة في الخريطة لرؤية تفاصيل السائق وموقعه وحالته، واضغط على زر واتساب لإرسال المشوار إليه.
+                </small>
+            </div>
+
+            <!-- Yeni Sürücü Tanımlama -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-user-plus" style="color: var(--primary-gold);"></i> <span id="t-a-addtitle">تسجيل سائق جديد وتفعيل الأيام</span></h3>
+                </div>
+                <form onsubmit="adminAddNewDriver(event)">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div class="form-group">
+                            <label id="t-a-lblname">اسم السائق</label>
+                            <input type="text" id="adminNewDName" class="form-input" placeholder="مثال: أحمد العلي" required>
+                        </div>
+                        <div class="form-group">
+                            <label id="t-a-lblphone">رقم هاتف الواتساب (للدخول والتواصل)</label>
+                            <input type="text" id="adminNewDPhone" class="form-input" placeholder="مثال: 963962000111" required>
+                        </div>
+                        <div class="form-group">
+                            <label id="t-a-lblcar">السيارة واللوحة</label>
+                            <input type="text" id="adminNewDCar" class="form-input" placeholder="كيا سيراتو (دمشق 12345)" required>
+                        </div>
+                        <div class="form-group">
+                            <label id="t-a-lblcredits">عدد أيام الاشتراك المشحونة</label>
+                            <input type="number" id="adminNewDDays" class="form-input" value="7" min="1" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-action" style="margin-top: 10px; padding: 10px 20px; font-size: 0.95rem;">
+                        <i class="fa-solid fa-plus"></i> <span id="t-a-btnadd">إضافة السائق وتفعيل الاشتراك</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Sürücü Listesi -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-list-check" style="color: var(--primary-gold);"></i> <span id="t-a-listtitle">إدارة اشتراكات السائقين والتحكم بالأيام</span></h3>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th id="t-a-th1">السائق</th>
+                                <th id="t-a-th2">الهاتف</th>
+                                <th id="t-a-th3">السيارة</th>
+                                <th id="t-a-th4">الحالة</th>
+                                <th id="t-a-th-gps">موقع GPS الحي</th>
+                                <th id="t-a-th5">الأيام المتبقية</th>
+                                <th id="t-a-th6">المشاوير المنفذة</th>
+                                <th id="t-a-th7">العمليات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminDriversTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- SÜRÜCÜ GİRİŞ MODALI -->
+    <div id="driverAuthModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: var(--primary-gold); margin-bottom: 8px;"><i class="fa-solid fa-car"></i> <span id="t-m-dtitle">تسجيل دخول السائق</span></h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;" id="t-m-dsub">أدخل رقم هاتفك المسجل لدى الإدارة للمتابعة</p>
+            <form onsubmit="handleDriverModalAuth(event)">
+                <div class="form-group" style="text-align: inherit;">
+                    <label id="t-m-dlbl">رقم هاتف الواتساب</label>
+                    <input type="text" id="driverAuthPhoneInput" class="form-input" placeholder="مثال: 963962000111" required>
+                </div>
+                <button type="submit" class="btn-book-action" style="margin-top: 10px;" id="t-m-dbtn">دخول الشاشة</button>
+                <button type="button" onclick="closeModals()" style="background: transparent; border: none; color: var(--text-muted); margin-top: 10px; cursor: pointer;" id="t-m-dcancel">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADMİN GİRİŞ MODALI (ŞİFRE: aa32) -->
+    <div id="adminAuthModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: var(--primary-gold); margin-bottom: 8px;"><i class="fa-solid fa-user-shield"></i> <span id="t-m-atitle">لوحة الإدارة</span></h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;" id="t-m-asub">يرجى إدخال رمز الأمان للمتابعة</p>
+            <form onsubmit="handleAdminModalAuth(event)">
+                <div class="form-group" style="text-align: inherit;">
+                    <label id="t-m-albl">رمز الأمان (Password)</label>
+                    <input type="password" id="adminAuthPinInput" class="form-input" placeholder="••••••" required>
+                </div>
+                <button type="submit" class="btn-book-action" style="margin-top: 10px;" id="t-m-abtn">دخول لوحة التحكم</button>
+                <button type="button" onclick="closeModals()" style="background: transparent; border: none; color: var(--text-muted); margin-top: 10px; cursor: pointer;" id="t-m-acancel">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        let currentLang = 'ar';
+        const ADMIN_PIN = "aa32"; // Gizli Yönetici Şifresi
+        const CENTRAL_ADMIN_PHONE = "963962750014"; // Tek Yetkili İletişim Numarası (+963 962 750 014)
+        
+        let passengerMap;
+        let adminRadarMap;
+        let mapMode = 'pickup';
+        let pickupMarker = null;
+        let destMarker = null;
+        let passengerDriverMarkers = {}; 
+        let adminDriverMarkers = {};    
+        
+        let pickupCoords = { lat: 33.5138, lng: 36.2765 };
+        let destCoords = null;
+
+        let activeDriver = null;
+        let activeAdmin = false;
+        let lastIncomingJob = null;
+        let gpsWatchId = null;
+
+        const taxiChannel = new BroadcastChannel('taxialbalad_central_network');
+
+        const i18n = {
+            ar: {
+                langBtn: '<i class="fa-solid fa-globe"></i> English',
+                tabPassenger: "تطبيق الراكب",
+                tabDriver: "شاشة السائق",
+                tabAdmin: "لوحة الإدارة والرادار",
+                pMode1: "1. مكان ركوبك (أخضر)",
+                pMode2: "2. وجهة النزول (أحمر)",
+                pMapHint: "💡 يظهر على الخريطة سيارات التكسي المتاحة والقريبة منك مباشرة.",
+                pFormHead: "طلب تكسي وتواصل مع الإدارة",
+                pDirectDesc: "💬 هل تريد التحدث مع الإدارة فوراً لحجز أقرب تكسي؟",
+                pBtnDirect: "محادثة الإدارة مباشرة عبر واتساب",
+                pDivider: "أو حدد تفاصيل مشوارك بالخريطة",
+                pLblPickup: "مكان الانطلاق",
+                pLblDest: "نقطة الوصول",
+                pLblName: "اسمك / رقم هاتفك",
+                pBtnSubmit: "إرسال تفاصيل الخريطة للإدارة على واتساب",
+                dLblCredit: "الأيام المتبقية في اشتراكك",
+                dLblJobs: "المشاوير المستلمة",
+                dLblState: "حالة الاستقبال",
+                dIncomingTitle: "وصلك إشعار مشوار من الإدارة!",
+                dBtnAccept: "التواصل مع الإدارة لتأكيد المشوار",
+                aStat1: "إجمالي السائقين",
+                aStat2: "اشتراك ساري ومتاح",
+                aStat3: "المشاوير المنفذة",
+                aStat4: "اشتراك منتهي (0 يوم)",
+                aRadarTitle: "رادار مراقبة مواقع السائقين الحية",
+                aRadarHint: "💡 انقر على أي سيارة في الخريطة لرؤية تفاصيل السائق وموقعه وحالته، واضغط على زر واتساب لإرسال المشوار إليه.",
+                aAddTitle: "تسجيل سائق جديد وتفعيل الأيام",
+                aLblName: "اسم السائق",
+                aLblPhone: "رقم هاتف الواتساب (للدخول)",
+                aLblCar: "السيارة واللوحة",
+                aLblCredits: "عدد أيام الاشتراك المشحونة",
+                aBtnAdd: "إضافة السائق وتفعيل الاشتراك",
+                aListTitle: "إدارة اشتراكات السائقين والتحكم بالأيام",
+                aTh1: "السائق", aTh2: "الهاتف", aTh3: "السيارة", aTh4: "الحالة", aThGps: "موقع GPS الحي", aTh5: "الأيام المتبقية", aTh6: "المشاوير", aTh7: "العمليات (تمديد)",
+                dayUnit: "يوم",
+                badgeActive: "اشتراك ساري",
+                badgeExpired: "منتهي الاشتراك",
+                badgeBusy: "في استراحة",
+                btnBreak: '<i class="fa-solid fa-pause"></i> أخذ استراحة (إيقاف الطلبات)',
+                btnWork: '<i class="fa-solid fa-play"></i> بدء العمل (استقبال المشاوير)',
+                mDTitle: "تسجيل دخول السائق",
+                mDSub: "أدخل رقم هاتفك المسجل لدى الإدارة للمتابعة",
+                mDLbl: "رقم هاتف الواتساب",
+                mDBtn: "دخول الشاشة",
+                mDCancel: "إلغاء",
+                mATitle: "لوحة الإدارة",
+                mASub: "يرجى إدخال رمز الأمان للمتابعة",
+                mALbl: "رمز الأمان (Password)",
+                mABtn: "دخول لوحة التحكم",
+                mACancel: "إلغاء",
+                wrongPass: "❌ رمز الأمان غير صحيح!"
+            },
+            en: {
+                langBtn: '<i class="fa-solid fa-globe"></i> عربي',
+                tabPassenger: "Passenger App",
+                tabDriver: "Driver Screen",
+                tabAdmin: "Admin Radar & Control",
+                pMode1: "1. Pickup Point (Green)",
+                pMode2: "2. Destination Point (Red)",
+                pMapHint: "💡 Available live taxis near you are shown directly on the map.",
+                pFormHead: "Book Ride & Connect with Dispatch",
+                pDirectDesc: "💬 Want to chat with central dispatch to book the nearest taxi?",
+                pBtnDirect: "Chat with Dispatch on WhatsApp",
+                pDivider: "OR Set Detailed Ride on Map",
+                pLblPickup: "Pickup Location",
+                pLblDest: "Destination",
+                pLblName: "Your Name / Phone",
+                pBtnSubmit: "Send Map Details to Dispatch on WhatsApp",
+                dLblCredit: "Remaining Subscription Days",
+                dLblJobs: "Completed Rides",
+                dLblState: "Status",
+                dIncomingTitle: "New Ride Alert from Dispatch!",
+                dBtnAccept: "Contact Dispatch to Confirm Ride",
+                aStat1: "Total Drivers",
+                aStat2: "Active Subscription & Online",
+                aStat3: "Completed Rides",
+                aStat4: "Expired (0 Days)",
+                aRadarTitle: "Live Driver Fleet Tracking Radar",
+                aRadarHint: "💡 Click any car on the map to see driver details & send dispatch via WhatsApp.",
+                aAddTitle: "Register Driver & Add Subscription Days",
+                aLblName: "Driver Full Name",
+                aLblPhone: "WhatsApp Phone (For Login)",
+                aLblCar: "Car Model & Plate",
+                aLblCredits: "Loaded Subscription Days",
+                aBtnAdd: "Add Driver & Activate Subscription",
+                aListTitle: "Driver Subscriptions & Days Control",
+                aTh1: "Driver", aTh2: "Phone", aTh3: "Vehicle", aTh4: "Status", aThGps: "Live GPS", aTh5: "Days Left", aTh6: "Rides", aTh7: "Actions (Extend)",
+                dayUnit: "Days",
+                badgeActive: "Active Sub",
+                badgeExpired: "Subscription Expired",
+                badgeBusy: "On Break",
+                btnBreak: '<i class="fa-solid fa-pause"></i> Take a Break (Pause)',
+                btnWork: '<i class="fa-solid fa-play"></i> Go Online (Accept Rides)',
+                mDTitle: "Driver Login",
+                mDSub: "Enter your registered WhatsApp phone number",
+                mDLbl: "WhatsApp Phone Number",
+                mDBtn: "Enter Dashboard",
+                mDCancel: "Cancel",
+                mATitle: "Admin Panel",
+                mASub: "Enter your security password to proceed",
+                mALbl: "Security Password",
+                mABtn: "Access Admin Dashboard",
+                mACancel: "Cancel",
+                wrongPass: "❌ Invalid security password!"
+            }
+        };
+
+        function calculateRemainingDays(expiryTimestamp) {
+            const now = Date.now();
+            const diff = expiryTimestamp - now;
+            if(diff <= 0) return 0;
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        function formatExpiryDate(expiryTimestamp) {
+            if(!expiryTimestamp || expiryTimestamp <= Date.now()) return currentLang === 'ar' ? 'منتهي' : 'Expired';
+            const d = new Date(expiryTimestamp);
+            return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes() < 10 ? '0' : ''}${d.getMinutes()}`;
+        }
+
+        function getDriversDB() {
+            return JSON.parse(localStorage.getItem('taxi_central_drivers')) || [];
+        }
+
+        function saveDriversDB(drivers) {
+            localStorage.setItem('taxi_central_drivers', JSON.stringify(drivers));
+            renderAdminTable();
+            updateAdminStats();
+            updatePassengerMapDriverMarkers();
+            updateAdminRadarMapMarkers();
+            if(activeDriver) {
+                activeDriver = drivers.find(d => d.id === activeDriver.id) || activeDriver;
+                renderDriverScreen();
+            }
+        }
+
+        taxiChannel.onmessage = function(e) {
+            const data = e.data;
+            if(data.type === 'NEW_RIDE_DISPATCHED') {
+                if(activeDriver && activeDriver.id === data.driverId) {
+                    activeDriver.jobsReceived += 1;
+                    renderDriverScreen();
+                    showIncomingJobToDriver(data);
+                }
+                renderAdminTable();
+                updateAdminStats();
+            } else if(data.type === 'DRIVER_GPS_UPDATED') {
+                let drivers = getDriversDB();
+                const d = drivers.find(drv => drv.id === data.driverId);
+                if(d) {
+                    d.lat = data.lat;
+                    d.lng = data.lng;
+                    d.lastGpsUpdate = Date.now();
+                    localStorage.setItem('taxi_central_drivers', JSON.stringify(drivers));
+                    renderAdminTable();
+                    updatePassengerMapDriverMarkers();
+                    updateAdminRadarMapMarkers();
+                }
+            } else if(data.type === 'DB_UPDATED') {
+                renderAdminTable();
+                updateAdminStats();
+                updatePassengerMapDriverMarkers();
+                updateAdminRadarMapMarkers();
+            }
+        };
+
+        function startDriverLiveGPSTracking() {
+            if(!activeDriver) return;
+            if("geolocation" in navigator) {
+                if(gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
+
+                gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    
+                    activeDriver.lat = lat;
+                    activeDriver.lng = lng;
+                    activeDriver.lastGpsUpdate = Date.now();
+
+                    let drivers = getDriversDB();
+                    const idx = drivers.findIndex(d => d.id === activeDriver.id);
+                    if(idx !== -1) drivers[idx] = activeDriver;
+                    localStorage.setItem('taxi_central_drivers', JSON.stringify(drivers));
+
+                    taxiChannel.postMessage({
+                        type: 'DRIVER_GPS_UPDATED',
+                        driverId: activeDriver.id,
+                        lat: lat,
+                        lng: lng
+                    });
+
+                    document.getElementById('driverGpsStatus').innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)} (متصل حي)`;
+                    document.getElementById('driverGpsBadge').style.borderColor = 'var(--accent-green)';
+                    document.getElementById('driverGpsBadge').style.color = 'var(--accent-green)';
+                }, function() {
+                    document.getElementById('driverGpsStatus').innerText = "تعذر جلب GPS الحي";
+                }, {
+                    enableHighAccuracy: true,
+                    maximumAge: 10000,
+                    timeout: 20000
+                });
+            }
+        }
+
+        // ================= 1. YOLCU HARİTASI =================
+        function initPassengerMap() {
+            if(passengerMap) return;
+            passengerMap = L.map('passengerMapContainer').setView([pickupCoords.lat, pickupCoords.lng], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(passengerMap);
+
+            pickupMarker = L.marker([pickupCoords.lat, pickupCoords.lng], { draggable: true }).addTo(passengerMap).bindPopup("📍 مكان الركوب").openPopup();
+            document.getElementById('passPickupInput').value = "دمشق (محدد على الخريطة)";
+
+            pickupMarker.on('dragend', function(e) {
+                const pos = e.target.getLatLng();
+                pickupCoords = { lat: pos.lat, lng: pos.lng };
+                reverseGeocode(pos.lat, pos.lng, 'pickup');
+            });
+
+            passengerMap.on('click', function(e) {
+                if(mapMode === 'pickup') {
+                    pickupCoords = { lat: e.latlng.lat, lng: e.latlng.lng };
+                    if(pickupMarker) passengerMap.removeLayer(pickupMarker);
+                    pickupMarker = L.marker([e.latlng.lat, e.latlng.lng], { draggable: true }).addTo(passengerMap).bindPopup("📍 مكان الركوب").openPopup();
+                    reverseGeocode(e.latlng.lat, e.latlng.lng, 'pickup');
+                    setMapMode('dest');
+                } else {
+                    destCoords = { lat: e.latlng.lat, lng: e.latlng.lng };
+                    if(destMarker) passengerMap.removeLayer(destMarker);
+                    destMarker = L.marker([e.latlng.lat, e.latlng.lng], { draggable: true }).addTo(passengerMap).bindPopup("🏁 مكان النزول").openPopup();
+                    reverseGeocode(e.latlng.lat, e.latlng.lng, 'dest');
+                }
+            });
+
+            updatePassengerMapDriverMarkers();
+        }
+
+        function updatePassengerMapDriverMarkers() {
+            if(!passengerMap) return;
+            const drivers = getDriversDB();
+            
+            for(let id in passengerDriverMarkers) {
+                passengerMap.removeLayer(passengerDriverMarkers[id]);
+            }
+            passengerDriverMarkers = {};
+
+            drivers.forEach(d => {
+                const daysLeft = calculateRemainingDays(d.expiryTimestamp);
+                if(daysLeft > 0 && d.isOnline && d.lat && d.lng) {
+                    const taxiIcon = L.divIcon({
+                        className: 'custom-taxi-marker',
+                        html: `<div style="background: var(--primary-gold); color: #000; padding: 4px 8px; border-radius: 20px; font-weight: 900; font-size: 11px; border: 2px solid #000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 4px;">🚕 تكسي متاح</div>`,
+                        iconSize: [80, 30]
+                    });
+                    passengerDriverMarkers[d.id] = L.marker([d.lat, d.lng], { icon: taxiIcon }).addTo(passengerMap).bindPopup(`🚕 <strong>تكسي متاح بالقرب منك</strong><br>السيارة: ${d.car}`);
+                }
+            });
+        }
+
+        // ================= 2. ADMİN CANLI RADAR HARİTASI =================
+        function initAdminRadarMap() {
+            if(adminRadarMap) {
+                adminRadarMap.invalidateSize();
+                updateAdminRadarMapMarkers();
+                return;
+            }
+
+            adminRadarMap = L.map('adminRadarMapContainer').setView([33.5138, 36.2765], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(adminRadarMap);
+
+            updateAdminRadarMapMarkers();
+        }
+
+        function updateAdminRadarMapMarkers() {
+            if(!adminRadarMap) return;
+            const drivers = getDriversDB();
+
+            for(let id in adminDriverMarkers) {
+                adminRadarMap.removeLayer(adminDriverMarkers[id]);
+            }
+            adminDriverMarkers = {};
+
+            drivers.forEach(d => {
+                if(d.lat && d.lng) {
+                    const daysLeft = calculateRemainingDays(d.expiryTimestamp);
+                    let color = '#22c55e'; 
+                    let statusText = 'متاح للعمل';
+
+                    if(daysLeft <= 0) {
+                        color = '#ef4444'; 
+                        statusText = 'منتهي الاشتراك (موقوف)';
+                    } else if(!d.isOnline) {
+                        color = '#eab308'; 
+                        statusText = 'في استراحة';
+                    }
+
+                    const radarIcon = L.divIcon({
+                        className: 'admin-radar-marker',
+                        html: `<div style="background: ${color}; color: #000; padding: 4px 10px; border-radius: 18px; font-weight: 900; font-size: 11px; border: 2px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 4px;">🚖 ${d.name} (${daysLeft}يوم)</div>`,
+                        iconSize: [95, 30]
+                    });
+
+                    const driverDispatchMsg = encodeURIComponent(`🚕 مرحباً كابتن ${d.name}، لدينا مشوار جديد لك من الإدارة. يرجى التأكيد.`);
+                    const driverWaLink = `https://wa.me/${d.phone}?text=${driverDispatchMsg}`;
+
+                    const popupContent = `
+                        <div style="font-family: 'Cairo', sans-serif; font-size: 0.9rem; line-height: 1.5; color: #111;">
+                            <strong style="font-size: 1rem; color: #1e293b;">🚖 كابتن: ${d.name}</strong><br>
+                            🚗 <strong>السيارة:</strong> ${d.car}<br>
+                            📱 <strong>الهاتف:</strong> +${d.phone}<br>
+                            🚦 <strong>الحالة:</strong> <span style="font-weight: 800; color: ${color};">${statusText}</span><br>
+                            📅 <strong>الأيام المتبقية:</strong> ${daysLeft} يوم<br>
+                            📈 <strong>المشاوير:</strong> ${d.jobsReceived || 0}<br>
+                            <a href="${driverWaLink}" target="_blank" style="display: inline-block; background: #25d366; color: #fff; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-weight: 700; margin-top: 6px;">
+                                <i class="fa-brands fa-whatsapp"></i> إرسال مشوار للسائق
+                            </a>
+                        </div>
+                    `;
+
+                    adminDriverMarkers[d.id] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(adminRadarMap).bindPopup(popupContent);
+                }
+            });
+        }
+
+        function setMapMode(mode) {
+            mapMode = mode;
+            const btnP = document.getElementById('btnModePickup');
+            const btnD = document.getElementById('btnModeDest');
+            if(mode === 'pickup') {
+                btnP.className = 'btn-mode active-pickup';
+                btnD.className = 'btn-mode';
+            } else {
+                btnP.className = 'btn-mode';
+                btnD.className = 'btn-mode active-dest';
+            }
+        }
+
+        function getUserGPS() {
+            if(navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    pickupCoords = { lat, lng };
+                    passengerMap.setView([lat, lng], 15);
+                    if(pickupMarker) passengerMap.removeLayer(pickupMarker);
+                    pickupMarker = L.marker([lat, lng], { draggable: true }).addTo(passengerMap).bindPopup("📍 موقعك الحالي").openPopup();
+                    reverseGeocode(lat, lng, 'pickup');
+                    setMapMode('dest');
+                });
+            }
+        }
+
+        function reverseGeocode(lat, lng, type) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(r => r.json())
+                .then(data => {
+                    const shortAddr = data.display_name.split(',').slice(0, 3).join(',');
+                    if(type === 'pickup') document.getElementById('passPickupInput').value = shortAddr;
+                    else document.getElementById('passDestInput').value = shortAddr;
+                }).catch(() => {
+                    if(type === 'pickup') document.getElementById('passPickupInput').value = `موقع (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                    else document.getElementById('passDestInput').value = `وجهة (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                });
+        }
+
+        // ================= HIZLI İLETİŞİM -> DOĞRUDAN MERKEZİ ADMİNE BAĞLANIR =================
+        function quickDirectChatWithCentral() {
+            const pickupMapUrl = `https://maps.google.com/?q=${pickupCoords.lat},${pickupCoords.lng}`;
+            const msg = `مرحباً إدارة تكسي البلد، أود طلب أقرب تكسي متاح لي.
+📍 موقعي الحالي على الخريطة: ${pickupMapUrl}`;
+
+            window.location.href = `https://wa.me/${CENTRAL_ADMIN_PHONE}?text=${encodeURIComponent(msg)}`;
+        }
+
+        // ================= HARİTALI TALEP -> MERKEZİ ADMİNE TÜM DETAYLARI İLETİR =================
+        function passengerSendRideRequest(e) {
+            e.preventDefault();
+            const pickup = document.getElementById('passPickupInput').value;
+            const dest = document.getElementById('passDestInput').value;
+            const passenger = document.getElementById('passNameInput').value;
+
+            const pickupMapUrl = `https://maps.google.com/?q=${pickupCoords.lat},${pickupCoords.lng}`;
+            const destMapUrl = destCoords ? `https://maps.google.com/?q=${destCoords.lat},${destCoords.lng}` : '';
+
+            const statusBox = document.getElementById('passengerStatusBox');
+            statusBox.style.display = 'block';
+            statusBox.innerHTML = `
+                <div style="color: var(--accent-green); font-weight: 800; font-size: 1.05rem; margin-bottom: 6px;">
+                    <i class="fa-solid fa-circle-check"></i> جاري تحويل طلبك للإدارة المركزية...
+                </div>
+                <div>📱 سيتم فتح محادثة الواتساب مع الإدارة لمطابقة أقرب سائق متاح لك فوراً.</div>
+            `;
+
+            let waMsg = `🚕 طلب تكسي جديد عبر منصة تكسي البلد:
+👤 اسم العميل: ${passenger}
+📍 مكان الانطلاق (الركوب): ${pickup}
+🗺️ رابط موقع الانطلاق: ${pickupMapUrl}
+🏁 نقطة الوصول: ${dest}`;
+
+            if(destCoords) {
+                waMsg += `
+🗺️ رابط الوجهة: ${destMapUrl}`;
+            }
+
+            const adminWaUrl = `https://wa.me/${CENTRAL_ADMIN_PHONE}?text=${encodeURIComponent(waMsg)}`;
+            setTimeout(() => { window.location.href = adminWaUrl; }, 1000);
+        }
+
+        // SÜRÜCÜ EKRANI
+        function renderDriverScreen() {
+            const t = i18n[currentLang];
+            if(!activeDriver) return;
+
+            const daysLeft = calculateRemainingDays(activeDriver.expiryTimestamp);
+
+            document.getElementById('driverScreenName').innerText = activeDriver.name;
+            document.getElementById('driverScreenCar').innerText = activeDriver.car;
+            document.getElementById('driverScreenDays').innerText = daysLeft;
+            document.getElementById('driverScreenExpiryDate').innerText = `${currentLang === 'ar' ? 'تاريخ انتهاء الاشتراك:' : 'Expires:'} ${formatExpiryDate(activeDriver.expiryTimestamp)}`;
+            document.getElementById('driverScreenJobs').innerText = activeDriver.jobsReceived || 0;
+
+            const badge = document.getElementById('driverScreenStatusBadge');
+            const stateText = document.getElementById('driverScreenOnlineText');
+            const toggleBtn = document.getElementById('driverToggleOnlineBtn');
+
+            if(daysLeft <= 0) {
+                badge.className = "badge badge-expired";
+                badge.innerText = t.badgeExpired;
+                stateText.innerText = currentLang === 'ar' ? "موقوف (انتهت الأيام)" : "Expired (0 Days)";
+                stateText.style.color = "#ef4444";
+            } else {
+                badge.className = "badge badge-active";
+                badge.innerText = t.badgeActive;
+                stateText.innerText = activeDriver.isOnline ? t.badgeActive : t.badgeBusy;
+                stateText.style.color = activeDriver.isOnline ? "#22c55e" : "#eab308";
+            }
+
+            if(activeDriver.isOnline) {
+                toggleBtn.className = "toggle-status-btn btn-offline";
+                toggleBtn.innerHTML = t.btnBreak;
+            } else {
+                toggleBtn.className = "toggle-status-btn btn-online";
+                toggleBtn.innerHTML = t.btnWork;
+            }
+        }
+
+        function toggleCurrentDriverOnline() {
+            if(!activeDriver) return;
+            activeDriver.isOnline = !activeDriver.isOnline;
+            let drivers = getDriversDB();
+            const idx = drivers.findIndex(d => d.id === activeDriver.id);
+            if(idx !== -1) drivers[idx] = activeDriver;
+            saveDriversDB(drivers);
+            renderDriverScreen();
+            taxiChannel.postMessage({ type: 'DB_UPDATED' });
+            showToast(currentLang === 'ar' ? `تم تغيير حالتك: ${activeDriver.isOnline ? 'متاح' : 'في استراحة'}` : `Status: ${activeDriver.isOnline ? 'Online' : 'Offline'}`);
+        }
+
+        function showIncomingJobToDriver(job) {
+            lastIncomingJob = job;
+            const box = document.getElementById('driverIncomingJobBox');
+            box.style.display = 'block';
+            document.getElementById('driverJobDetailsContent').innerHTML = `
+                <div>👤 <strong>العميل:</strong> ${job.passenger}</div>
+                <div>📍 <strong>الركوب:</strong> ${job.pickup} (<a href="${job.pickupMapUrl}" target="_blank" style="color: var(--primary-gold);">فتح الخريطة</a>)</div>
+                <div>🏁 <strong>النزول:</strong> ${job.dest}</div>
+                <div>📅 <strong>اشتراكك:</strong> ساري (متبقي ${job.daysLeft} يوم)</div>
+            `;
+            showToast("🔔 وصلك إشعار مشوار جديد من الإدارة!");
+        }
+
+        function driverAcceptJobAndOpenCentralWA() {
+            const waMsg = `مرحباً إدارة تكسي البلد، أنا كابتن ${activeDriver.name}. لقد استلمت إشعار المشوار وأنا متوجه للعميل الآن.`;
+            window.open(`https://wa.me/${CENTRAL_ADMIN_PHONE}?text=${encodeURIComponent(waMsg)}`, '_blank');
+        }
+
+        // ADMİN PANEL İŞLEMLERİ
+        function updateAdminStats() {
+            const drivers = getDriversDB();
+            document.getElementById('adminStatDrivers').innerText = drivers.length;
+            document.getElementById('adminStatActive').innerText = drivers.filter(d => calculateRemainingDays(d.expiryTimestamp) > 0 && d.isOnline).length;
+            document.getElementById('adminStatExpired').innerText = drivers.filter(d => calculateRemainingDays(d.expiryTimestamp) <= 0).length;
+            const totalJobs = drivers.reduce((acc, curr) => acc + (curr.jobsReceived || 0), 0);
+            document.getElementById('adminStatJobs').innerText = totalJobs;
+        }
+
+        function renderAdminTable() {
+            const t = i18n[currentLang];
+            const tbody = document.getElementById('adminDriversTableBody');
+            tbody.innerHTML = '';
+            const drivers = getDriversDB();
+
+            if(drivers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">لم تقم بإضافة أي سائق بعد.</td></tr>`;
+                return;
+            }
+
+            drivers.forEach(d => {
+                const daysLeft = calculateRemainingDays(d.expiryTimestamp);
+                const isExpired = daysLeft <= 0;
+                const statusBadge = isExpired ? 
+                    `<span class="badge badge-expired">${t.badgeExpired}</span>` : 
+                    (d.isOnline ? `<span class="badge badge-active">${t.badgeActive}</span>` : `<span class="badge badge-busy">${t.badgeBusy}</span>`);
+
+                const gpsInfo = (d.lat && d.lng) ? 
+                    `<span style="color: var(--accent-green); font-size: 0.8rem;"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> ${d.lat.toFixed(3)}, ${d.lng.toFixed(3)}</span>` : 
+                    `<span style="color: var(--text-muted); font-size: 0.8rem;">بانتظار GPS</span>`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${d.name}</strong></td>
+                    <td dir="ltr" style="text-align: inherit;">+${d.phone}</td>
+                    <td>${d.car}</td>
+                    <td>${statusBadge}</td>
+                    <td>${gpsInfo}</td>
+                    <td>
+                        <strong style="color: ${isExpired ? '#ef4444' : '#eab308'}; font-size: 1.05rem;">${daysLeft} ${t.dayUnit}</strong>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${formatExpiryDate(d.expiryTimestamp)}</div>
+                    </td>
+                    <td><strong style="color: #3b82f6;">${d.jobsReceived || 0}</strong></td>
+                    <td>
+                        <button onclick="adminAddDays(${d.id}, 7)" class="btn-action" style="background: #22c55e; color: #fff;">+7 ${t.dayUnit}</button>
+                        <button onclick="adminAddDays(${d.id}, 30)" class="btn-action" style="background: var(--primary-gold); color: #000;">+30 ${t.dayUnit}</button>
+                        <button onclick="adminDeleteDriver(${d.id})" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 6px; padding: 4px 8px; cursor: pointer; margin-right: 4px;"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function adminAddNewDriver(e) {
+            e.preventDefault();
+            const name = document.getElementById('adminNewDName').value;
+            const phone = document.getElementById('adminNewDPhone').value.replace(/[^0-9]/g, '');
+            const car = document.getElementById('adminNewDCar').value;
+            const days = parseInt(document.getElementById('adminNewDDays').value) || 7;
+
+            let drivers = getDriversDB();
+            if(drivers.some(d => d.phone === phone)) {
+                alert("رقم الهاتف هذا مسجل بالفعل!");
+                return;
+            }
+
+            const expiryTimestamp = Date.now() + (days * 24 * 60 * 60 * 1000);
+
+            drivers.push({
+                id: Date.now(),
+                name,
+                phone,
+                car,
+                expiryTimestamp,
+                jobsReceived: 0,
+                isOnline: true,
+                lat: 33.5138 + (Math.random() - 0.5) * 0.04,
+                lng: 36.2765 + (Math.random() - 0.5) * 0.04
+            });
+
+            saveDriversDB(drivers);
+            taxiChannel.postMessage({ type: 'DB_UPDATED' });
+            e.target.reset();
+            showToast(`تمت إضافة السائق وتفعيل اشتراك (${days} يوم)!`);
+        }
+
+        function adminAddDays(driverId, daysToAdd) {
+            let drivers = getDriversDB();
+            const driver = drivers.find(d => d.id === driverId);
+            if(driver) {
+                const now = Date.now();
+                const baseTime = (driver.expiryTimestamp && driver.expiryTimestamp > now) ? driver.expiryTimestamp : now;
+                driver.expiryTimestamp = baseTime + (daysToAdd * 24 * 60 * 60 * 1000);
+
+                saveDriversDB(drivers);
+                taxiChannel.postMessage({ type: 'DB_UPDATED' });
+                showToast(`تم تمديد اشتراك ${driver.name} بـ +${daysToAdd} يوم.`);
+            }
+        }
+
+        function adminDeleteDriver(driverId) {
+            if(confirm("هل تريد حذف السائق نهائياً؟")) {
+                let drivers = getDriversDB().filter(d => d.id !== driverId);
+                saveDriversDB(drivers);
+                taxiChannel.postMessage({ type: 'DB_UPDATED' });
+                showToast("تم حذف السائق.");
+            }
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            if(viewId === 'passenger') {
+                document.getElementById('view-passenger').classList.add('active');
+                document.getElementById('tabPassengerBtn').classList.add('active');
+                setTimeout(() => { 
+                    initPassengerMap(); 
+                    updatePassengerMapDriverMarkers(); 
+                }, 200);
+            } else if(viewId === 'driver') {
+                document.getElementById('view-driver').classList.add('active');
+                document.getElementById('tabDriverBtn').classList.add('active');
+                renderDriverScreen();
+                startDriverLiveGPSTracking();
+            } else if(viewId === 'admin') {
+                document.getElementById('view-admin').classList.add('active');
+                document.getElementById('tabAdminBtn').classList.add('active');
+                renderAdminTable();
+                updateAdminStats();
+                setTimeout(() => {
+                    initAdminRadarMap();
+                }, 200);
+            }
+        }
+
+        function openDriverAuth() {
+            if(activeDriver) {
+                switchView('driver');
+            } else {
+                document.getElementById('driverAuthModal').style.display = 'flex';
+            }
+        }
+
+        function openAdminAuth() {
+            if(activeAdmin) {
+                switchView('admin');
+            } else {
+                document.getElementById('adminAuthModal').style.display = 'flex';
+            }
+        }
+
+        function closeModals() {
+            document.getElementById('driverAuthModal').style.display = 'none';
+            document.getElementById('adminAuthModal').style.display = 'none';
+        }
+
+        function handleDriverModalAuth(e) {
+            e.preventDefault();
+            const phone = document.getElementById('driverAuthPhoneInput').value.replace(/[^0-9]/g, '');
+            const drivers = getDriversDB();
+            const driver = drivers.find(d => d.phone === phone);
+
+            if(!driver) {
+                alert("❌ رقم الهاتف غير مسجل! يرجى مراجعة إدارة تكسي البلد أولاً.");
+                return;
+            }
+
+            activeDriver = driver;
+            closeModals();
+            switchView('driver');
+            showToast(`مرحباً بك يا كابتن ${driver.name}`);
+        }
+
+        function handleAdminModalAuth(e) {
+            e.preventDefault();
+            const pin = document.getElementById('adminAuthPinInput').value;
+            if(pin !== ADMIN_PIN) {
+                alert(i18n[currentLang].wrongPass);
+                return;
+            }
+            activeAdmin = true;
+            closeModals();
+            switchView('admin');
+            showToast("تم الدخول للوحة التحكم بنجاح");
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+
+            const t = i18n[currentLang];
+            document.getElementById('langBtn').innerHTML = t.langBtn;
+            document.getElementById('t-tab-passenger').innerText = t.tabPassenger;
+            document.getElementById('t-tab-driver').innerText = t.tabDriver;
+            document.getElementById('t-tab-admin').innerText = t.tabAdmin;
+            document.getElementById('t-p-mode1').innerText = t.pMode1;
+            document.getElementById('t-p-mode2').innerText = t.pMode2;
+            document.getElementById('t-p-maphint').innerText = t.pMapHint;
+            document.getElementById('t-p-formhead').innerText = t.pFormHead;
+            document.getElementById('t-p-direct-desc').innerText = t.pDirectDesc;
+            document.getElementById('t-p-btndirect').innerText = t.pBtnDirect;
+            document.getElementById('t-p-divider').innerText = t.pDivider;
+            document.getElementById('t-p-lblpickup').innerText = t.pLblPickup;
+            document.getElementById('t-p-lbldest').innerText = t.pLblDest;
+            document.getElementById('t-p-lblname').innerText = t.pLblName;
+            document.getElementById('t-p-btnsubmit').innerText = t.pBtnSubmit;
+            document.getElementById('t-d-lblcredit').innerText = t.dLblCredit;
+            document.getElementById('t-d-lbljobs').innerText = t.dLblJobs;
+            document.getElementById('t-d-lblstate').innerText = t.dLblState;
+            document.getElementById('t-d-incomingtitle').innerText = t.dIncomingTitle;
+            document.getElementById('t-d-btnaccept').innerText = t.dBtnAccept;
+            document.getElementById('t-a-stat1').innerText = t.aStat1;
+            document.getElementById('t-a-stat2').innerText = t.aStat2;
+            document.getElementById('t-a-stat3').innerText = t.aStat3;
+            document.getElementById('t-a-stat4').innerText = t.aStat4;
+            document.getElementById('t-a-radartitle').innerText = t.aRadarTitle;
+            document.getElementById('t-a-radarhint').innerText = t.aRadarHint;
+            document.getElementById('t-a-addtitle').innerText = t.aAddTitle;
+            document.getElementById('t-a-lblname').innerText = t.aLblName;
+            document.getElementById('t-a-lblphone').innerText = t.aLblPhone;
+            document.getElementById('t-a-lblcar').innerText = t.aLblCar;
+            document.getElementById('t-a-lblcredits').innerText = t.aLblCredits;
+            document.getElementById('t-a-btnadd').innerText = t.aBtnAdd;
+            document.getElementById('t-a-listtitle').innerText = t.aListTitle;
+            document.getElementById('t-a-th1').innerText = t.aTh1;
+            document.getElementById('t-a-th2').innerText = t.aTh2;
+            document.getElementById('t-a-th3').innerText = t.aTh3;
+            document.getElementById('t-a-th4').innerText = t.aTh4;
+            document.getElementById('t-a-th-gps').innerText = t.aThGps;
+            document.getElementById('t-a-th5').innerText = t.aTh5;
+            document.getElementById('t-a-th6').innerText = t.aTh6;
+            document.getElementById('t-a-th7').innerText = t.aTh7;
+            document.getElementById('t-m-dtitle').innerText = t.mDTitle;
+            document.getElementById('t-m-dsub').innerText = t.mDSub;
+            document.getElementById('t-m-dlbl').innerText = t.mDLbl;
+            document.getElementById('t-m-dbtn').innerText = t.mDBtn;
+            document.getElementById('t-m-dcancel').innerText = t.mDCancel;
+            document.getElementById('t-m-atitle').innerText = t.mATitle;
+            document.getElementById('t-m-asub').innerText = t.mASub;
+            document.getElementById('t-m-albl').innerText = t.mALbl;
+            document.getElementById('t-m-abtn').innerText = t.mABtn;
+            document.getElementById('t-m-acancel').innerText = t.mACancel;
+
+            renderAdminTable();
+            if(activeDriver) renderDriverScreen();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        window.onload = function() {
+            initPassengerMap();
+            renderAdminTable();
+            updateAdminStats();
+        };
+    </script>
+</body>
+</html>
