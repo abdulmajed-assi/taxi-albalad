@@ -16,6 +16,10 @@
     <!-- Leaflet.js CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
+    <!-- Firebase SDK (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         :root {
             --brand-yellow: #fcba03;
@@ -125,6 +129,7 @@
         }
         .app-view.active { display: block; }
 
+        /* 1. YOLCU EKRANI */
         .passenger-hero-card {
             background: linear-gradient(145deg, #1f1f1f 0%, #161616 100%);
             border: 2px solid var(--brand-yellow);
@@ -186,6 +191,7 @@
         .feature-item h4 { font-size: 1rem; font-weight: 800; margin-bottom: 4px; color: #fff; }
         .feature-item p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
 
+        /* 2. SÜRÜCÜ EKRANI */
         .driver-container { max-width: 480px; margin: 0 auto; }
         .driver-card {
             background: var(--brand-card); border: 2px solid var(--brand-yellow);
@@ -222,6 +228,7 @@
         .btn-to-break { background: #ef4444; color: #fff; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
         .btn-to-work { background: #22c55e; color: #000; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
 
+        /* 3. ADMİN EKRANI */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         .stat-card {
             background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3);
@@ -436,6 +443,14 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        // ================= FIREBASE REALTIME VERİTABANI BAĞLANTISI =================
+        const firebaseConfig = {
+            databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const driversRef = db.ref('drivers');
+
         let currentLang = 'ar';
         const ADMIN_PIN = "aa32";
         const CENTRAL_ADMIN_PHONE = "963962750014";
@@ -445,8 +460,7 @@
         let activeDriver = null;
         let activeAdmin = false;
         let gpsWatchId = null;
-
-        const taxiChannel = new BroadcastChannel('taxialbalad_final_app');
+        let driversList = [];
 
         const i18n = {
             ar: {
@@ -496,29 +510,29 @@
             return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
         }
 
-        function getDriversDB() {
-            return JSON.parse(localStorage.getItem('taxi_final_db')) || [];
-        }
-
-        function saveDriversDB(drivers) {
-            localStorage.setItem('taxi_final_db', JSON.stringify(drivers));
-            renderAdminTable(); 
-            updateAdminStats(); 
+        // FIREBASE CANLI VERİ DİNLEYİCİSİ
+        driversRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            driversList = [];
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    driversList.push({ ...data[key], fbKey: key });
+                });
+            }
+            renderAdminTable();
+            updateAdminStats();
             updateAdminRadarMapMarkers();
+
             if(activeDriver) {
-                activeDriver = drivers.find(d => d.id === activeDriver.id) || activeDriver;
-                renderDriverScreen();
+                const updated = driversList.find(d => d.phone === activeDriver.phone);
+                if(updated) {
+                    activeDriver = updated;
+                    renderDriverScreen();
+                }
             }
-        }
+        });
 
-        taxiChannel.onmessage = function(e) {
-            if(e.data.type === 'GPS_UPDATE' || e.data.type === 'DB_UPDATE') {
-                renderAdminTable(); 
-                updateAdminStats(); 
-                updateAdminRadarMapMarkers();
-            }
-        };
-
+        // YOLCU CANLI KONUM
         function handlePassengerDirectWhatsApp() {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(function(pos) {
@@ -535,6 +549,7 @@
             }
         }
 
+        // SÜRÜCÜ GPS TAKİBİ
         function startDriverLiveGPSTracking() {
             if(!activeDriver || !activeDriver.isOnline || !("geolocation" in navigator)) {
                 if(gpsWatchId) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
@@ -545,15 +560,12 @@
             if(gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
 
             gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
-                activeDriver.lat = pos.coords.latitude;
-                activeDriver.lng = pos.coords.longitude;
-                let drivers = getDriversDB();
-                const idx = drivers.findIndex(d => d.id === activeDriver.id);
-                if(idx !== -1) {
-                    drivers[idx].lat = pos.coords.latitude;
-                    drivers[idx].lng = pos.coords.longitude;
-                    localStorage.setItem('taxi_final_db', JSON.stringify(drivers));
-                    taxiChannel.postMessage({ type: 'GPS_UPDATE' });
+                if(activeDriver && activeDriver.fbKey) {
+                    driversRef.child(activeDriver.fbKey).update({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        lastGpsUpdate: Date.now()
+                    });
                 }
                 document.getElementById('driverGpsStatus').innerText = `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (GPS متصل)`;
             }, function() {
@@ -595,20 +607,14 @@
         }
 
         function toggleCurrentDriverOnline() {
-            if(!activeDriver) return;
-            
-            activeDriver.isOnline = !activeDriver.isOnline;
-            
-            let drivers = getDriversDB();
-            const idx = drivers.findIndex(d => d.id === activeDriver.id);
-            if(idx !== -1) {
-                drivers[idx].isOnline = activeDriver.isOnline;
-                localStorage.setItem('taxi_final_db', JSON.stringify(drivers));
-            }
-            
+            if(!activeDriver || !activeDriver.fbKey) return;
+            const newStatus = !activeDriver.isOnline;
+            driversRef.child(activeDriver.fbKey).update({
+                isOnline: newStatus
+            });
+            activeDriver.isOnline = newStatus;
             renderDriverScreen();
             startDriverLiveGPSTracking();
-            taxiChannel.postMessage({ type: 'DB_UPDATE' });
         }
 
         function initAdminRadarMap() {
@@ -620,11 +626,10 @@
 
         function updateAdminRadarMapMarkers() {
             if(!adminRadarMap) return;
-            const drivers = getDriversDB();
             for(let id in adminDriverMarkers) { adminRadarMap.removeLayer(adminDriverMarkers[id]); }
             adminDriverMarkers = {};
 
-            drivers.forEach(d => {
+            driversList.forEach(d => {
                 if(d.lat && d.lng) {
                     const daysLeft = calculateRemainingDays(d.expiryTimestamp);
                     const color = daysLeft <= 0 ? '#ef4444' : (d.isOnline ? '#22c55e' : '#fcba03');
@@ -636,27 +641,25 @@
                     });
                     const waLink = `https://wa.me/${d.phone}?text=${encodeURIComponent('🚕 مشوار جديد لك من الإدارة.')}`;
                     const popup = `<strong>${d.name}</strong> (${d.car})<br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
-                    adminDriverMarkers[d.id] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(adminRadarMap).bindPopup(popup);
+                    adminDriverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(adminRadarMap).bindPopup(popup);
                 }
             });
         }
 
         function updateAdminStats() {
-            const drivers = getDriversDB();
-            document.getElementById('adminStatDrivers').innerText = drivers.length;
-            document.getElementById('adminStatActive').innerText = drivers.filter(d => calculateRemainingDays(d.expiryTimestamp) > 0 && d.isOnline).length;
-            document.getElementById('adminStatExpired').innerText = drivers.filter(d => calculateRemainingDays(d.expiryTimestamp) <= 0).length;
+            document.getElementById('adminStatDrivers').innerText = driversList.length;
+            document.getElementById('adminStatActive').innerText = driversList.filter(d => calculateRemainingDays(d.expiryTimestamp) > 0 && d.isOnline).length;
+            document.getElementById('adminStatExpired').innerText = driversList.filter(d => calculateRemainingDays(d.expiryTimestamp) <= 0).length;
         }
 
         function renderAdminTable() {
             const tbody = document.getElementById('adminDriversTableBody');
             tbody.innerHTML = '';
-            const drivers = getDriversDB();
-            if(drivers.length === 0) {
+            if(driversList.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين مسجلين.</td></tr>`;
                 return;
             }
-            drivers.forEach(d => {
+            driversList.forEach(d => {
                 const daysLeft = calculateRemainingDays(d.expiryTimestamp);
                 const isExp = daysLeft <= 0;
                 const statusBadge = isExp ? `<span class="badge badge-expired">منتهي</span>` : (d.isOnline ? `<span class="badge badge-active">متاح</span>` : `<span class="badge badge-busy">استراحة</span>`);
@@ -669,9 +672,9 @@
                     <td>${d.lat ? '📍 متصل' : 'بانتظار GPS'}</td>
                     <td><strong style="color:${isExp?'#ef4444':'#fcba03'};">${daysLeft} يوم</strong></td>
                     <td>
-                        <button onclick="adminAddDays(${d.id}, 7)" class="btn-action">+7</button>
-                        <button onclick="adminAddDays(${d.id}, 30)" class="btn-action">+30</button>
-                        <button onclick="adminDeleteDriver(${d.id})" style="background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;padding:4px;"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="adminAddDays('${d.fbKey}', 7)" class="btn-action">+7</button>
+                        <button onclick="adminAddDays('${d.fbKey}', 30)" class="btn-action">+30</button>
+                        <button onclick="adminDeleteDriver('${d.fbKey}')" style="background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;padding:4px;"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -684,34 +687,34 @@
             const phone = document.getElementById('adminNewDPhone').value.replace(/[^0-9]/g, '');
             const car = document.getElementById('adminNewDCar').value;
             const days = parseInt(document.getElementById('adminNewDDays').value) || 7;
-            let drivers = getDriversDB();
-            if(drivers.some(d => d.phone === phone)) { alert("رقم الهاتف مسجل مسبقاً!"); return; }
 
-            drivers.push({
-                id: Date.now(), name, phone, car,
+            if(driversList.some(d => d.phone === phone)) { alert("رقم الهاتف مسجل مسبقاً!"); return; }
+
+            driversRef.push({
+                name, phone, car,
                 expiryTimestamp: Date.now() + (days * 24 * 60 * 60 * 1000),
                 jobsReceived: 0, isOnline: true,
                 lat: 33.5138 + (Math.random() - 0.5) * 0.03,
                 lng: 36.2765 + (Math.random() - 0.5) * 0.03
             });
-            saveDriversDB(drivers);
+
             e.target.reset();
-            alert("تم تسجيل السائق وتفعيل الاشتراك!");
+            alert("تم تسجيل السائق وتفعيل الاشتراك في السحابة!");
         }
 
-        function adminAddDays(driverId, daysToAdd) {
-            let drivers = getDriversDB();
-            const driver = drivers.find(d => d.id === driverId);
+        function adminAddDays(fbKey, daysToAdd) {
+            const driver = driversList.find(d => d.fbKey === fbKey);
             if(driver) {
                 const base = (driver.expiryTimestamp && driver.expiryTimestamp > Date.now()) ? driver.expiryTimestamp : Date.now();
-                driver.expiryTimestamp = base + (daysToAdd * 24 * 60 * 60 * 1000);
-                saveDriversDB(drivers);
+                driversRef.child(fbKey).update({
+                    expiryTimestamp: base + (daysToAdd * 24 * 60 * 60 * 1000)
+                });
             }
         }
 
-        function adminDeleteDriver(driverId) {
-            if(confirm("حذف السائق نهائياً؟")) {
-                saveDriversDB(getDriversDB().filter(d => d.id !== driverId));
+        function adminDeleteDriver(fbKey) {
+            if(confirm("حذف السائق نهائياً من النظام؟")) {
+                driversRef.child(fbKey).remove();
             }
         }
 
@@ -753,7 +756,7 @@
         function handleDriverModalAuth(e) {
             e.preventDefault();
             const phone = document.getElementById('driverAuthPhoneInput').value.replace(/[^0-9]/g, '');
-            const driver = getDriversDB().find(d => d.phone === phone);
+            const driver = driversList.find(d => d.phone === phone);
             if(!driver) { alert("❌ الرقم غير مسجل بالإدارة!"); return; }
             activeDriver = driver;
             closeModals();
@@ -787,11 +790,6 @@
             document.getElementById('t-f4-t').innerText = t.f4T; document.getElementById('t-f4-d').innerText = t.f4D;
             renderDriverScreen();
         }
-
-        window.onload = function() {
-            renderAdminTable(); 
-            updateAdminStats();
-        };
     </script>
 </body>
 </html>
