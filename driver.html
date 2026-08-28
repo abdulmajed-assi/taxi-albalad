@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>كابتن تكسي البلد | Taxi Al Balad Captain</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة والرادار | تكسي البلد</title>
     
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,6 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Leaflet Harita -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -18,9 +21,8 @@
     <style>
         :root {
             --brand-yellow: #fcba03;
-            --brand-yellow-glow: rgba(252, 186, 3, 0.35);
-            --brand-black: #0d0d0d;
-            --brand-card: #1f1f1f;
+            --brand-black: #111111;
+            --brand-card: #222222;
             --accent-red: #ef4444;
             --accent-green: #22c55e;
             --accent-blue: #3b82f6;
@@ -28,283 +30,374 @@
             --text-muted: #a3a3a3;
         }
 
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--brand-black);
-            color: var(--text-main);
-            min-height: 100vh;
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--brand-black); color: var(--text-main); min-height: 100vh; padding: 1.5rem 1rem; }
+        .admin-wrap { max-width: 1100px; margin: 0 auto; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 12px; padding: 1rem; display: flex; align-items: center; gap: 10px; }
+        .stat-icon { width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .stat-icon.gold { background: rgba(252, 186, 3, 0.15); color: var(--brand-yellow); }
+        .stat-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+        .stat-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+        .panel-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.5rem; }
+        
+        .panel-header-flex {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            padding: 1.5rem 1rem;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
-        .driver-container { width: 100%; max-width: 440px; }
+        /* ARAMA VE SEÇİM ALANI */
+        .radar-controls-wrap {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
 
-        .driver-card {
-            background: linear-gradient(160deg, #222222 0%, #141414 100%);
-            border: 2px solid var(--brand-yellow);
-            border-radius: 28px;
-            padding: 2.2rem 1.6rem;
-            text-align: center;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(252, 186, 3, 0.15);
-            position: relative;
+        @media (max-width: 600px) {
+            .radar-controls-wrap { grid-template-columns: 1fr; }
+        }
+
+        .search-input-group {
+            display: flex;
+            align-items: center;
+            background: #111;
+            border: 1.5px solid var(--brand-yellow);
+            border-radius: 10px;
             overflow: hidden;
         }
 
-        .driver-card::before {
-            content: ''; position: absolute;
-            top: 0; left: 0; width: 100%; height: 6px;
-            background: repeating-linear-gradient(90deg, var(--brand-yellow), var(--brand-yellow) 15px, #000 15px, #000 30px);
+        .search-input-group input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 10px 14px;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
         }
 
-        .app-logo {
-            width: 90px; height: 90px;
-            border-radius: 50%;
-            border: 3px solid var(--brand-yellow);
-            margin: 0.5rem auto 1.2rem;
-            display: block; background: #fff;
-            object-fit: cover;
-            box-shadow: 0 6px 25px var(--brand-yellow-glow);
+        .btn-search {
+            background: var(--brand-yellow);
+            color: #000;
+            border: none;
+            padding: 10px 18px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
         }
 
-        .brand-heading h1 { font-size: 1.5rem; font-weight: 900; color: var(--brand-yellow); line-height: 1.2; }
-        .brand-heading p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.6rem; font-weight: 600; }
-
-        .form-group { text-align: right; margin-bottom: 1rem; }
-        .form-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; display: block; }
+        #radarMap { width: 100%; height: 470px; border-radius: 10px; border: 1.5px solid var(--brand-yellow); }
         
-        .phone-input-row {
+        table { width: 100%; border-collapse: collapse; text-align: inherit; }
+        th, td { padding: 10px; border-bottom: 1px solid rgba(252, 186, 3, 0.2); font-size: 0.85rem; }
+        th { background: #141414; color: var(--text-muted); }
+        
+        .btn-action { background: var(--brand-yellow); color: #000; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; transition: transform 0.1s; }
+        .btn-action:hover { transform: scale(1.05); }
+        
+        .form-input {
+            width: 100%; padding: 12px; border-radius: 8px;
+            border: 1px solid #444; background: #fff; color: #000;
+            outline: none; margin-bottom: 12px; font-weight: 700; font-size: 1rem;
+        }
+
+        .phone-input-group {
             display: flex;
             align-items: stretch;
             direction: ltr !important;
             background: #ffffff;
-            border-radius: 12px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            margin-bottom: 8px;
             overflow: hidden;
-            border: 2px solid #333;
-            transition: border-color 0.2s;
         }
-        .phone-input-row:focus-within {
-            border-color: var(--brand-yellow);
-        }
-        .phone-input-row .prefix-tag {
+
+        .country-prefix {
             background: #eef2f6;
             color: #0b132b;
+            padding: 11px 13px;
             font-weight: 900;
-            font-size: 1.15rem;
-            padding: 12px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 1.05rem;
             border-right: 2px solid #cbd5e1;
             user-select: none;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
         }
-        .phone-input-row input {
-            flex: 1;
+
+        .phone-input-group input {
             border: none;
             outline: none;
-            background: transparent;
-            color: #111111;
-            font-size: 1.15rem;
+            padding: 11px;
+            width: 100%;
             font-weight: 800;
-            padding: 12px 14px;
+            font-size: 1.05rem;
+            color: #000;
             direction: ltr;
         }
 
-        .input-icon-wrap { position: relative; display: flex; align-items: center; }
-        .input-icon-wrap i { position: absolute; right: 14px; color: var(--brand-yellow); font-size: 1rem; }
-        
-        .form-input-pass {
-            width: 100%; padding: 13px 42px 13px 14px;
-            border-radius: 12px; border: 2px solid #333;
-            background: #111; color: #fff; outline: none;
-            font-size: 1rem; font-weight: 700;
-        }
-        .form-input-pass:focus { border-color: var(--brand-yellow); }
-
-        .btn-submit {
-            width: 100%; background: linear-gradient(135deg, var(--brand-yellow) 0%, #d49b00 100%);
-            color: #000; border: none; padding: 14px; border-radius: 12px;
-            font-size: 1.15rem; font-weight: 900; cursor: pointer; margin-top: 0.5rem;
-            box-shadow: 0 6px 20px rgba(252, 186, 3, 0.3);
-        }
-
-        .driver-info-badge {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(252, 186, 3, 0.2);
-            border-radius: 16px;
-            padding: 0.8rem 1rem;
-            margin-bottom: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .gps-pill {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid var(--accent-blue);
-            color: var(--accent-blue);
-            padding: 7px 16px; border-radius: 20px;
-            font-size: 0.82rem; font-weight: 800; margin-bottom: 1.2rem;
-        }
-
-        .gps-pulse {
-            width: 9px; height: 9px; border-radius: 50%;
-            background: var(--accent-blue);
-            box-shadow: 0 0 10px var(--accent-blue);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.7; }
-            50% { transform: scale(1.35); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.7; }
-        }
-
-        .credit-card-meter {
-            background: linear-gradient(145deg, #111 0%, #080808 100%);
-            border-radius: 18px; padding: 1.4rem; margin-bottom: 1.4rem;
-            border: 1px solid rgba(252, 186, 3, 0.3);
-        }
-
-        .credit-number {
-            font-size: 3.5rem; font-weight: 900; color: var(--brand-yellow);
-            line-height: 1; margin: 0.3rem 0;
-            text-shadow: 0 0 20px var(--brand-yellow-glow);
-        }
-
-        .badge { padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; display: inline-block; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
         .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
         .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
         .badge-busy { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
+        .badge-city { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
 
-        .toggle-status-btn {
-            width: 100%; padding: 16px; border-radius: 14px;
-            font-size: 1.15rem; font-weight: 900; cursor: pointer; border: none;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn-to-break { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; }
-        .btn-to-work { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: #000; }
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .auth-box { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 2.2rem 1.8rem; max-width: 380px; width: 100%; text-align: center; }
 
-        .driver-expired-box {
-            background: rgba(239, 68, 68, 0.1); border: 2px dashed var(--accent-red);
-            border-radius: 18px; padding: 1.5rem 1.2rem; margin-top: 1rem;
-        }
-        .driver-expired-box p { color: #ffb4b4; font-size: 0.95rem; font-weight: 700; line-height: 1.5; margin-bottom: 1.2rem; }
-        .btn-renew-sub {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-            color: #ffffff; text-decoration: none; width: 100%; padding: 14px;
-            border-radius: 12px; font-weight: 900; font-size: 1.05rem;
-        }
-
-        .btn-logout { background: transparent; border: none; color: var(--text-muted); margin-top: 1.5rem; cursor: pointer; font-size: 0.9rem; font-weight: 700; }
+        .modal-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-card { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 1.8rem; max-width: 480px; width: 100%; text-align: right; }
     </style>
 </head>
 <body>
 
-    <!-- ARKA PLAN UYUTMAYI ENGELLEYEN GİZLİ SESSİZ SES ELEMENTİ -->
-    <audio id="silentAudioTracker" loop preload="auto">
-        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
-    </audio>
-
-    <div class="driver-container">
-        <!-- 1. GİRİŞ EKRANI -->
-        <div id="driverLoginBox" class="driver-card">
-            <img src="logo.jpg" alt="Logo" class="app-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2554/2554978.png'">
+    <!-- GİRİŞ EKRANI (İPUCU VE AD KALDIRILMIŞ TEMİZ KUTULAR) -->
+    <div id="adminAuthBox" class="auth-overlay">
+        <div class="auth-box">
+            <h2 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</h2>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:18px;">تسجيل الدخول إلى النظام الإداري</p>
             
-            <div class="brand-heading">
-                <h1>تكسي البلد | كابتن</h1>
-                <p>بوابة تسجيل دخول السائقين</p>
-            </div>
-            
-            <form onsubmit="handleDriverLogin(event)">
-                <div class="form-group">
-                    <label class="form-label">رقم الهاتف</label>
-                    <div class="phone-input-row">
-                        <span class="prefix-tag">+963</span>
-                        <input type="tel" id="driverLocalPhoneInput" placeholder="962750014" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">رمز المرور (PIN)</label>
-                    <div class="input-icon-wrap">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="driverPassInput" class="form-input-pass" placeholder="••••" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-submit">
-                    <i class="fa-solid fa-arrow-right-to-bracket"></i> تسجيل الدخول
+            <form onsubmit="handleAdminLogin(event)" style="text-align: right;">
+                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">اسم المستخدم (Username):</label>
+                <input type="text" id="adminUserInput" class="form-input" placeholder="" autocomplete="off" required style="direction: ltr; font-weight: 800;">
+                
+                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">كلمة المرور (Password):</label>
+                <input type="password" id="adminPinInput" class="form-input" placeholder="" required style="direction: ltr; font-weight: 800;">
+                
+                <button type="submit" class="btn-action" style="width:100%; padding:13px; font-size:1.1rem; margin-top: 6px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
                 </button>
             </form>
         </div>
+    </div>
 
-        <!-- 2. ŞOFÖR KONTROL PANELİ -->
-        <div id="driverPanelBox" class="driver-card" style="display:none;">
-            <img src="logo.jpg" alt="Logo" class="app-logo" style="width: 75px; height: 75px; margin-bottom: 0.8rem;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2554/2554978.png'">
+    <!-- ADMİN İÇERİK ALANI -->
+    <div class="admin-wrap" id="adminContent" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:10px;">
+            <h1 style="color:var(--brand-yellow); font-size:1.4rem;"><i class="fa-solid fa-gauge-high"></i> إدارة تكسي البلد</h1>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <a href="/" style="color:var(--text-muted); text-decoration:none; font-size:0.85rem;"><i class="fa-solid fa-arrow-left"></i> زيارة الموقع</a>
+                <button onclick="adminLogout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;">خروج</button>
+            </div>
+        </div>
 
-            <div class="driver-info-badge">
-                <div style="text-align: right;">
-                    <div id="dName" style="font-size: 1.15rem; font-weight: 900; color: #fff;">-</div>
-                    <div style="font-size: 0.8rem; color: var(--brand-yellow); font-weight: 700;">
-                        <span id="dCar">-</span> | <i class="fa-solid fa-location-dot"></i> <span id="dCityDisplay">جاري تحديد الموقع...</span>
-                    </div>
+        <!-- İSTATİSTİKLER -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="fa-solid fa-users"></i></div>
+                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">إجمالي السائقين</h4><p id="adminStatDrivers" style="font-size:1.2rem; font-weight:800;">0</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">متاح للعمل الآن</h4><p id="adminStatActive" style="font-size:1.2rem; font-weight:800;">0</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fa-solid fa-calendar-xmark"></i></div>
+                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">منتهي الاشتراك</h4><p id="adminStatExpired" style="font-size:1.2rem; font-weight:800;">0</p></div>
+            </div>
+        </div>
+
+        <!-- RADAR & AKILLI ARAMA -->
+        <div class="panel-card">
+            <div class="panel-header-flex">
+                <h3 style="font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي والبحث عن المناطق</h3>
+            </div>
+
+            <div class="radar-controls-wrap">
+                <div class="search-input-group">
+                    <input type="text" id="areaSearchInput" list="syriaPlacesList" placeholder="اكتب أو اختر الحي / الشارع (مثل: الميدان، المزة، الحميدية، برزة...)" onkeypress="handleSearchKeyPress(event)">
+                    <datalist id="syriaPlacesList">
+                        <option value="الأمين">
+                        <option value="الحميدية">
+                        <option value="الحريقة">
+                        <option value="المزرعة">
+                        <option value="الميدان">
+                        <option value="شارع بغداد">
+                        <option value="برزة">
+                        <option value="دمشق">
+                        <option value="فارس الخوري">
+                        <option value="كفرسوسة">
+                        <option value="Mahmoud Khalil St">
+                        <option value="مساكن برزة">
+                        <option value="مشروع دمر">
+                        <option value="Maysaloon">
+                        <option value="مزة 86">
+                        <option value="سوق مدحت باشا">
+                        <option value="القابون">
+                        <option value="ركن الدين">
+                        <option value="التضامن">
+                        <option value="شارع 29 ايار">
+                        <option value="ساحة العباسيين">
+                        <option value="ابو رمانة">
+                        <option value="القصور">
+                        <option value="شارع الحمراء">
+                        <option value="الحجاز">
+                        <option value="المزة">
+                        <option value="المهاجرين">
+                        <option value="الصالحية">
+                        <option value="الشعلان">
+                        <option value="الشاغور">
+                        <option value="الشهبندر">
+                        <option value="شارع الثورة">
+                        <option value="الزاهرة">
+                        <option value="العدوي">
+                        <option value="حمص">
+                        <option value="حلب">
+                        <option value="اللاذقية">
+                        <option value="طرطوس">
+                        <option value="حماة">
+                        <option value="درعا">
+                        <option value="السويداء">
+                    </datalist>
+                    <button class="btn-search" onclick="searchLocationAndDrivers()">
+                        <i class="fa-solid fa-magnifying-glass"></i> بحث
+                    </button>
                 </div>
-                <div id="dStatusBadge" class="badge badge-active">-</div>
-            </div>
 
-            <div class="gps-pill" id="driverGpsBadge">
-                <span class="gps-pulse"></span>
-                <span id="driverGpsStatus">GPS متصل ومشارك بالخلفية</span>
-            </div>
-
-            <div class="credit-card-meter">
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">الأيام المتبقية في اشتراكك</div>
-                <div class="credit-number" id="dDays">0</div>
-                <div id="dExpiryDate" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px; font-weight:700;">ينتهي في: --</div>
-            </div>
-
-            <button class="toggle-status-btn btn-to-break" id="driverToggleOnlineBtn" onclick="toggleOnline()">
-                <i class="fa-solid fa-pause"></i> <span>أخذ استراحة (إيقاف الاستقبال)</span>
-            </button>
-
-            <div id="driverExpiredBox" class="driver-expired-box" style="display:none;">
-                <p>
-                    <i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-red); margin-left:4px;"></i>
-                    انتهت أيام اشتراكك في النظام!<br>يرجى التواصل مع إدارة <b>تكسي البلد</b> لتجديد الاشتراك ومتابعة العمل.
-                </p>
-                <a id="driverRenewWhatsAppBtn" href="#" class="btn-renew-sub">
-                    <i class="fa-brands fa-whatsapp"></i> تواصل مع الإدارة لتجديد الاشتراك
-                </a>
-            </div>
-
-            <div>
-                <button onclick="logoutDriver()" class="btn-logout">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+                <button onclick="resetRadarView()" style="background:#333; color:#fff; border:1px solid #555; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.85rem;">
+                    <i class="fa-solid fa-rotate-left"></i> عرض الكل
                 </button>
+            </div>
+
+            <div id="radarMap"></div>
+        </div>
+
+        <!-- YENİ SÜRÜCÜ EKLEME -->
+        <div class="panel-card">
+            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل كابتن جديد وتحديد كلمة السر</h3>
+            <form onsubmit="addNewDriver(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                    <input type="text" id="newDName" class="form-input" placeholder="اسم السائق (مثلاً: أحمد)" required>
+                    
+                    <div class="phone-input-group">
+                        <span class="country-prefix">+963</span>
+                        <input type="tel" id="newDPhoneLocal" placeholder="962750014" required>
+                    </div>
+
+                    <input type="text" id="newDPass" class="form-input" placeholder="كلمة المرور (PIN)" required>
+                    <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة (كيا 12345)" required>
+                    <input type="number" id="newDDays" class="form-input" value="7" min="1" placeholder="أيام الاشتراك" required>
+                </div>
+                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 11px 20px;">إضافة وتفعيل السائق وإرسال بيانات الدخول</button>
+            </form>
+        </div>
+
+        <!-- SÜRÜCÜ LİSTESİ -->
+        <div class="panel-card">
+            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-list"></i> قائمة السائقين (مع تحديد المحافظة تلقائياً عبر GPS)</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr><th>السائق</th><th>المحافظة الحالية</th><th>الهاتف</th><th>كلمة السر</th><th>السيارة</th><th>الحالة</th><th>الأيام</th><th>العمليات</th></tr>
+                    </thead>
+                    <tbody id="adminTableBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
+    <!-- MODAL POPUP -->
+    <div id="infoModal" class="modal-wrap" style="display:none;">
+        <div class="modal-card">
+            <h3 style="color:var(--brand-yellow); margin-bottom:10px;"><i class="fa-solid fa-circle-check" style="color:var(--accent-green);"></i> تم تسجيل السائق بنجاح!</h3>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">نص الرسالة المجهز مع رابط تحميل التطبيق المباشر (APK):</p>
+            <textarea id="modalMsgText" style="width:100%; height:170px; background:#111; color:#fff; border:1px solid #444; border-radius:8px; padding:10px; font-size:0.85rem; font-family:'Cairo'; outline:none; resize:none;" readonly></textarea>
+            
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button onclick="copyModalText()" class="btn-action" style="flex:1; padding:10px;"><i class="fa-solid fa-copy"></i> نسخ نص الرسالة</button>
+                <button onclick="openWhatsAppDirect()" class="btn-action" style="background:#25d366; color:#fff; flex:1; padding:10px;"><i class="fa-brands fa-whatsapp"></i> فتح واتساب الآن</button>
+                <button onclick="closeModal()" style="background:#333; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:700;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
+        const ADMIN_USERNAME = "Jonathan";
+        const ADMIN_PASSWORD = "Aassi1981";
+        
         const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const driversRef = db.ref('drivers');
 
-        const CENTRAL_ADMIN_PHONE = "963962750014";
-        let activeDriver = null;
-        let driversList = [];
-        let gpsWatchId = null;
-        let gpsHeartbeatInterval = null;
-        let wakeLock = null;
+        const DRIVER_APK_DOWNLOAD_URL = "https://taxialbalad.com/driver.apk";
 
-        const savedPhone = localStorage.getItem('taxi_driver_phone');
+        let radarMap;
+        let driverMarkers = {};
+        let driversList = [];
+        let currentModalPhone = "";
+        let currentModalMsg = "";
+
+        // GÖRSELLERDEKİ TÜM ŞAM BÖLGELERİ & SOKAKLARI + DİĞER İLLERİN KOORDİNATLARI
+        const knownLocations = {
+            'الأمين': [33.5080, 36.3120],
+            'الحميدية': [33.5110, 36.3000],
+            'الحريقة': [33.5095, 36.3030],
+            'المزرعة': [33.5250, 36.2980],
+            'الميدان': [33.4900, 36.3000],
+            'شارع بغداد': [33.5220, 36.3050],
+            'برزة': [33.5600, 36.3200],
+            'دمشق': [33.5138, 36.2765],
+            'فارس الخوري': [33.5310, 36.3180],
+            'كفرسوسة': [33.4912, 36.2736],
+            'mahmoud khalil st': [33.5190, 36.2850],
+            'مساكن برزة': [33.5680, 36.3350],
+            'مشروع دمر': [33.5360, 36.2300],
+            'maysaloon': [33.5170, 36.2910],
+            'ميسلون': [33.5170, 36.2910],
+            'مزة 86': [33.4980, 36.2350],
+            'سوق مدحت باشا': [33.5075, 36.3060],
+            'القابون': [33.5450, 36.3400],
+            'ركن الدين': [33.5350, 36.2950],
+            'التضامن': [33.4750, 36.3200],
+            'شارع 29 ايار': [33.5175, 36.2980],
+            'ساحة العباسيين': [33.5285, 36.3240],
+            'ابو رمانة': [33.5195, 36.2800],
+            'القصور': [33.5290, 36.3150],
+            'شارع الحمراء': [33.5200, 36.2880],
+            'الحجاز': [33.5115, 36.2965],
+            'المزة': [33.5015, 36.2486],
+            'المهاجرين': [33.5280, 36.2720],
+            'الصالحية': [33.5230, 36.2920],
+            'الشعلان': [33.5180, 36.2900],
+            'الشاغور': [33.5050, 36.3150],
+            'الشهبندر': [33.5270, 36.2960],
+            'شارع الثورة': [33.5160, 36.2990],
+            'الزاهرة': [33.4850, 36.3150],
+            'العدوي': [33.5330, 36.3100],
+            'ريف دمشق': [33.5400, 36.3800],
+            'جرمانا': [33.4833, 36.3500],
+            'قدسيا': [33.5650, 36.2100],
+            'صحنايا': [33.4350, 36.2400],
+            'حمص': [34.7324, 36.7137],
+            'حلب': [36.2021, 37.1343],
+            'اللاذقية': [35.5317, 35.7900],
+            'طرطوس': [34.8890, 35.8866],
+            'حماة': [35.1318, 36.7578],
+            'درعا': [32.6255, 36.1055],
+            'السويداء': [32.7090, 36.5695],
+            'القنيطرة': [33.1250, 35.8200],
+            'دير الزور': [35.3350, 40.1450],
+            'الرقة': [35.9500, 39.0100],
+            'الحسكة': [36.5000, 40.7500],
+            'إدلب': [35.9306, 36.6339]
+        };
 
         function cleanSyrianPhone(raw) {
             let d = raw.toString().replace(/[^0-9]/g, '');
@@ -315,35 +408,41 @@
             return d;
         }
 
-        const syrianCities = [
-            { name: 'دمشق', lat: 33.5138, lng: 36.2765 },
-            { name: 'ريف دمشق', lat: 33.5400, lng: 36.3800 },
-            { name: 'حمص', lat: 34.7324, lng: 36.7137 },
-            { name: 'حلب', lat: 36.2021, lng: 37.1343 },
-            { name: 'حماة', lat: 35.1318, lng: 36.7578 },
-            { name: 'اللاذقية', lat: 35.5317, lng: 35.7900 },
-            { name: 'طرطوس', lat: 34.8890, lng: 35.8866 },
-            { name: 'درعا', lat: 32.6255, lng: 36.1055 },
-            { name: 'السويداء', lat: 32.7090, lng: 36.5695 },
-            { name: 'القنيطرة', lat: 33.1250, lng: 35.8200 },
-            { name: 'دير الزور', lat: 35.3350, lng: 40.1450 },
-            { name: 'الرقة', lat: 35.9500, lng: 39.0100 },
-            { name: 'الحسكة', lat: 36.5000, lng: 40.7500 },
-            { name: 'إدلب', lat: 35.9306, lng: 36.6339 }
-        ];
+        function getWhatsAppUrl(phone, msg) {
+            const clean = cleanSyrianPhone(phone);
+            const encoded = encodeURIComponent(msg);
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if(isMobile) {
+                return `https://wa.me/${clean}?text=${encoded}`;
+            } else {
+                return `https://web.whatsapp.com/send?phone=${clean}&text=${encoded}`;
+            }
+        }
 
-        function getClosestCity(lat, lng) {
-            let closestCity = 'دمشق';
-            let minDistance = Infinity;
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const inputUser = document.getElementById('adminUserInput').value.trim();
+            const inputPass = document.getElementById('adminPinInput').value.trim();
 
-            syrianCities.forEach(city => {
-                const dist = Math.hypot(city.lat - lat, city.lng - lng);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    closestCity = city.name;
-                }
-            });
-            return closestCity;
+            if (inputUser === ADMIN_USERNAME && inputPass === ADMIN_PASSWORD) {
+                sessionStorage.setItem('admin_auth', 'true');
+                document.getElementById('adminAuthBox').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                initRadarMap();
+            } else {
+                alert("❌ اسم المستخدم أو كلمة المرور غير صحيحة!");
+            }
+        }
+
+        function adminLogout() {
+            sessionStorage.removeItem('admin_auth');
+            location.reload();
+        }
+
+        if (sessionStorage.getItem('admin_auth') === 'true') {
+            document.getElementById('adminAuthBox').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            setTimeout(initRadarMap, 300);
         }
 
         driversRef.on('value', (snapshot) => {
@@ -352,19 +451,9 @@
             if(data) {
                 Object.keys(data).forEach(key => driversList.push({ ...data[key], fbKey: key }));
             }
-            if(activeDriver) {
-                const updated = driversList.find(d => cleanSyrianPhone(d.phone) === cleanSyrianPhone(activeDriver.phone));
-                if(updated) { activeDriver = updated; renderPanel(); }
-            } else if(savedPhone) {
-                const found = driversList.find(d => cleanSyrianPhone(d.phone) === cleanSyrianPhone(savedPhone));
-                if(found) {
-                    activeDriver = found;
-                    document.getElementById('driverLoginBox').style.display = 'none';
-                    document.getElementById('driverPanelBox').style.display = 'block';
-                    renderPanel();
-                    startGpsTracking();
-                }
-            }
+            renderTable();
+            updateStats();
+            updateMapMarkers();
         });
 
         function calculateDays(expiryTimestamp) {
@@ -372,170 +461,252 @@
             return diff <= 0 ? 0 : Math.ceil(diff / (1000 * 60 * 60 * 24));
         }
 
-        function handleDriverLogin(e) {
-            e.preventDefault();
-            const rawPhone = document.getElementById('driverLocalPhoneInput').value;
-            const fullPhone = cleanSyrianPhone(rawPhone);
-            const pass = document.getElementById('driverPassInput').value.trim();
-
-            const driver = driversList.find(d => cleanSyrianPhone(d.phone) === fullPhone);
-            if(!driver) { alert("❌ رقم الهاتف غير مسجل لدى الإدارة!"); return; }
-            if(driver.password && driver.password !== pass) { alert("❌ رمز المرور (PIN) غير صحيح!"); return; }
-
-            activeDriver = driver;
-            localStorage.setItem('taxi_driver_phone', fullPhone);
-            document.getElementById('driverLoginBox').style.display = 'none';
-            document.getElementById('driverPanelBox').style.display = 'block';
-            renderPanel();
-            startGpsTracking();
+        function initRadarMap() {
+            if(radarMap) { radarMap.invalidateSize(); return; }
+            radarMap = L.map('radarMap').setView([33.5138, 36.2765], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(radarMap);
+            updateMapMarkers();
         }
 
-        function logoutDriver() {
-            localStorage.removeItem('taxi_driver_phone');
-            activeDriver = null;
-            stopGpsTracking();
-            document.getElementById('driverPanelBox').style.display = 'none';
-            document.getElementById('driverLoginBox').style.display = 'block';
-        }
-
-        function renderPanel() {
-            if(!activeDriver) return;
-            const daysLeft = calculateDays(activeDriver.expiryTimestamp);
-            document.getElementById('dName').innerText = `كابتن ${activeDriver.name}`;
-            document.getElementById('dCar').innerText = activeDriver.car;
-            document.getElementById('dCityDisplay').innerText = activeDriver.city || 'دمشق';
-            document.getElementById('dDays').innerText = daysLeft;
-            
-            const expDate = new Date(activeDriver.expiryTimestamp);
-            document.getElementById('dExpiryDate').innerText = `ينتهي في: ${expDate.getDate()}/${expDate.getMonth()+1}/${expDate.getFullYear()}`;
-
-            const badge = document.getElementById('dStatusBadge');
-            const toggleBtn = document.getElementById('driverToggleOnlineBtn');
-            const expiredBox = document.getElementById('driverExpiredBox');
-            const renewBtn = document.getElementById('driverRenewWhatsAppBtn');
-
-            if(daysLeft <= 0) {
-                badge.className = "badge badge-expired";
-                badge.innerText = "منتهي الاشتراك";
-                toggleBtn.style.display = "none";
-                expiredBox.style.display = "block";
-                
-                const renewMsg = `مرحباً إدارة تكسي البلد، أنا السائق (${activeDriver.name}) ورقمي (${activeDriver.phone}). انتهى اشتراكي وأرغب بتجديد وإضافة أيام جديدة.`;
-                renewBtn.href = `https://wa.me/${CENTRAL_ADMIN_PHONE}?text=${encodeURIComponent(renewMsg)}`;
-            } else {
-                expiredBox.style.display = "none";
-                toggleBtn.style.display = "flex";
-                if(activeDriver.isOnline) {
-                    badge.className = "badge badge-active";
-                    badge.innerText = "متاح للعمل (أونلاين)";
-                    toggleBtn.className = "toggle-status-btn btn-to-break";
-                    toggleBtn.innerHTML = '<i class="fa-solid fa-pause"></i> <span>أخذ استراحة (إيقاف الاستقبال)</span>';
-                } else {
-                    badge.className = "badge badge-busy";
-                    badge.innerText = "في استراحة (أوفلاين)";
-                    toggleBtn.className = "toggle-status-btn btn-to-work";
-                    toggleBtn.innerHTML = '<i class="fa-solid fa-play"></i> <span>بدء العمل (استقبال المشاوير)</span>';
-                }
-            }
-        }
-
-        function toggleOnline() {
-            if(!activeDriver || !activeDriver.fbKey) return;
-            const newStatus = !activeDriver.isOnline;
-            driversRef.child(activeDriver.fbKey).update({ isOnline: newStatus });
-            activeDriver.isOnline = newStatus;
-            renderPanel();
-            if(newStatus) {
-                startGpsTracking();
-            } else {
-                stopGpsTracking();
-            }
-        }
-
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {}
-        }
-
-        function playSilentAudio() {
-            try {
-                const audio = document.getElementById('silentAudioTracker');
-                if (audio) {
-                    audio.play().catch(() => {});
-                }
-            } catch(e) {}
-        }
-
-        function pauseSilentAudio() {
-            try {
-                const audio = document.getElementById('silentAudioTracker');
-                if (audio) {
-                    audio.pause();
-                }
-            } catch(e) {}
-        }
-
-        function pushLocation(lat, lng) {
-            if(!activeDriver || !activeDriver.fbKey) return;
-            const detectedCity = getClosestCity(lat, lng);
-            driversRef.child(activeDriver.fbKey).update({
-                lat: lat,
-                lng: lng,
-                city: detectedCity,
-                lastGpsUpdate: Date.now()
-            });
-            document.getElementById('dCityDisplay').innerText = detectedCity;
-            document.getElementById('driverGpsStatus').innerText = `GPS نشط ومشارك (${detectedCity})`;
-        }
-
-        function startGpsTracking() {
-            requestWakeLock();
-            playSilentAudio();
-
-            if(!activeDriver || !activeDriver.isOnline || !("geolocation" in navigator)) {
-                stopGpsTracking();
-                document.getElementById('driverGpsStatus').innerText = "متوقف (أنت في استراحة)";
+        // AKILLI ARAMA VE SÜRÜCÜYE GÖTÜRME
+        function searchLocationAndDrivers() {
+            const query = document.getElementById('areaSearchInput').value.trim().toLowerCase();
+            if (!query) {
+                alert("يرجى كتابة أو اختيار اسم المنطقة أولاً!");
                 return;
             }
 
-            stopGpsTracking();
-            playSilentAudio();
-
-            // 1. Canlı GPS Dinleme
-            gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
-                pushLocation(pos.coords.latitude, pos.coords.longitude);
-            }, function(err) {
-                document.getElementById('driverGpsStatus').innerText = "جاري إعادة محاولة التقاط GPS...";
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-
-            // 2. Arka Planda Kapanmayı Önleyen 5 Saniyelik Kalp Atışı
-            gpsHeartbeatInterval = setInterval(() => {
-                navigator.geolocation.getCurrentPosition(function(pos) {
-                    pushLocation(pos.coords.latitude, pos.coords.longitude);
-                }, null, { enableHighAccuracy: true, timeout: 8000 });
-            }, 5000);
-        }
-
-        function stopGpsTracking() {
-            pauseSilentAudio();
-            if(gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
-            if(gpsHeartbeatInterval !== null) { clearInterval(gpsHeartbeatInterval); gpsHeartbeatInterval = null; }
-            if(wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); }
-        }
-
-        // Ekran veya sekme durumu değiştiğinde bağlantıyı yeniden uyanık tut
-        document.addEventListener('visibilitychange', () => {
-            if (activeDriver && activeDriver.isOnline) {
-                requestWakeLock();
-                playSilentAudio();
-                if (gpsHeartbeatInterval === null) {
-                    startGpsTracking();
+            // 1. Koordinat listesinde doğrudan var mı bak
+            let targetCoords = null;
+            for (let place in knownLocations) {
+                if (place.toLowerCase() === query || place.toLowerCase().includes(query) || query.includes(place.toLowerCase())) {
+                    targetCoords = knownLocations[place];
+                    break;
                 }
             }
-        });
+
+            // 2. Bu bölgeye en yakın veya bu şehirdeki sürücüyü bul
+            let nearestDriver = null;
+            if (targetCoords) {
+                let minDistance = Infinity;
+                driversList.forEach(d => {
+                    if (d.lat && d.lng && d.isOnline) {
+                        const dist = Math.hypot(d.lat - targetCoords[0], d.lng - targetCoords[1]);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            nearestDriver = d;
+                        }
+                    }
+                });
+            }
+
+            // 3. Eğer sürücü varsa sürücüye odaklan ve bilgi balonunu aç
+            if (nearestDriver && nearestDriver.lat && nearestDriver.lng) {
+                radarMap.flyTo([nearestDriver.lat, nearestDriver.lng], 16, { duration: 1.5 });
+                setTimeout(() => {
+                    if (driverMarkers[nearestDriver.fbKey]) {
+                        driverMarkers[nearestDriver.fbKey].openPopup();
+                    }
+                }, 1600);
+            } else if (targetCoords) {
+                // Sürücü yoksa bölgeye odaklan
+                radarMap.flyTo(targetCoords, 15, { duration: 1.5 });
+            } else {
+                // 4. Listede yoksa harita servisinden ara
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=sy&q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            const lat = parseFloat(data[0].lat);
+                            const lon = parseFloat(data[0].lon);
+                            radarMap.flyTo([lat, lon], 15, { duration: 1.5 });
+                        } else {
+                            alert(`لم يتم العثور على موقع باسم (${query}).`);
+                        }
+                    })
+                    .catch(() => {
+                        alert("يرجى المحاولة مرة أخرى.");
+                    });
+            }
+        }
+
+        function handleSearchKeyPress(e) {
+            if (e.key === 'Enter') {
+                searchLocationAndDrivers();
+            }
+        }
+
+        function resetRadarView() {
+            document.getElementById('areaSearchInput').value = '';
+            radarMap.flyTo([33.5138, 36.2765], 13);
+        }
+
+        function updateMapMarkers() {
+            if(!radarMap) return;
+            for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
+            driverMarkers = {};
+
+            driversList.forEach(d => {
+                if(d.lat && d.lng) {
+                    const daysLeft = calculateDays(d.expiryTimestamp);
+                    const color = daysLeft <= 0 ? '#ef4444' : (d.isOnline ? '#22c55e' : '#fcba03');
+                    const statusText = daysLeft <= 0 ? 'منتهي' : (d.isOnline ? 'متاح' : 'استراحة');
+                    
+                    const radarIcon = L.divIcon({
+                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5);">🚖 ${d.name} (${d.city || 'دمشق'})</div>`,
+                        iconSize: [85, 25]
+                    });
+                    const waLink = getWhatsAppUrl(d.phone, '🚕 مشوار جديد لك من إدارة تكسي البلد.');
+                    const popup = `<strong>${d.name}</strong> (${d.car})<br>المحافظة/المنطقة: <b>${d.city || 'دمشق'}</b><br>كلمة السر: <code>${d.password || 'غير محدد'}</code><br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
+                    driverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(radarMap).bindPopup(popup);
+                }
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('adminStatDrivers').innerText = driversList.length;
+            document.getElementById('adminStatActive').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) > 0 && d.isOnline).length;
+            document.getElementById('adminStatExpired').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) <= 0).length;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+
+            if(driversList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين مسجلين حالياً.</td></tr>`;
+                return;
+            }
+
+            driversList.forEach(d => {
+                const daysLeft = calculateDays(d.expiryTimestamp);
+                const isExp = daysLeft <= 0;
+                const statusBadge = isExp ? `<span class="badge badge-expired">منتهي</span>` : (d.isOnline ? `<span class="badge badge-active">متاح</span>` : `<span class="badge badge-busy">استراحة</span>`);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${d.name}</strong></td>
+                    <td><span class="badge badge-city"><i class="fa-solid fa-location-arrow"></i> ${d.city || 'دمشق'}</span></td>
+                    <td dir="ltr">+${cleanSyrianPhone(d.phone)}</td>
+                    <td>
+                        <strong style="color:var(--brand-yellow);">${d.password || '1234'}</strong>
+                        <button onclick="adminChangePassword('${d.fbKey}')" style="background:transparent;border:none;color:var(--accent-blue);cursor:pointer;margin-right:4px;" title="تغيير كلمة السر"><i class="fa-solid fa-pen"></i></button>
+                    </td>
+                    <td>${d.car}</td>
+                    <td>${statusBadge}</td>
+                    <td><strong style="color:${isExp?'#ef4444':'#fcba03'};">${daysLeft} يوم</strong></td>
+                    <td>
+                        <button onclick="addDays('${d.fbKey}', 7)" class="btn-action">+7</button>
+                        <button onclick="addDays('${d.fbKey}', 30)" class="btn-action">+30</button>
+                        <button onclick="resendWelcomeMessage('${d.fbKey}')" style="background:transparent;border:1px solid var(--accent-green);color:var(--accent-green);border-radius:6px;padding:4px 8px;cursor:pointer;margin-right:4px;" title="إعادة إرسال بيانات الدخول عبر واتساب"><i class="fa-brands fa-whatsapp"></i></button>
+                        <button onclick="deleteDriver('${d.fbKey}')" style="background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;padding:4px;cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addNewDriver(e) {
+            e.preventDefault();
+            const name = document.getElementById('newDName').value.trim();
+            const rawInput = document.getElementById('newDPhoneLocal').value.trim();
+            const cleanPhone = cleanSyrianPhone(rawInput);
+            const password = document.getElementById('newDPass').value.trim();
+            const car = document.getElementById('newDCar').value.trim();
+            const days = parseInt(document.getElementById('newDDays').value) || 7;
+
+            if(driversList.some(d => cleanSyrianPhone(d.phone) === cleanPhone)) {
+                alert("رقم الهاتف مسجل مسبقاً!"); return;
+            }
+
+            driversRef.push({
+                name: name,
+                phone: cleanPhone,
+                password: password,
+                car: car,
+                city: 'دمشق',
+                expiryTimestamp: Date.now() + (days * 24 * 60 * 60 * 1000),
+                isOnline: true,
+                lat: 33.5138 + (Math.random() - 0.5) * 0.03,
+                lng: 36.2765 + (Math.random() - 0.5) * 0.03
+            });
+
+            e.target.reset();
+
+            const infoMsg = `🚖 *مرحباً بك كابتن ${name} في تكسي البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n📥 *رابط تحميل تطبيق الكابتن المباشر (APK):*\n${DRIVER_APK_DOWNLOAD_URL}\n\n🔐 *بيانات الدخول الخاصة بك:*\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *رمز المرور (PIN):* *${password}*\n\n📌 *خطوات التثبيت والبدء:*\n1. حمّل التطبيق وثبّته على هاتفك.\n2. سجّل الدخول برقمك وكلمة المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل الـ GPS لاستقبال المشاوير والظهور على الرادار.`;
+
+            currentModalPhone = cleanPhone;
+            currentModalMsg = infoMsg;
+            document.getElementById('modalMsgText').value = infoMsg;
+            document.getElementById('infoModal').style.display = 'flex';
+
+            const waUrl = getWhatsAppUrl(cleanPhone, infoMsg);
+            window.open(waUrl, '_blank');
+        }
+
+        function copyModalText() {
+            const textarea = document.getElementById('modalMsgText');
+            textarea.select();
+            document.execCommand('copy');
+            alert("✅ تم نسخ نص الرسالة بنجاح!");
+        }
+
+        function openWhatsAppDirect() {
+            if(currentModalPhone) {
+                const waUrl = getWhatsAppUrl(currentModalPhone, currentModalMsg);
+                window.open(waUrl, '_blank');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+
+        function resendWelcomeMessage(fbKey) {
+            const driver = driversList.find(d => d.fbKey === fbKey);
+            if(!driver) return;
+            const cleanPhone = cleanSyrianPhone(driver.phone);
+            const daysLeft = calculateDays(driver.expiryTimestamp);
+            const infoMsg = `🚖 *بيانات تطبيق تكسي البلد (كابتن ${driver.name})*\n\n📥 *رابط تحميل التطبيق المباشر:*\n${DRIVER_APK_DOWNLOAD_URL}\n\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *رمز المرور (PIN):* *${driver.password || '1234'}*\n⏳ *الأيام المتبقية:* ${daysLeft} يوم`;
+            
+            currentModalPhone = cleanPhone;
+            currentModalMsg = infoMsg;
+            document.getElementById('modalMsgText').value = infoMsg;
+            document.getElementById('infoModal').style.display = 'flex';
+
+            const waUrl = getWhatsAppUrl(cleanPhone, infoMsg);
+            window.open(waUrl, '_blank');
+        }
+
+        function adminChangePassword(fbKey) {
+            const driver = driversList.find(d => d.fbKey === fbKey);
+            if(!driver) return;
+            const cleanPhone = cleanSyrianPhone(driver.phone);
+            const newPass = prompt(`أدخل كلمة المرور الجديدة للسائق (${driver.name}):`);
+            if(newPass && newPass.trim() !== "") {
+                driversRef.child(fbKey).update({ password: newPass.trim() });
+                
+                const passMsg = `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في تطبيق *تكسي البلد* إلى: *${newPass.trim()}*\nرابط تحميل التطبيق: ${DRIVER_APK_DOWNLOAD_URL}`;
+                if(confirm("تم تحديث كلمة المرور! هل تود إرسال الرمز الجديد للسائق عبر واتساب؟")) {
+                    const waUrl = getWhatsAppUrl(cleanPhone, passMsg);
+                    window.open(waUrl, '_blank');
+                }
+            }
+        }
+
+        function addDays(fbKey, daysToAdd) {
+            const driver = driversList.find(d => d.fbKey === fbKey);
+            if(driver) {
+                const base = (driver.expiryTimestamp && driver.expiryTimestamp > Date.now()) ? driver.expiryTimestamp : Date.now();
+                driversRef.child(fbKey).update({ expiryTimestamp: base + (daysToAdd * 24 * 60 * 60 * 1000) });
+            }
+        }
+
+        function deleteDriver(fbKey) {
+            if(confirm("حذف السائق نهائياً من النظام؟")) {
+                driversRef.child(fbKey).remove();
+            }
+        }
     </script>
 </body>
 </html>
+
