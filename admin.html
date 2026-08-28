@@ -66,6 +66,38 @@
             border: 1px solid #444; background: #fff; color: #000;
             outline: none; margin-bottom: 8px; font-weight: 700; font-size: 0.95rem;
         }
+
+        /* Otomatik +963 Sabit Alanı */
+        .phone-input-group {
+            display: flex;
+            align-items: center;
+            direction: ltr;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #444;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .country-prefix {
+            background: #e2e8f0;
+            color: #0f172a;
+            padding: 11px 12px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            border-right: 1px solid #cbd5e1;
+            user-select: none;
+        }
+
+        .phone-input-group input {
+            border: none;
+            outline: none;
+            padding: 11px;
+            width: 100%;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #000;
+        }
         
         .filter-select {
             background: #111; color: var(--brand-yellow);
@@ -145,15 +177,20 @@
             <div id="radarMap"></div>
         </div>
 
-        <!-- YENİ SÜRÜCÜ EKLEME -->
+        <!-- YENİ SÜRÜCÜ EKLEME (+963 OTOMATİK) -->
         <div class="panel-card">
             <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل كابتن جديد وتحديد كلمة السر</h3>
             <form onsubmit="addNewDriver(event)">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
                     <input type="text" id="newDName" class="form-input" placeholder="اسم السائق (مثلاً: أحمد)" required>
-                    <input type="text" id="newDPhone" class="form-input" placeholder="رقم الهاتف (963...)" required>
+                    
+                    <div class="phone-input-group">
+                        <span class="country-prefix">+963</span>
+                        <input type="text" id="newDPhoneLocal" placeholder="962000111" required maxlength="10">
+                    </div>
+
                     <input type="text" id="newDPass" class="form-input" placeholder="كلمة المرور (PIN)" required>
-                    <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة (مثلاً: كيا ريو 12345)" required>
+                    <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة (كيا 12345)" required>
                     <input type="number" id="newDDays" class="form-input" value="7" min="1" placeholder="أيام الاشتراك" required>
                 </div>
                 <button type="submit" class="btn-action" style="margin-top: 6px; padding: 11px 20px;">إضافة وتفعيل السائق وإرسال بيانات الدخول</button>
@@ -319,7 +356,19 @@
         function addNewDriver(e) {
             e.preventDefault();
             const name = document.getElementById('newDName').value.trim();
-            const phone = document.getElementById('newDPhone').value.replace(/[^0-9]/g, '');
+            let rawLocalPhone = document.getElementById('newDPhoneLocal').value.replace(/[^0-9]/g, '');
+            
+            // Eğer numaranın başına sıfır (0) konduysa sil (örn: 0962... -> 962...)
+            if(rawLocalPhone.startsWith('0')) {
+                rawLocalPhone = rawLocalPhone.substring(1);
+            }
+
+            // Numara zaten 963 içeriyorsa temizle ve standart +963 formatı oluştur
+            if(rawLocalPhone.startsWith('963')) {
+                rawLocalPhone = rawLocalPhone.substring(3);
+            }
+
+            const phone = "963" + rawLocalPhone;
             const password = document.getElementById('newDPass').value.trim();
             const car = document.getElementById('newDCar').value.trim();
             const days = parseInt(document.getElementById('newDDays').value) || 7;
@@ -339,10 +388,10 @@
 
             e.target.reset();
 
-            // Şoföre Gidecek Tam Detaylı WhatsApp Karşılama Mesajı
+            // Şoföre WhatsApp Giriş Mesajı
             const infoMsg = `🚖 *مرحباً بك كابتن ${name} في تكسي البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n🔐 *بيانات الدخول إلى حسابك:*\n📱 *رقم الهاتف:* ${phone}\n🔑 *كلمة المرور (PIN):* *${password}*\n\n📲 *رابط الدخول أو تحميل التطبيق:*\nhttps://taxialbalad.com/driver.html\n\n📌 *خطوات البدء:*\n1. افتح الرابط أو التطبيق.\n2. سجّل الدخول برقمك وكلمة المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل الـ GPS لاستقبال المشاوير.\n\nنتمنى لك عملاً موفقاً ورزقاً مباركاً!`;
 
-            alert(`✅ تم تسجيل السائق (${name}) بنجاح!\nسيتم الآن فتح تطبيق واتساب لإرسال بيانات الدخول والرابط وكلمة السر له.`);
+            alert(`✅ تم تسجيل السائق (${name}) بنجاح!\nالرقم المسجل: +${phone}\nسيتم الآن فتح واتساب لإرسال بيانات الدخول له.`);
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(infoMsg)}`, '_blank');
         }
 
