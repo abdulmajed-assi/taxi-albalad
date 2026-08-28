@@ -52,21 +52,22 @@
             margin-bottom: 12px;
         }
 
-        /* ARAMA VE FİLTRELEME BÖLÜMÜ */
+        /* ARAMA VE SEÇİM ALANI */
         .radar-controls-wrap {
-            display: flex;
-            align-items: center;
+            display: grid;
+            grid-template-columns: 1fr auto;
             gap: 8px;
-            flex-wrap: wrap;
             width: 100%;
             margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .radar-controls-wrap { grid-template-columns: 1fr; }
         }
 
         .search-input-group {
             display: flex;
             align-items: center;
-            flex: 1;
-            min-width: 260px;
             background: #111;
             border: 1.5px solid var(--brand-yellow);
             border-radius: 10px;
@@ -163,7 +164,7 @@
 </head>
 <body>
 
-    <!-- GİRİŞ EKRANI -->
+    <!-- GİRİŞ EKRANI (İPUCU VE AD KALDIRILMIŞ TEMİZ KUTULAR) -->
     <div id="adminAuthBox" class="auth-overlay">
         <div class="auth-box">
             <h2 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</h2>
@@ -171,10 +172,10 @@
             
             <form onsubmit="handleAdminLogin(event)" style="text-align: right;">
                 <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">اسم المستخدم (Username):</label>
-                <input type="text" id="adminUserInput" class="form-input" placeholder="Jonathan" required style="direction: ltr; font-weight: 800;">
+                <input type="text" id="adminUserInput" class="form-input" placeholder="" autocomplete="off" required style="direction: ltr; font-weight: 800;">
                 
                 <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">كلمة المرور (Password):</label>
-                <input type="password" id="adminPinInput" class="form-input" placeholder="••••••••" required style="direction: ltr; font-weight: 800;">
+                <input type="password" id="adminPinInput" class="form-input" placeholder="" required style="direction: ltr; font-weight: 800;">
                 
                 <button type="submit" class="btn-action" style="width:100%; padding:13px; font-size:1.1rem; margin-top: 6px;">
                     <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
@@ -209,20 +210,63 @@
             </div>
         </div>
 
-        <!-- RADAR & AKILLI ŞEHİR/İLÇE ARAMA KUTUSU -->
+        <!-- RADAR & AKILLI ARAMA -->
         <div class="panel-card">
             <div class="panel-header-flex">
-                <h3 style="font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي وموقع السائقين</h3>
+                <h3 style="font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي والبحث عن المناطق</h3>
             </div>
 
-            <!-- ARAMA BUTONU VE KUTUSU -->
             <div class="radar-controls-wrap">
                 <div class="search-input-group">
-                    <input type="text" id="areaSearchInput" placeholder="اكتب اسم المحافظة، الحي أو المدينة (مثلاً: دمشق، المزة، حلب، حمص...)" onkeypress="handleSearchKeyPress(event)">
+                    <input type="text" id="areaSearchInput" list="syriaPlacesList" placeholder="اكتب أو اختر الحي / الشارع (مثل: الميدان، المزة، الحميدية، برزة...)" onkeypress="handleSearchKeyPress(event)">
+                    <datalist id="syriaPlacesList">
+                        <option value="الأمين">
+                        <option value="الحميدية">
+                        <option value="الحريقة">
+                        <option value="المزرعة">
+                        <option value="الميدان">
+                        <option value="شارع بغداد">
+                        <option value="برزة">
+                        <option value="دمشق">
+                        <option value="فارس الخوري">
+                        <option value="كفرسوسة">
+                        <option value="Mahmoud Khalil St">
+                        <option value="مساكن برزة">
+                        <option value="مشروع دمر">
+                        <option value="Maysaloon">
+                        <option value="مزة 86">
+                        <option value="سوق مدحت باشا">
+                        <option value="القابون">
+                        <option value="ركن الدين">
+                        <option value="التضامن">
+                        <option value="شارع 29 ايار">
+                        <option value="ساحة العباسيين">
+                        <option value="ابو رمانة">
+                        <option value="القصور">
+                        <option value="شارع الحمراء">
+                        <option value="الحجاز">
+                        <option value="المزة">
+                        <option value="المهاجرين">
+                        <option value="الصالحية">
+                        <option value="الشعلان">
+                        <option value="الشاغور">
+                        <option value="الشهبندر">
+                        <option value="شارع الثورة">
+                        <option value="الزاهرة">
+                        <option value="العدوي">
+                        <option value="حمص">
+                        <option value="حلب">
+                        <option value="اللاذقية">
+                        <option value="طرطوس">
+                        <option value="حماة">
+                        <option value="درعا">
+                        <option value="السويداء">
+                    </datalist>
                     <button class="btn-search" onclick="searchLocationAndDrivers()">
                         <i class="fa-solid fa-magnifying-glass"></i> بحث
                     </button>
                 </div>
+
                 <button onclick="resetRadarView()" style="background:#333; color:#fff; border:1px solid #555; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.85rem;">
                     <i class="fa-solid fa-rotate-left"></i> عرض الكل
                 </button>
@@ -265,7 +309,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: MESAJ VE KOPYALAMA ALANI -->
+    <!-- MODAL POPUP -->
     <div id="infoModal" class="modal-wrap" style="display:none;">
         <div class="modal-card">
             <h3 style="color:var(--brand-yellow); margin-bottom:10px;"><i class="fa-solid fa-circle-check" style="color:var(--accent-green);"></i> تم تسجيل السائق بنجاح!</h3>
@@ -300,21 +344,47 @@
         let currentModalPhone = "";
         let currentModalMsg = "";
 
-        // Suriye Şehirleri ve Meşhur İlçeleri/Semtleri Koordinat Rehberi
+        // GÖRSELLERDEKİ TÜM ŞAM BÖLGELERİ & SOKAKLARI + DİĞER İLLERİN KOORDİNATLARI
         const knownLocations = {
-            'دمشق': [33.5138, 36.2765],
-            'المزة': [33.5015, 36.2486],
-            'باب توما': [33.5127, 36.3155],
-            'كفرسوسة': [33.4912, 36.2736],
+            'الأمين': [33.5080, 36.3120],
+            'الحميدية': [33.5110, 36.3000],
+            'الحريقة': [33.5095, 36.3030],
+            'المزرعة': [33.5250, 36.2980],
             'الميدان': [33.4900, 36.3000],
-            'الشعلان': [33.5180, 36.2900],
-            'ركن الدين': [33.5350, 36.2950],
+            'شارع بغداد': [33.5220, 36.3050],
+            'برزة': [33.5600, 36.3200],
+            'دمشق': [33.5138, 36.2765],
+            'فارس الخوري': [33.5310, 36.3180],
+            'كفرسوسة': [33.4912, 36.2736],
+            'mahmoud khalil st': [33.5190, 36.2850],
+            'مساكن برزة': [33.5680, 36.3350],
             'مشروع دمر': [33.5360, 36.2300],
-            'جرمانا': [33.4833, 36.3500],
+            'maysaloon': [33.5170, 36.2910],
+            'ميسلون': [33.5170, 36.2910],
+            'مزة 86': [33.4980, 36.2350],
+            'سوق مدحت باشا': [33.5075, 36.3060],
+            'القابون': [33.5450, 36.3400],
+            'ركن الدين': [33.5350, 36.2950],
+            'التضامن': [33.4750, 36.3200],
+            'شارع 29 ايار': [33.5175, 36.2980],
+            'ساحة العباسيين': [33.5285, 36.3240],
+            'ابو رمانة': [33.5195, 36.2800],
+            'القصور': [33.5290, 36.3150],
+            'شارع الحمراء': [33.5200, 36.2880],
+            'الحجاز': [33.5115, 36.2965],
+            'المزة': [33.5015, 36.2486],
+            'المهاجرين': [33.5280, 36.2720],
+            'الصالحية': [33.5230, 36.2920],
+            'الشعلان': [33.5180, 36.2900],
+            'الشاغور': [33.5050, 36.3150],
+            'الشهبندر': [33.5270, 36.2960],
+            'شارع الثورة': [33.5160, 36.2990],
+            'الزاهرة': [33.4850, 36.3150],
+            'العدوي': [33.5330, 36.3100],
             'ريف دمشق': [33.5400, 36.3800],
+            'جرمانا': [33.4833, 36.3500],
             'قدسيا': [33.5650, 36.2100],
             'صحنايا': [33.4350, 36.2400],
-            'الكسوة': [33.3600, 36.2400],
             'حمص': [34.7324, 36.7137],
             'حلب': [36.2021, 37.1343],
             'اللاذقية': [35.5317, 35.7900],
@@ -398,57 +468,64 @@
             updateMapMarkers();
         }
 
-        // AKILLI İL / İLÇE ARAMA VE SÜRÜCÜYE ODAKLANMA
+        // AKILLI ARAMA VE SÜRÜCÜYE GÖTÜRME
         function searchLocationAndDrivers() {
             const query = document.getElementById('areaSearchInput').value.trim().toLowerCase();
             if (!query) {
-                alert("يرجى كتابة اسم المحافظة أو الحي أو المدينة أولاً!");
+                alert("يرجى كتابة أو اختيار اسم المنطقة أولاً!");
                 return;
             }
 
-            // 1. Önce bu isimde veya ilçede bir sürücü var mı bak
-            const matchingDriver = driversList.find(d => 
-                (d.city && d.city.toLowerCase().includes(query)) ||
-                (d.name && d.name.toLowerCase().includes(query))
-            );
-
-            // 2. Eğer sürücü varsa ve GPS konumu mevcutsa doğrudan sürücüye odaklan
-            if (matchingDriver && matchingDriver.lat && matchingDriver.lng) {
-                radarMap.flyTo([matchingDriver.lat, matchingDriver.lng], 15, { duration: 1.5 });
-                setTimeout(() => {
-                    if (driverMarkers[matchingDriver.fbKey]) {
-                        driverMarkers[matchingDriver.fbKey].openPopup();
-                    }
-                }, 1600);
-                return;
-            }
-
-            // 3. Bilinen İl/İlçe listesinde var mı bak
+            // 1. Koordinat listesinde doğrudan var mı bak
             let targetCoords = null;
             for (let place in knownLocations) {
-                if (place.toLowerCase().includes(query) || query.includes(place.toLowerCase())) {
+                if (place.toLowerCase() === query || place.toLowerCase().includes(query) || query.includes(place.toLowerCase())) {
                     targetCoords = knownLocations[place];
                     break;
                 }
             }
 
+            // 2. Bu bölgeye en yakın veya bu şehirdeki sürücüyü bul
+            let nearestDriver = null;
             if (targetCoords) {
-                radarMap.flyTo(targetCoords, 14, { duration: 1.5 });
+                let minDistance = Infinity;
+                driversList.forEach(d => {
+                    if (d.lat && d.lng && d.isOnline) {
+                        const dist = Math.hypot(d.lat - targetCoords[0], d.lng - targetCoords[1]);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            nearestDriver = d;
+                        }
+                    }
+                });
+            }
+
+            // 3. Eğer sürücü varsa sürücüye odaklan ve bilgi balonunu aç
+            if (nearestDriver && nearestDriver.lat && nearestDriver.lng) {
+                radarMap.flyTo([nearestDriver.lat, nearestDriver.lng], 16, { duration: 1.5 });
+                setTimeout(() => {
+                    if (driverMarkers[nearestDriver.fbKey]) {
+                        driverMarkers[nearestDriver.fbKey].openPopup();
+                    }
+                }, 1600);
+            } else if (targetCoords) {
+                // Sürücü yoksa bölgeye odaklan
+                radarMap.flyTo(targetCoords, 15, { duration: 1.5 });
             } else {
-                // 4. Açık kaynaklı harita servisinden semti/ilçeyi ara
+                // 4. Listede yoksa harita servisinden ara
                 fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=sy&q=${encodeURIComponent(query)}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data && data.length > 0) {
                             const lat = parseFloat(data[0].lat);
                             const lon = parseFloat(data[0].lon);
-                            radarMap.flyTo([lat, lon], 14, { duration: 1.5 });
+                            radarMap.flyTo([lat, lon], 15, { duration: 1.5 });
                         } else {
-                            alert(`لم يتم العثور على موقع باسم (${query})، يرجى التأكد من كتابة الاسم.`);
+                            alert(`لم يتم العثور على موقع باسم (${query}).`);
                         }
                     })
                     .catch(() => {
-                        alert("تعذر الوصول لخدمة البحث، يرجى المحاولة مرة أخرى.");
+                        alert("يرجى المحاولة مرة أخرى.");
                     });
             }
         }
@@ -461,7 +538,7 @@
 
         function resetRadarView() {
             document.getElementById('areaSearchInput').value = '';
-            radarMap.flyTo([33.5138, 36.2765], 12);
+            radarMap.flyTo([33.5138, 36.2765], 13);
         }
 
         function updateMapMarkers() {
@@ -480,7 +557,7 @@
                         iconSize: [85, 25]
                     });
                     const waLink = getWhatsAppUrl(d.phone, '🚕 مشوار جديد لك من إدارة تكسي البلد.');
-                    const popup = `<strong>${d.name}</strong> (${d.car})<br>المحافظة الحالية: <b>${d.city || 'دمشق'}</b><br>كلمة السر: <code>${d.password || 'غير محدد'}</code><br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
+                    const popup = `<strong>${d.name}</strong> (${d.car})<br>المحافظة/المنطقة: <b>${d.city || 'دمشق'}</b><br>كلمة السر: <code>${d.password || 'غير محدد'}</code><br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
                     driverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(radarMap).bindPopup(popup);
                 }
             });
@@ -632,4 +709,3 @@
     </script>
 </body>
 </html>
-
