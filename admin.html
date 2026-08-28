@@ -93,7 +93,7 @@
             <div id="radarMap"></div>
         </div>
 
-        <!-- Yeni Sürücü Tanımlama (Şifreli) -->
+        <!-- Yeni Sürücü Tanımlama (Şifreli & WhatsApp Bildirimli) -->
         <div class="panel-card">
             <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل سائق جديد وتحديد كلمة السر</h3>
             <form onsubmit="addNewDriver(event)">
@@ -104,7 +104,7 @@
                     <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة" required>
                     <input type="number" id="newDDays" class="form-input" value="7" min="1" placeholder="أيام الاشتراك" required>
                 </div>
-                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 10px 18px;">إضافة وتفعيل السائق</button>
+                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 10px 18px;">إضافة وتفعيل السائق وإرسال كلمة السر</button>
             </form>
         </div>
 
@@ -240,6 +240,7 @@
                 alert("رقم الهاتف مسجل مسبقاً!"); return;
             }
 
+            // Firebase Kaydı
             driversRef.push({
                 name, phone, password, car,
                 expiryTimestamp: Date.now() + (days * 24 * 60 * 60 * 1000),
@@ -249,14 +250,25 @@
             });
 
             e.target.reset();
-            alert("تم تسجيل السائق بنجاح وتعيين كلمة السر!");
+
+            // Şoföre Gönderilecek Şifreli WhatsApp Mesajı
+            const infoMsg = `أهلاً بك كابتن ${name} 🚖\nتم تسجيلك وتفعيل اشتراكك بنجاح في تطبيق *تكسي البلد* لمدة (${days}) أيام.\n\n🔐 *بيانات الدخول الخاصة بك:*\n• رقم الهاتف: ${phone}\n• كلمة المرور (PIN): *${password}*\n\n🌐 *رابط الدخول لبدء العمل:*\nhttps://taxialbalad.com\n(اضغط على "شاشة السائق" وسجّل دخولك لمشاركة موقعك واستقبال المشاوير).`;
+
+            alert(`✅ تم تسجيل السائق (${name}) بنجاح!\nسيتم الآن فتح واتساب لإرسال بيانات الدخول وكلمة السر له.`);
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(infoMsg)}`, '_blank');
         }
 
         function adminChangePassword(fbKey) {
-            const newPass = prompt("أدخل كلمة المرور الجديدة للسائق:");
+            const driver = driversList.find(d => d.fbKey === fbKey);
+            if(!driver) return;
+            const newPass = prompt(`أدخل كلمة المرور الجديدة للسائق (${driver.name}):`);
             if(newPass && newPass.trim() !== "") {
                 driversRef.child(fbKey).update({ password: newPass.trim() });
-                alert("تم تحديث كلمة المرور بنجاح!");
+                
+                const passMsg = `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في *تكسي البلد* إلى: *${newPass.trim()}*`;
+                if(confirm("تم تحديث كلمة المرور! هل تود إرسال الرمز الجديد للسائق عبر واتساب؟")) {
+                    window.open(`https://wa.me/${driver.phone}?text=${encodeURIComponent(passMsg)}`, '_blank');
+                }
             }
         }
 
