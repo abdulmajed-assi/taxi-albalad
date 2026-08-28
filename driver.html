@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>شاشة السائق | تكسي البلد</title>
+    <title>كابتن تكسي البلد | Taxi Al Balad Captain</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase SDK (v8) -->
@@ -15,8 +18,10 @@
     <style>
         :root {
             --brand-yellow: #fcba03;
-            --brand-black: #111111;
-            --brand-card: #222222;
+            --brand-yellow-glow: rgba(252, 186, 3, 0.35);
+            --brand-black: #0d0d0d;
+            --brand-dark: #161616;
+            --brand-card: #1f1f1f;
             --accent-red: #ef4444;
             --accent-green: #22c55e;
             --accent-blue: #3b82f6;
@@ -24,110 +29,272 @@
             --text-muted: #a3a3a3;
         }
 
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
             background-color: var(--brand-black);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 1.5rem 1rem;
         }
 
-        .driver-container { width: 100%; max-width: 440px; }
-        
+        .driver-container {
+            width: 100%;
+            max-width: 440px;
+        }
+
         .driver-card {
-            background: var(--brand-card);
+            background: linear-gradient(160deg, #222222 0%, #141414 100%);
             border: 2px solid var(--brand-yellow);
-            border-radius: 24px;
-            padding: 2.2rem 1.5rem;
+            border-radius: 28px;
+            padding: 2.2rem 1.6rem;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(252, 186, 3, 0.15);
             position: relative;
             overflow: hidden;
         }
 
         .driver-card::before {
-            content: ''; position: absolute;
+            content: '';
+            position: absolute;
             top: 0; left: 0; width: 100%; height: 6px;
             background: repeating-linear-gradient(90deg, var(--brand-yellow), var(--brand-yellow) 15px, #000 15px, #000 30px);
         }
 
-        .driver-avatar {
-            width: 75px; height: 75px;
-            background: rgba(252, 186, 3, 0.15);
-            color: var(--brand-yellow);
+        .app-logo {
+            width: 95px;
+            height: 95px;
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2rem;
-            margin: 0.5rem auto 1rem;
-            border: 2px solid var(--brand-yellow);
+            border: 3px solid var(--brand-yellow);
+            margin: 0.5rem auto 1.2rem;
+            display: block;
+            background: #fff;
+            object-fit: cover;
+            box-shadow: 0 6px 25px var(--brand-yellow-glow);
         }
 
-        .gps-badge {
-            display: inline-flex; align-items: center; gap: 6px;
+        .brand-heading h1 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--brand-yellow);
+            line-height: 1.2;
+        }
+
+        .brand-heading p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.6rem;
+            font-weight: 600;
+        }
+
+        /* Form Elemanları */
+        .form-group {
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .input-icon-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon-wrap i {
+            position: absolute;
+            right: 14px;
+            color: var(--brand-yellow);
+            font-size: 1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 13px 42px 13px 14px;
+            border-radius: 12px;
+            border: 1.5px solid #333;
+            background: #111;
+            color: #fff;
+            outline: none;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--brand-yellow);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, var(--brand-yellow) 0%, #d49b00 100%);
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1.15rem;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            box-shadow: 0 6px 20px rgba(252, 186, 3, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Panel Görünümü */
+        .driver-info-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(252, 186, 3, 0.2);
+            border-radius: 16px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .gps-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             background: rgba(59, 130, 246, 0.15);
             border: 1px solid var(--accent-blue);
             color: var(--accent-blue);
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.8rem;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
+            font-weight: 800;
+            margin-bottom: 1.2rem;
         }
 
-        .credit-meter {
-            background: #111111;
-            border-radius: 14px;
-            padding: 1.2rem;
-            margin: 1.2rem 0;
+        .gps-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            box-shadow: 0 0 10px var(--accent-blue);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+
+        .credit-card-meter {
+            background: linear-gradient(145deg, #111 0%, #080808 100%);
+            border-radius: 18px;
+            padding: 1.4rem;
+            margin-bottom: 1.4rem;
             border: 1px solid rgba(252, 186, 3, 0.3);
+            position: relative;
         }
 
-        .credit-number { font-size: 3rem; font-weight: 900; color: var(--brand-yellow); line-height: 1.1; }
-        
-        .badge { padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; font-weight: 800; display: inline-block; }
+        .credit-card-meter .lbl {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .credit-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--brand-yellow);
+            line-height: 1;
+            margin: 0.3rem 0;
+            text-shadow: 0 0 20px var(--brand-yellow-glow);
+        }
+
+        .badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            display: inline-block;
+        }
         .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
         .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
         .badge-busy { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
 
         .toggle-status-btn {
-            width: 100%; padding: 15px; border-radius: 12px;
-            font-size: 1.1rem; font-weight: 900; cursor: pointer; border: none;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1.15rem;
+            font-weight: 900;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             transition: all 0.2s;
         }
-        .btn-to-break { background: #ef4444; color: #fff; box-shadow: 0 4px 15px rgba(239,68,68,0.3); }
-        .btn-to-work { background: #22c55e; color: #000; box-shadow: 0 4px 15px rgba(34,197,94,0.3); }
+        .btn-to-break { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35); }
+        .btn-to-work { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: #000; box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35); }
 
         .driver-expired-box {
             background: rgba(239, 68, 68, 0.1);
             border: 2px dashed var(--accent-red);
-            border-radius: 16px;
-            padding: 1.5rem 1rem;
+            border-radius: 18px;
+            padding: 1.5rem 1.2rem;
             margin-top: 1rem;
         }
-        .driver-expired-box p { color: #ffb4b4; font-size: 0.95rem; font-weight: 700; line-height: 1.5; margin-bottom: 1rem; }
+        .driver-expired-box p {
+            color: #ffb4b4;
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 1.2rem;
+        }
         .btn-renew-sub {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-            color: #ffffff; text-decoration: none; width: 100%;
-            padding: 12px; border-radius: 10px; font-weight: 900; font-size: 1rem;
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            color: #ffffff;
+            text-decoration: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 1.05rem;
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
         }
 
-        .form-input {
-            width: 100%; padding: 12px; border-radius: 8px;
-            border: 1px solid #444; background: #fff; color: #000;
-            outline: none; margin-bottom: 12px; font-size: 1rem; font-weight: 700;
+        .btn-logout {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            margin-top: 1.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
         }
-        .btn-submit {
-            width: 100%; background: var(--brand-yellow); color: #000;
-            border: none; padding: 14px; border-radius: 8px;
-            font-size: 1.1rem; font-weight: 900; cursor: pointer;
-        }
+        .btn-logout:hover { color: #fff; }
     </style>
 </head>
 <body>
@@ -135,34 +302,60 @@
     <div class="driver-container">
         <!-- 1. GİRİŞ EKRANI -->
         <div id="driverLoginBox" class="driver-card">
-            <div class="driver-avatar"><i class="fa-solid fa-id-card"></i></div>
-            <h2 style="color:var(--brand-yellow); margin-bottom:4px;">تطبيق السائق</h2>
-            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1.5rem;">تكسي البلد | تسجيل الدخول</p>
+            <img src="logo.jpg" alt="Logo" class="app-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2554/2554978.png'">
+            
+            <div class="brand-heading">
+                <h1>تكسي البلد | كابتن</h1>
+                <p>بوابة تسجيل دخول السائقين المعتمدين</p>
+            </div>
             
             <form onsubmit="handleDriverLogin(event)">
-                <input type="text" id="driverPhoneInput" class="form-input" placeholder="رقم الهاتف المسجل (9639...)" required>
-                <input type="password" id="driverPassInput" class="form-input" placeholder="كلمة المرور (PIN)" required>
-                <button type="submit" class="btn-submit">تسجيل الدخول</button>
+                <div class="form-group">
+                    <label class="form-label">رقم الهاتف</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-phone"></i>
+                        <input type="text" id="driverPhoneInput" class="form-input" placeholder="مثال: 963962000111" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">رمز المرور (PIN)</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="driverPassInput" class="form-input" placeholder="••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> تسجيل الدخول
+                </button>
             </form>
         </div>
 
-        <!-- 2. ŞOFÖR AKTİF PANELİ -->
+        <!-- 2. ŞOFÖR KONTROL PANELİ -->
         <div id="driverPanelBox" class="driver-card" style="display:none;">
-            <div class="driver-avatar"><i class="fa-solid fa-user-tie"></i></div>
-            <h2 id="dName" style="font-size: 1.4rem; margin-bottom: 2px;">-</h2>
-            <p id="dCar" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">-</p>
+            <img src="logo.jpg" alt="Logo" class="app-logo" style="width: 75px; height: 75px; margin-bottom: 0.8rem;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2554/2554978.png'">
 
-            <div class="gps-badge" id="driverGpsBadge">
-                <i class="fa-solid fa-location-crosshairs"></i> <span id="driverGpsStatus">جاري فحص GPS...</span>
+            <div class="driver-info-badge">
+                <div style="text-align: right;">
+                    <div id="dName" style="font-size: 1.15rem; font-weight: 900; color: #fff;">-</div>
+                    <div id="dCar" style="font-size: 0.8rem; color: var(--brand-yellow); font-weight: 700;">-</div>
+                </div>
+                <div id="dStatusBadge" class="badge badge-active">-</div>
             </div>
 
-            <div class="credit-meter">
-                <div style="font-size: 0.85rem; color: var(--text-muted);">الأيام المتبقية في اشتراكك</div>
+            <div class="gps-pill" id="driverGpsBadge">
+                <span class="gps-pulse"></span>
+                <span id="driverGpsStatus">جاري فحص اتصال GPS...</span>
+            </div>
+
+            <div class="credit-card-meter">
+                <div class="lbl">الأيام المتبقية في اشتراكك</div>
                 <div class="credit-number" id="dDays">0</div>
-                <div id="dExpiryDate" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">ينتهي في: --</div>
-                <div id="dStatusBadge" class="badge badge-active" style="margin-top: 8px;">-</div>
+                <div id="dExpiryDate" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px; font-weight:700;">ينتهي في: --</div>
             </div>
 
+            <!-- Çalışma Durumu Butonu -->
             <button class="toggle-status-btn btn-to-break" id="driverToggleOnlineBtn" onclick="toggleOnline()">
                 <i class="fa-solid fa-pause"></i> <span>أخذ استراحة (إيقاف الاستقبال)</span>
             </button>
@@ -170,17 +363,19 @@
             <!-- Gün Bittiğinde Görünecek Alan -->
             <div id="driverExpiredBox" class="driver-expired-box" style="display:none;">
                 <p>
-                    <i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-red);"></i>
-                    انتهى اشتراكك في النظام!<br>يرجى التواصل مع إدارة تكسي البلد لتجديد وإضافة أيام جديدة.
+                    <i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-red); margin-left:4px;"></i>
+                    انتهت أيام اشتراكك في النظام!<br>يرجى التواصل مع إدارة <b>تكسي البلد</b> لتجديد الاشتراك ومتابعة العمل.
                 </p>
                 <a id="driverRenewWhatsAppBtn" href="#" class="btn-renew-sub">
-                    <i class="fa-brands fa-whatsapp"></i> تواصل مع الإدارة عبر واتساب
+                    <i class="fa-brands fa-whatsapp"></i> تواصل مع الإدارة لتجديد الاشتراك
                 </a>
             </div>
 
-            <button onclick="logoutDriver()" style="background:transparent; border:none; color:var(--text-muted); margin-top:18px; cursor:pointer; font-size:0.85rem;">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
-            </button>
+            <div>
+                <button onclick="logoutDriver()" class="btn-logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+                </button>
+            </div>
         </div>
     </div>
 
@@ -196,7 +391,6 @@
         let gpsWatchId = null;
         let wakeLock = null;
 
-        // Sayfa açıldığında daha önce giriş yapılmış mı kontrol et
         const savedPhone = localStorage.getItem('taxi_driver_phone');
 
         driversRef.on('value', (snapshot) => {
@@ -232,7 +426,7 @@
 
             const driver = driversList.find(d => d.phone === phone);
             if(!driver) { alert("❌ رقم الهاتف غير مسجل لدى الإدارة!"); return; }
-            if(driver.password && driver.password !== pass) { alert("❌ كلمة السر (PIN) غير صحيحة!"); return; }
+            if(driver.password && driver.password !== pass) { alert("❌ رمز المرور (PIN) غير صحيح!"); return; }
 
             activeDriver = driver;
             localStorage.setItem('taxi_driver_phone', phone);
@@ -253,7 +447,7 @@
         function renderPanel() {
             if(!activeDriver) return;
             const daysLeft = calculateDays(activeDriver.expiryTimestamp);
-            document.getElementById('dName').innerText = activeDriver.name;
+            document.getElementById('dName').innerText = `كابتن ${activeDriver.name}`;
             document.getElementById('dCar').innerText = activeDriver.car;
             document.getElementById('dDays').innerText = daysLeft;
             
@@ -267,7 +461,7 @@
 
             if(daysLeft <= 0) {
                 badge.className = "badge badge-expired";
-                badge.innerText = "منتهي الاشتراك (موقوف)";
+                badge.innerText = "منتهي الاشتراك";
                 toggleBtn.style.display = "none";
                 expiredBox.style.display = "block";
                 
@@ -299,7 +493,6 @@
             startGpsTracking();
         }
 
-        // Ekranın uykuya geçmesini engelle
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
