@@ -48,11 +48,57 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 12px;
         }
 
-        #radarMap { width: 100%; height: 450px; border-radius: 10px; border: 1.5px solid var(--brand-yellow); }
+        /* ARAMA VE FİLTRELEME BÖLÜMÜ */
+        .radar-controls-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .search-input-group {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 260px;
+            background: #111;
+            border: 1.5px solid var(--brand-yellow);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .search-input-group input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 10px 14px;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .btn-search {
+            background: var(--brand-yellow);
+            color: #000;
+            border: none;
+            padding: 10px 18px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+        }
+
+        #radarMap { width: 100%; height: 470px; border-radius: 10px; border: 1.5px solid var(--brand-yellow); }
         
         table { width: 100%; border-collapse: collapse; text-align: inherit; }
         th, td { padding: 10px; border-bottom: 1px solid rgba(252, 186, 3, 0.2); font-size: 0.85rem; }
@@ -62,9 +108,9 @@
         .btn-action:hover { transform: scale(1.05); }
         
         .form-input {
-            width: 100%; padding: 11px; border-radius: 8px;
+            width: 100%; padding: 12px; border-radius: 8px;
             border: 1px solid #444; background: #fff; color: #000;
-            outline: none; margin-bottom: 10px; font-weight: 700; font-size: 0.95rem;
+            outline: none; margin-bottom: 12px; font-weight: 700; font-size: 1rem;
         }
 
         .phone-input-group {
@@ -101,13 +147,6 @@
             color: #000;
             direction: ltr;
         }
-        
-        .filter-select {
-            background: #111; color: var(--brand-yellow);
-            border: 1.5px solid var(--brand-yellow);
-            padding: 6px 14px; border-radius: 10px;
-            font-size: 0.9rem; font-weight: 800; outline: none; cursor: pointer;
-        }
 
         .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
         .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
@@ -124,20 +163,20 @@
 </head>
 <body>
 
-    <!-- GİRİŞ EKRANI (KULLANICI ADI & ŞİFRE) -->
+    <!-- GİRİŞ EKRANI -->
     <div id="adminAuthBox" class="auth-overlay">
         <div class="auth-box">
             <h2 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</h2>
             <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:18px;">تسجيل الدخول إلى النظام الإداري</p>
             
             <form onsubmit="handleAdminLogin(event)" style="text-align: right;">
-                <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; display: block;">اسم المستخدم (Username)</label>
-                <input type="text" id="adminUserInput" class="form-input" placeholder="Username" required style="direction: ltr;">
+                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">اسم المستخدم (Username):</label>
+                <input type="text" id="adminUserInput" class="form-input" placeholder="Jonathan" required style="direction: ltr; font-weight: 800;">
                 
-                <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; display: block;">كلمة المرور (Password)</label>
-                <input type="password" id="adminPinInput" class="form-input" placeholder="••••••••" required style="direction: ltr;">
+                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">كلمة المرور (Password):</label>
+                <input type="password" id="adminPinInput" class="form-input" placeholder="••••••••" required style="direction: ltr; font-weight: 800;">
                 
-                <button type="submit" class="btn-action" style="width:100%; padding:13px; font-size:1.05rem; margin-top: 8px;">
+                <button type="submit" class="btn-action" style="width:100%; padding:13px; font-size:1.1rem; margin-top: 6px;">
                     <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
                 </button>
             </form>
@@ -170,27 +209,25 @@
             </div>
         </div>
 
-        <!-- RADAR & ŞEHİR FİLTRESİ -->
+        <!-- RADAR & AKILLI ŞEHİR/İLÇE ARAMA KUTUSU -->
         <div class="panel-card">
             <div class="panel-header-flex">
-                <h3 style="font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي للسيارات</h3>
-                
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <label style="font-size:0.85rem; color:var(--text-muted); font-weight:700;"><i class="fa-solid fa-filter"></i> فلترة حسب الموقع:</label>
-                    <select id="cityFilterSelect" class="filter-select" onchange="handleCityFilterChange()">
-                        <option value="all">كل المحافظات (الكل)</option>
-                        <option value="دمشق">دمشق</option>
-                        <option value="ريف دمشق">ريف دمشق</option>
-                        <option value="حمص">حمص</option>
-                        <option value="حلب">حلب</option>
-                        <option value="اللاذقية">اللاذقية</option>
-                        <option value="طرطوس">طرطوس</option>
-                        <option value="حماة">حماة</option>
-                        <option value="درعا">درعا</option>
-                        <option value="السويداء">السويداء</option>
-                    </select>
-                </div>
+                <h3 style="font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي وموقع السائقين</h3>
             </div>
+
+            <!-- ARAMA BUTONU VE KUTUSU -->
+            <div class="radar-controls-wrap">
+                <div class="search-input-group">
+                    <input type="text" id="areaSearchInput" placeholder="اكتب اسم المحافظة، الحي أو المدينة (مثلاً: دمشق، المزة، حلب، حمص...)" onkeypress="handleSearchKeyPress(event)">
+                    <button class="btn-search" onclick="searchLocationAndDrivers()">
+                        <i class="fa-solid fa-magnifying-glass"></i> بحث
+                    </button>
+                </div>
+                <button onclick="resetRadarView()" style="background:#333; color:#fff; border:1px solid #555; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.85rem;">
+                    <i class="fa-solid fa-rotate-left"></i> عرض الكل
+                </button>
+            </div>
+
             <div id="radarMap"></div>
         </div>
 
@@ -260,20 +297,36 @@
         let radarMap;
         let driverMarkers = {};
         let driversList = [];
-        let selectedCityFilter = 'all';
         let currentModalPhone = "";
         let currentModalMsg = "";
 
-        const cityCoordinates = {
+        // Suriye Şehirleri ve Meşhur İlçeleri/Semtleri Koordinat Rehberi
+        const knownLocations = {
             'دمشق': [33.5138, 36.2765],
+            'المزة': [33.5015, 36.2486],
+            'باب توما': [33.5127, 36.3155],
+            'كفرسوسة': [33.4912, 36.2736],
+            'الميدان': [33.4900, 36.3000],
+            'الشعلان': [33.5180, 36.2900],
+            'ركن الدين': [33.5350, 36.2950],
+            'مشروع دمر': [33.5360, 36.2300],
+            'جرمانا': [33.4833, 36.3500],
             'ريف دمشق': [33.5400, 36.3800],
+            'قدسيا': [33.5650, 36.2100],
+            'صحنايا': [33.4350, 36.2400],
+            'الكسوة': [33.3600, 36.2400],
             'حمص': [34.7324, 36.7137],
             'حلب': [36.2021, 37.1343],
             'اللاذقية': [35.5317, 35.7900],
             'طرطوس': [34.8890, 35.8866],
             'حماة': [35.1318, 36.7578],
             'درعا': [32.6255, 36.1055],
-            'السويداء': [32.7090, 36.5695]
+            'السويداء': [32.7090, 36.5695],
+            'القنيطرة': [33.1250, 35.8200],
+            'دير الزور': [35.3350, 40.1450],
+            'الرقة': [35.9500, 39.0100],
+            'الحسكة': [36.5000, 40.7500],
+            'إدلب': [35.9306, 36.6339]
         };
 
         function cleanSyrianPhone(raw) {
@@ -296,7 +349,6 @@
             }
         }
 
-        // Giriş Kontrolü (Username & Password)
         function handleAdminLogin(e) {
             e.preventDefault();
             const inputUser = document.getElementById('adminUserInput').value.trim();
@@ -317,7 +369,6 @@
             location.reload();
         }
 
-        // Oturumu hatırla
         if (sessionStorage.getItem('admin_auth') === 'true') {
             document.getElementById('adminAuthBox').style.display = 'none';
             document.getElementById('adminContent').style.display = 'block';
@@ -342,23 +393,75 @@
 
         function initRadarMap() {
             if(radarMap) { radarMap.invalidateSize(); return; }
-            radarMap = L.map('radarMap').setView([33.5138, 36.2765], 12);
+            radarMap = L.map('radarMap').setView([33.5138, 36.2765], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(radarMap);
             updateMapMarkers();
         }
 
-        function handleCityFilterChange() {
-            selectedCityFilter = document.getElementById('cityFilterSelect').value;
-            if(radarMap && selectedCityFilter !== 'all' && cityCoordinates[selectedCityFilter]) {
-                radarMap.flyTo(cityCoordinates[selectedCityFilter], 12);
+        // AKILLI İL / İLÇE ARAMA VE SÜRÜCÜYE ODAKLANMA
+        function searchLocationAndDrivers() {
+            const query = document.getElementById('areaSearchInput').value.trim().toLowerCase();
+            if (!query) {
+                alert("يرجى كتابة اسم المحافظة أو الحي أو المدينة أولاً!");
+                return;
             }
-            renderTable();
-            updateMapMarkers();
+
+            // 1. Önce bu isimde veya ilçede bir sürücü var mı bak
+            const matchingDriver = driversList.find(d => 
+                (d.city && d.city.toLowerCase().includes(query)) ||
+                (d.name && d.name.toLowerCase().includes(query))
+            );
+
+            // 2. Eğer sürücü varsa ve GPS konumu mevcutsa doğrudan sürücüye odaklan
+            if (matchingDriver && matchingDriver.lat && matchingDriver.lng) {
+                radarMap.flyTo([matchingDriver.lat, matchingDriver.lng], 15, { duration: 1.5 });
+                setTimeout(() => {
+                    if (driverMarkers[matchingDriver.fbKey]) {
+                        driverMarkers[matchingDriver.fbKey].openPopup();
+                    }
+                }, 1600);
+                return;
+            }
+
+            // 3. Bilinen İl/İlçe listesinde var mı bak
+            let targetCoords = null;
+            for (let place in knownLocations) {
+                if (place.toLowerCase().includes(query) || query.includes(place.toLowerCase())) {
+                    targetCoords = knownLocations[place];
+                    break;
+                }
+            }
+
+            if (targetCoords) {
+                radarMap.flyTo(targetCoords, 14, { duration: 1.5 });
+            } else {
+                // 4. Açık kaynaklı harita servisinden semti/ilçeyi ara
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=sy&q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            const lat = parseFloat(data[0].lat);
+                            const lon = parseFloat(data[0].lon);
+                            radarMap.flyTo([lat, lon], 14, { duration: 1.5 });
+                        } else {
+                            alert(`لم يتم العثور على موقع باسم (${query})، يرجى التأكد من كتابة الاسم.`);
+                        }
+                    })
+                    .catch(() => {
+                        alert("تعذر الوصول لخدمة البحث، يرجى المحاولة مرة أخرى.");
+                    });
+            }
         }
 
-        function getFilteredDrivers() {
-            if(selectedCityFilter === 'all') return driversList;
-            return driversList.filter(d => (d.city || 'دمشق') === selectedCityFilter);
+        function handleSearchKeyPress(e) {
+            if (e.key === 'Enter') {
+                searchLocationAndDrivers();
+            }
+        }
+
+        function resetRadarView() {
+            document.getElementById('areaSearchInput').value = '';
+            radarMap.flyTo([33.5138, 36.2765], 12);
         }
 
         function updateMapMarkers() {
@@ -366,9 +469,7 @@
             for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
             driverMarkers = {};
 
-            const list = getFilteredDrivers();
-
-            list.forEach(d => {
+            driversList.forEach(d => {
                 if(d.lat && d.lng) {
                     const daysLeft = calculateDays(d.expiryTimestamp);
                     const color = daysLeft <= 0 ? '#ef4444' : (d.isOnline ? '#22c55e' : '#fcba03');
@@ -394,15 +495,13 @@
         function renderTable() {
             const tbody = document.getElementById('adminTableBody');
             tbody.innerHTML = '';
-            
-            const list = getFilteredDrivers();
 
-            if(list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين في هذا الموقع.</td></tr>`;
+            if(driversList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين مسجلين حالياً.</td></tr>`;
                 return;
             }
 
-            list.forEach(d => {
+            driversList.forEach(d => {
                 const daysLeft = calculateDays(d.expiryTimestamp);
                 const isExp = daysLeft <= 0;
                 const statusBadge = isExp ? `<span class="badge badge-expired">منتهي</span>` : (d.isOnline ? `<span class="badge badge-active">متاح</span>` : `<span class="badge badge-busy">استراحة</span>`);
@@ -533,3 +632,4 @@
     </script>
 </body>
 </html>
+
