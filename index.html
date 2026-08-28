@@ -5,22 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>تكسي البلد | Taxi Al Balad</title>
 
-    <!-- Google Doğrulama & SEO -->
+    <!-- Google Site Verification & SEO -->
     <meta name="google-site-verification" content="J45PZ7hGFCbt2brXaivLQeVJ46IqkWwTe0haMo-eumE" />
-    <meta name="description" content="تكسي البلد - أسرع وأسهل طريقة لطلب تكسي في دمشق وسوريا. شارك موقعك واحصل على سيارتك فوراً عبر واتساب.">
+    <meta name="description" content="تكسي البلد - خدمة حجز وتوصيل التكسي السريع في دمشق وسوريا. أسرع استجابة وأمان تام بنقرة زر واحدة عبر الواتساب.">
     <meta name="keywords" content="تكسي البلد, taxi albalad, taksi al balad, تكسي دمشق, طلب تكسي">
-    
-    <!-- Güvenlik Başlıkları -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta name="referrer" content="no-referrer-when-downgrade">
 
-    <!-- Yazı Tipleri -->
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- İkonlar -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         :root {
@@ -28,351 +26,266 @@
             --brand-yellow-hover: #e5a700;
             --brand-black: #111111;
             --brand-card: #222222;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
             --text-main: #ffffff;
             --text-muted: #a3a3a3;
         }
-
-        *, *::before, *::after {
-            margin: 0; padding: 0; box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--brand-black);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--brand-black); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
         [dir="ltr"] body, [dir="ltr"] * { font-family: 'Montserrat', sans-serif; }
 
-        .top-navbar {
-            width: 100%;
-            background: #141414;
-            border-bottom: 3px solid var(--brand-yellow);
-            position: sticky; top: 0; z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-        }
+        .top-navbar { width: 100%; background: #141414; border-bottom: 3px solid var(--brand-yellow); position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+        .nav-inner { max-width: 900px; margin: 0 auto; padding: 0.6rem 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+        .brand-logo-wrap { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; }
+        .brand-logo-img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--brand-yellow); background: #fff; }
+        .brand-logo-text h1 { font-size: 1.25rem; font-weight: 900; color: var(--brand-yellow); line-height: 1.1; }
+        .brand-logo-text span { font-size: 0.75rem; font-weight: 700; color: #fff; letter-spacing: 1px; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 8px; }
+        .nav-tab-btn { background: rgba(252, 186, 3, 0.1); color: var(--brand-yellow); border: 1.5px solid var(--brand-yellow); padding: 6px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .nav-tab-btn.active, .nav-tab-btn:hover { background: var(--brand-yellow); color: #000; }
+        .btn-lang { background: transparent; color: var(--text-muted); border: 1px solid #444; padding: 6px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
 
-        .nav-inner {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0.8rem 1.2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        main { flex: 1; width: 100%; max-width: 900px; margin: 0 auto; padding: 1.5rem 1.2rem 3rem; }
+        .app-view { display: none; }
+        .app-view.active { display: block; }
 
-        .brand-logo-wrap {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: #fff;
-        }
+        /* MÜŞTERİ KARTI */
+        .passenger-hero-card { background: linear-gradient(145deg, #1f1f1f 0%, #161616 100%); border: 2px solid var(--brand-yellow); border-radius: 24px; padding: 2.5rem 1.5rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); margin-bottom: 2rem; position: relative; overflow: hidden; }
+        .passenger-hero-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: repeating-linear-gradient(90deg, var(--brand-yellow), var(--brand-yellow) 15px, #000 15px, #000 30px); }
+        .hero-center-logo { width: 105px; height: 105px; border-radius: 50%; border: 3px solid var(--brand-yellow); margin: 0 auto 1.2rem; display: block; background: #fff; box-shadow: 0 4px 20px rgba(252, 186, 3, 0.35); }
+        .passenger-hero-card h2 { color: var(--brand-yellow); font-size: 1.8rem; font-weight: 900; margin-bottom: 0.6rem; }
+        .passenger-hero-card p { color: #d4d4d4; font-size: 1.05rem; margin-bottom: 1.8rem; line-height: 1.5; }
+        .btn-live-location-send { width: 100%; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); color: #ffffff; border: none; padding: 18px 24px; font-size: 1.25rem; font-weight: 900; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4); }
+        .phone-call-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--brand-yellow); color: #000; padding: 8px 20px; border-radius: 25px; font-weight: 900; font-size: 1.1rem; margin-top: 1.5rem; text-decoration: none; direction: ltr; }
 
-        .brand-logo-img {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--brand-yellow);
-            background: #fff;
-        }
+        .why-us-section { margin-top: 1.5rem; }
+        .why-us-title { text-align: center; font-size: 1.35rem; font-weight: 900; color: var(--brand-yellow); margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .feature-item { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 14px; padding: 1.2rem; text-align: right; border-top: 3px solid var(--brand-yellow); }
+        [dir="ltr"] .feature-item { text-align: left; }
+        .feature-item i { font-size: 1.6rem; color: var(--brand-yellow); margin-bottom: 8px; display: inline-block; }
+        .feature-item h4 { font-size: 1rem; font-weight: 800; margin-bottom: 4px; color: #fff; }
+        .feature-item p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
 
-        .brand-logo-text h1 {
-            font-size: 1.25rem;
-            font-weight: 900;
-            color: var(--brand-yellow);
-            line-height: 1.1;
-        }
+        /* ŞOFÖR KARTI */
+        .driver-container { max-width: 450px; margin: 0 auto; }
+        .driver-card { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 24px; padding: 2rem 1.5rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .driver-avatar { width: 75px; height: 75px; background: rgba(252, 186, 3, 0.15); color: var(--brand-yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem; border: 2px solid var(--brand-yellow); }
+        .gps-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.8rem; }
+        .credit-meter { background: #111111; border-radius: 14px; padding: 1.2rem; margin: 1.2rem 0; border: 1px solid rgba(252, 186, 3, 0.3); }
+        .credit-number { font-size: 3rem; font-weight: 900; color: var(--brand-yellow); }
+        .badge { padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; font-weight: 800; display: inline-block; }
+        .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .badge-busy { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
+        
+        .toggle-status-btn { width: 100%; padding: 15px; border-radius: 12px; font-size: 1.1rem; font-weight: 900; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-to-break { background: #ef4444; color: #fff; }
+        .btn-to-work { background: #22c55e; color: #000; }
 
-        .brand-logo-text span {
-            font-size: 0.75rem;
+        /* SÜRESİ BİTEN ŞOFÖR İLETİŞİM KUTUSU */
+        .driver-expired-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px dashed var(--accent-red);
+            border-radius: 16px;
+            padding: 1.5rem 1rem;
+            margin-top: 1rem;
+        }
+        .driver-expired-box p {
+            color: #ffb4b4;
+            font-size: 0.95rem;
             font-weight: 700;
-            color: #fff;
-            letter-spacing: 1px;
-        }
-
-        .btn-lang {
-            background: rgba(252, 186, 3, 0.15);
-            color: var(--brand-yellow);
-            border: 1.5px solid var(--brand-yellow);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .btn-lang:hover {
-            background: var(--brand-yellow);
-            color: #000;
-        }
-
-        main {
-            flex: 1;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem 1.2rem 3rem;
-        }
-
-        .passenger-hero-card {
-            background: linear-gradient(145deg, #1f1f1f 0%, #161616 100%);
-            border: 2px solid var(--brand-yellow);
-            border-radius: 24px;
-            padding: 2.5rem 1.5rem;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .passenger-hero-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 6px;
-            background: repeating-linear-gradient(90deg, var(--brand-yellow), var(--brand-yellow) 15px, #000 15px, #000 30px);
-        }
-
-        .hero-center-logo {
-            width: 105px;
-            height: 105px;
-            border-radius: 50%;
-            border: 3px solid var(--brand-yellow);
-            margin: 0 auto 1.2rem;
-            display: block;
-            background: #fff;
-            box-shadow: 0 4px 20px rgba(252, 186, 3, 0.35);
-        }
-
-        .passenger-hero-card h2 {
-            color: var(--brand-yellow);
-            font-size: 1.8rem;
-            font-weight: 900;
-            margin-bottom: 0.6rem;
-        }
-
-        .passenger-hero-card p {
-            color: #d4d4d4;
-            font-size: 1.05rem;
-            margin-bottom: 1.8rem;
             line-height: 1.5;
+            margin-bottom: 1rem;
         }
-
-        .btn-live-location-send {
-            width: 100%;
-            max-width: 480px;
-            margin: 0 auto;
-            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-            color: #ffffff;
-            border: none;
-            padding: 18px 24px;
-            font-size: 1.25rem;
-            font-weight: 900;
-            border-radius: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn-live-location-send:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(37, 211, 102, 0.6);
-        }
-
-        .phone-call-badge {
+        .btn-renew-sub {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            background: var(--brand-yellow);
-            color: #000;
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-weight: 900;
-            font-size: 1.1rem;
-            margin-top: 1.5rem;
-            text-decoration: none;
-            direction: ltr;
-            transition: transform 0.2s;
-        }
-
-        .phone-call-badge:hover {
-            transform: scale(1.05);
-        }
-
-        .why-us-section {
-            margin-top: 1.5rem;
-        }
-
-        .why-us-title {
-            text-align: center;
-            font-size: 1.35rem;
-            font-weight: 900;
-            color: var(--brand-yellow);
-            margin-bottom: 1.2rem;
-            display: flex;
-            align-items: center;
             justify-content: center;
             gap: 8px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-        }
-
-        .feature-item {
-            background: var(--brand-card);
-            border: 1px solid rgba(252, 186, 3, 0.3);
-            border-radius: 14px;
-            padding: 1.2rem;
-            text-align: right;
-            border-top: 3px solid var(--brand-yellow);
-        }
-
-        [dir="ltr"] .feature-item { text-align: left; }
-
-        .feature-item i {
-            font-size: 1.6rem;
-            color: var(--brand-yellow);
-            margin-bottom: 8px;
-            display: inline-block;
-        }
-
-        .feature-item h4 {
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+            color: #ffffff;
+            text-decoration: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 900;
             font-size: 1rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-            color: #fff;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
         }
 
-        .feature-item p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border-top: 1px solid #222;
-        }
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-box { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 1.8rem; max-width: 380px; width: 100%; text-align: center; }
+        .form-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #fff; color: #000; outline: none; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem; }
+        .btn-action { background: var(--brand-yellow); color: #000; border: none; padding: 10px; border-radius: 8px; font-weight: 900; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <header class="top-navbar">
         <div class="nav-inner">
-            <a href="/" class="brand-logo-wrap">
+            <a href="#" onclick="switchView('passenger')" class="brand-logo-wrap">
                 <img src="logo.jpg" alt="Logo" class="brand-logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2554/2554978.png'">
                 <div class="brand-logo-text">
                     <h1>تكسي البلد</h1>
                     <span>TAXI AL BALAD</span>
                 </div>
             </a>
-            <button class="btn-lang" onclick="toggleLanguage()" id="langBtn">
-                <i class="fa-solid fa-globe"></i> English
-            </button>
+            
+            <div class="nav-actions">
+                <button class="nav-tab-btn active" id="navBtnPassenger" onclick="switchView('passenger')">
+                    <i class="fa-solid fa-house"></i> <span>الرئيسية</span>
+                </button>
+                <button class="nav-tab-btn" id="navBtnDriver" onclick="openDriverSection()">
+                    <i class="fa-solid fa-id-card"></i> <span>شاشة السائق</span>
+                </button>
+                <button class="btn-lang" onclick="toggleLanguage()" id="langBtn">EN</button>
+            </div>
         </div>
     </header>
 
     <main>
-        <section class="passenger-hero-card">
-            <img src="logo.jpg" alt="Taxi Al Balad Logo" class="hero-center-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2554/2554978.png'">
-            
-            <h2 id="t-p-title">تكسي البلد في خدمتك دائماً</h2>
-            <p id="t-p-desc">اضغط على الزر أدناه ليتم تحديد موقعك بدقة وإرساله فوراً عبر واتساب لحجز أقرب تكسي لك.</p>
+        <!-- 1. MÜŞTERİ EKRANI -->
+        <section id="view-passenger" class="app-view active">
+            <div class="passenger-hero-card">
+                <img src="logo.jpg" alt="Logo" class="hero-center-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2554/2554978.png'">
+                <h2 id="t-p-title">تكسي البلد في خدمتك دائماً</h2>
+                <p id="t-p-desc">اضغط على الزر أدناه ليتم تحديد موقعك بدقة وإرساله فوراً عبر واتساب لحجز أقرب تكسي لك.</p>
 
-            <button type="button" class="btn-live-location-send" onclick="handlePassengerDirectWhatsApp()">
-                <i class="fa-solid fa-location-arrow"></i>
-                <span id="t-p-btn">إرسال موقعي الحالي وطلب تكسي</span>
-            </button>
+                <button type="button" class="btn-live-location-send" onclick="handlePassengerDirectWhatsApp()">
+                    <i class="fa-solid fa-location-arrow"></i>
+                    <span id="t-p-btn">إرسال موقعي الحالي وطلب تكسي</span>
+                </button>
 
-            <div>
-                <a href="tel:0962750014" class="phone-call-badge">
-                    <i class="fa-solid fa-phone"></i> 0962750014
-                </a>
+                <div>
+                    <a href="tel:0962750014" class="phone-call-badge">
+                        <i class="fa-solid fa-phone"></i> 0962750014
+                    </a>
+                </div>
+            </div>
+
+            <div class="why-us-section">
+                <div class="why-us-title"><i class="fa-solid fa-star"></i> <span id="t-why-title">لماذا تختار تكسي البلد؟</span></div>
+                <div class="features-grid">
+                    <div class="feature-item"><i class="fa-solid fa-bolt"></i><h4 id="t-f1-t">سرعة استجابة فائقة</h4><p id="t-f1-d">بمجرد إرسال موقعك، نقوم بتوجيه أقرب تكسي متواجد في منطقتك ليصلك خلال دقائق معدودة.</p></div>
+                    <div class="feature-item"><i class="fa-solid fa-shield-halved"></i><h4 id="t-f2-t">أمان وموثوقية عالية</h4><p id="t-f2-d">جميع سائقينا معتمدون، والرحلات تخضع لمتابعة وإشراف مباشر لضمان راحتك وسلامتك.</p></div>
+                    <div class="feature-item"><i class="fa-solid fa-location-dot"></i><h4 id="t-f3-t">دقة في الوصول</h4><p id="t-f3-d">نصل إلى باب موقعك الجغرافي تماماً دون الحاجة لإضاعة الوقت في شرح وتوصيف الطريق.</p></div>
+                    <div class="feature-item"><i class="fa-solid fa-headset"></i><h4 id="t-f4-t">خدمة وتنسيق 24/7</h4><p id="t-f4-d">فريق الإدارة جاهز ومتاح على مدار الساعة عبر الواتساب لتلبية طلباتكم في أي وقت.</p></div>
+                </div>
             </div>
         </section>
 
-        <div class="why-us-section">
-            <div class="why-us-title">
-                <i class="fa-solid fa-star"></i>
-                <span id="t-why-title">لماذا تختار تكسي البلد؟</span>
+        <!-- 2. ŞOFÖR EKRANI -->
+        <section id="view-driver" class="app-view">
+            <div class="driver-container">
+                <div class="driver-card">
+                    <div class="driver-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                    <h2 id="dName" style="font-size: 1.4rem; margin-bottom: 2px;">-</h2>
+                    <p id="dCar" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">-</p>
+
+                    <div class="gps-badge" id="driverGpsBadge">
+                        <i class="fa-solid fa-location-crosshairs"></i> <span id="driverGpsStatus">جاري فحص GPS...</span>
+                    </div>
+
+                    <div class="credit-meter">
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">الأيام المتبقية في اشتراكك</div>
+                        <div class="credit-number" id="dDays">0</div>
+                        <div id="dExpiryDate" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">ينتهي في: --</div>
+                        <div id="dStatusBadge" class="badge badge-active" style="margin-top: 8px;">-</div>
+                    </div>
+
+                    <!-- Çalışma / Mola Butonu (Gün Varsa Görünür) -->
+                    <button class="toggle-status-btn btn-to-break" id="driverToggleOnlineBtn" onclick="toggleOnline()">
+                        <i class="fa-solid fa-pause"></i> <span>أخذ استراحة (إيقاف الاستقبال)</span>
+                    </button>
+
+                    <!-- Gün Bittiğinde Çıkan İletişim Kutusu -->
+                    <div id="driverExpiredBox" class="driver-expired-box" style="display:none;">
+                        <p>
+                            <i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-red); margin-left:4px;"></i>
+                            انتهت أيام اشتراكك في النظام!<br>
+                            يرجى التواصل مع إدارة <b>تكسي البلد</b> لتجديد وإضافة الأيام لمتابعة استقبال المشاوير.
+                        </p>
+                        <a id="driverRenewWhatsAppBtn" href="#" class="btn-renew-sub">
+                            <i class="fa-brands fa-whatsapp"></i> تواصل مع الإدارة عبر واتساب
+                        </a>
+                    </div>
+                    
+                    <button onclick="logoutDriver()" style="background:transparent; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer; font-size:0.85rem;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+                    </button>
+                </div>
             </div>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <i class="fa-solid fa-bolt"></i>
-                    <h4 id="t-f1-t">سرعة استجابة فائقة</h4>
-                    <p id="t-f1-d">بمجرد إرسال موقعك، نقوم بتوجيه أقرب تكسي متواجد في منطقتك ليصلك خلال دقائق معدودة.</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <h4 id="t-f2-t">أمان وموثوقية عالية</h4>
-                    <p id="t-f2-d">جميع سائقينا معتمدون، والرحلات تخضع لمتابعة وإشراف مباشر لضمان راحتك وسلامتك.</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fa-solid fa-location-dot"></i>
-                    <h4 id="t-f3-t">دقة في الوصول</h4>
-                    <p id="t-f3-d">نصل إلى باب موقعك الجغرافي تماماً دون الحاجة لإضاعة الوقت في شرح وتوصيف الطريق.</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fa-solid fa-headset"></i>
-                    <h4 id="t-f4-t">خدمة وتنسيق 24/7</h4>
-                    <p id="t-f4-d">فريق الإدارة جاهز ومتاح على مدار الساعة عبر الواتساب لتلبية طلباتكم في أي وقت.</p>
-                </div>
-            </div>
-        </div>
+        </section>
     </main>
 
-    <footer>
-        <p>© جميع الحقوق محفوظة لـ تكسي البلد | Taxi Al Balad</p>
-    </footer>
+    <!-- ŞOFÖR GİRİŞİ -->
+    <div id="driverAuthModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-car"></i> تسجيل دخول السائق</h3>
+            <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:12px;">أدخل هاتفك وكلمة السر المحددة لك من الإدارة</p>
+            <form onsubmit="handleDriverLogin(event)">
+                <input type="text" id="driverLoginPhone" class="form-input" placeholder="رقم الهاتف المسجل" required>
+                <input type="password" id="driverLoginPass" class="form-input" placeholder="كلمة السر (PIN)" required>
+                <button type="submit" class="btn-action">تسجيل الدخول</button>
+                <button type="button" onclick="closeModals()" style="background:transparent; border:none; color:var(--text-muted); margin-top:10px; cursor:pointer;">إلغاء</button>
+            </form>
+        </div>
+    </div>
 
     <script>
+        const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const driversRef = db.ref('drivers');
+
         const CENTRAL_ADMIN_PHONE = "963962750014";
         let currentLang = 'ar';
+        let activeDriver = null;
+        let driversList = [];
+        let gpsWatchId = null;
 
         const i18n = {
             ar: {
-                langBtn: '<i class="fa-solid fa-globe"></i> English',
-                pTitle: "تكسي البلد في خدمتك دائماً",
+                langBtn: "EN", pTitle: "تكسي البلد في خدمتك دائماً",
                 pDesc: "اضغط على الزر أدناه ليتم تحديد موقعك بدقة وإرساله فوراً عبر واتساب لحجز أقرب تكسي لك.",
-                pBtn: "إرسال موقعي الحالي وطلب تكسي",
-                whyTitle: "لماذا تختار تكسي البلد؟",
+                pBtn: "إرسال موقعي الحالي وطلب تكسي", whyTitle: "لماذا تختار تكسي البلد؟",
                 f1T: "سرعة استجابة فائقة", f1D: "بمجرد إرسال موقعك، نقوم بتوجيه أقرب تكسي متواجد في منطقتك ليصلك خلال دقائق معدودة.",
                 f2T: "أمان وموثوقية عالية", f2D: "جميع سائقينا معتمدون، والرحلات تخضع لمتابعة وإشراف مباشر لضمان راحتك وسلامتك.",
                 f3T: "دقة في الوصول", f3D: "نصل إلى باب موقعك الجغرافي تماماً دون الحاجة لإضاعة الوقت في شرح وتوصيف الطريق.",
                 f4T: "خدمة وتنسيق 24/7", f4D: "فريق الإدارة جاهز ومتاح على مدار الساعة عبر الواتساب لتلبية طلباتكم في أي وقت."
             },
             en: {
-                langBtn: '<i class="fa-solid fa-globe"></i> عربي',
-                pTitle: "Taxi Al Balad at Your Service",
+                langBtn: "عربي", pTitle: "Taxi Al Balad at Your Service",
                 pDesc: "Tap the button below to share your live location via WhatsApp and book the nearest taxi.",
-                pBtn: "Send Live Location & Book Taxi",
-                whyTitle: "Why Choose Taxi Al Balad?",
+                pBtn: "Send Live Location & Book Taxi", whyTitle: "Why Choose Taxi Al Balad?",
                 f1T: "Fast Response Time", f1D: "Once you share your location, we dispatch the nearest available driver to reach you in minutes.",
                 f2T: "Safe & Reliable Rides", f2D: "All our drivers are certified and trips are coordinated to ensure your safety and comfort.",
                 f3T: "Pinpoint Accuracy", f3D: "We arrive precisely at your door without the need to explain or describe road directions.",
                 f4T: "24/7 Central Dispatch", f4D: "Our central management is available 24/7 on WhatsApp to coordinate your rides anytime."
             }
         };
+
+        driversRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            driversList = [];
+            if(data) {
+                Object.keys(data).forEach(key => driversList.push({ ...data[key], fbKey: key }));
+            }
+            if(activeDriver) {
+                const updated = driversList.find(d => d.phone === activeDriver.phone);
+                if(updated) { activeDriver = updated; renderDriverPanel(); }
+            }
+        });
+
+        function calculateDays(expiryTimestamp) {
+            const diff = expiryTimestamp - Date.now();
+            return diff <= 0 ? 0 : Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
 
         function handlePassengerDirectWhatsApp() {
             if ("geolocation" in navigator) {
@@ -392,12 +305,128 @@
             }
         }
 
+        function switchView(viewId) {
+            document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+
+            if(viewId === 'passenger') {
+                document.getElementById('view-passenger').classList.add('active');
+                document.getElementById('navBtnPassenger').classList.add('active');
+            } else if(viewId === 'driver') {
+                document.getElementById('view-driver').classList.add('active');
+                document.getElementById('navBtnDriver').classList.add('active');
+                renderDriverPanel();
+                startGpsTracking();
+            }
+        }
+
+        function openDriverSection() {
+            if(activeDriver) switchView('driver');
+            else document.getElementById('driverAuthModal').style.display = 'flex';
+        }
+
+        function closeModals() {
+            document.getElementById('driverAuthModal').style.display = 'none';
+        }
+
+        function handleDriverLogin(e) {
+            e.preventDefault();
+            const phone = document.getElementById('driverLoginPhone').value.replace(/[^0-9]/g, '');
+            const pass = document.getElementById('driverLoginPass').value.trim();
+
+            const driver = driversList.find(d => d.phone === phone);
+            if(!driver) { alert("❌ رقم الهاتف غير مسجل لدى الإدارة!"); return; }
+            if(driver.password && driver.password !== pass) { alert("❌ كلمة السر (PIN) غير صحيحة!"); return; }
+
+            activeDriver = driver;
+            closeModals();
+            switchView('driver');
+        }
+
+        function logoutDriver() {
+            activeDriver = null;
+            if(gpsWatchId) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+            switchView('passenger');
+        }
+
+        function renderDriverPanel() {
+            if(!activeDriver) return;
+            const daysLeft = calculateDays(activeDriver.expiryTimestamp);
+            document.getElementById('dName').innerText = activeDriver.name;
+            document.getElementById('dCar').innerText = activeDriver.car;
+            document.getElementById('dDays').innerText = daysLeft;
+            
+            const expDate = new Date(activeDriver.expiryTimestamp);
+            document.getElementById('dExpiryDate').innerText = `ينتهي في: ${expDate.getDate()}/${expDate.getMonth()+1}/${expDate.getFullYear()}`;
+
+            const badge = document.getElementById('dStatusBadge');
+            const toggleBtn = document.getElementById('driverToggleOnlineBtn');
+            const expiredBox = document.getElementById('driverExpiredBox');
+            const renewBtn = document.getElementById('driverRenewWhatsAppBtn');
+
+            if(daysLeft <= 0) {
+                badge.className = "badge badge-expired";
+                badge.innerText = "منتهي الاشتراك (موقوف)";
+                toggleBtn.style.display = "none";
+                expiredBox.style.display = "block";
+                
+                // Şoföre özel hazır WhatsApp yenileme mesajı
+                const renewMsg = `مرحباً إدارة تكسي البلد، أنا السائق (${activeDriver.name}) ورقمي (${activeDriver.phone}). انتهى اشتراكي وأرغب بتجديد وإضافة أيام جديدة.`;
+                renewBtn.href = `https://wa.me/${CENTRAL_ADMIN_PHONE}?text=${encodeURIComponent(renewMsg)}`;
+            } else {
+                expiredBox.style.display = "none";
+                toggleBtn.style.display = "flex";
+                if(activeDriver.isOnline) {
+                    badge.className = "badge badge-active";
+                    badge.innerText = "متاح للعمل (أونلاين)";
+                    toggleBtn.className = "toggle-status-btn btn-to-break";
+                    toggleBtn.innerHTML = '<i class="fa-solid fa-pause"></i> <span>أخذ استراحة (إيقاف الاستقبال)</span>';
+                } else {
+                    badge.className = "badge badge-busy";
+                    badge.innerText = "في استراحة (أوفلاين)";
+                    toggleBtn.className = "toggle-status-btn btn-to-work";
+                    toggleBtn.innerHTML = '<i class="fa-solid fa-play"></i> <span>بدء العمل (استقبال المشاوير)</span>';
+                }
+            }
+        }
+
+        function toggleOnline() {
+            if(!activeDriver || !activeDriver.fbKey) return;
+            const newStatus = !activeDriver.isOnline;
+            driversRef.child(activeDriver.fbKey).update({ isOnline: newStatus });
+            activeDriver.isOnline = newStatus;
+            renderDriverPanel();
+            startGpsTracking();
+        }
+
+        function startGpsTracking() {
+            if(!activeDriver || !activeDriver.isOnline || !("geolocation" in navigator)) {
+                if(gpsWatchId) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+                document.getElementById('driverGpsStatus').innerText = "متوقف (أنت في استراحة)";
+                return;
+            }
+            if(gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
+
+            gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
+                if(activeDriver && activeDriver.fbKey) {
+                    driversRef.child(activeDriver.fbKey).update({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        lastGpsUpdate: Date.now()
+                    });
+                }
+                document.getElementById('driverGpsStatus').innerText = "GPS متصل ومشارك بنجاح";
+            }, function() {
+                document.getElementById('driverGpsStatus').innerText = "تعذر تحديد موقع GPS";
+            }, { enableHighAccuracy: true, timeout: 20000 });
+        }
+
         function toggleLanguage() {
             currentLang = currentLang === 'ar' ? 'en' : 'ar';
             document.documentElement.lang = currentLang;
             document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
             const t = i18n[currentLang];
-            document.getElementById('langBtn').innerHTML = t.langBtn;
+            document.getElementById('langBtn').innerText = t.langBtn;
             document.getElementById('t-p-title').innerText = t.pTitle;
             document.getElementById('t-p-desc').innerText = t.pDesc;
             document.getElementById('t-p-btn').innerText = t.pBtn;
