@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة الإدارة والرادار | تكسي البلد</title>
     
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet Harita -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -24,9 +29,10 @@
             --text-main: #ffffff;
             --text-muted: #a3a3a3;
         }
+
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--brand-black); color: var(--text-main); min-height: 100vh; padding: 1.5rem 1rem; }
-        .admin-wrap { max-width: 1000px; margin: 0 auto; }
+        .admin-wrap { max-width: 1100px; margin: 0 auto; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         .stat-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 12px; padding: 1rem; display: flex; align-items: center; gap: 10px; }
@@ -36,17 +42,43 @@
         .stat-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
 
         .panel-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.5rem; }
-        #radarMap { width: 100%; height: 420px; border-radius: 10px; border: 1px solid var(--brand-yellow); }
+        
+        .panel-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        #radarMap { width: 100%; height: 450px; border-radius: 10px; border: 1.5px solid var(--brand-yellow); }
+        
         table { width: 100%; border-collapse: collapse; text-align: inherit; }
         th, td { padding: 10px; border-bottom: 1px solid rgba(252, 186, 3, 0.2); font-size: 0.85rem; }
         th { background: #141414; color: var(--text-muted); }
-        .btn-action { background: var(--brand-yellow); color: #000; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-        .form-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #fff; color: #000; outline: none; margin-bottom: 8px; font-weight: 600; }
         
+        .btn-action { background: var(--brand-yellow); color: #000; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; transition: transform 0.1s; }
+        .btn-action:hover { transform: scale(1.05); }
+        
+        .form-input {
+            width: 100%; padding: 11px; border-radius: 8px;
+            border: 1px solid #444; background: #fff; color: #000;
+            outline: none; margin-bottom: 8px; font-weight: 700; font-size: 0.95rem;
+        }
+        
+        .filter-select {
+            background: #111; color: var(--brand-yellow);
+            border: 1.5px solid var(--brand-yellow);
+            padding: 6px 14px; border-radius: 10px;
+            font-size: 0.9rem; font-weight: 800; outline: none; cursor: pointer;
+        }
+
         .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
         .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
         .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
         .badge-busy { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
+        .badge-city { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
 
         .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
         .auth-box { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 2rem; max-width: 360px; width: 100%; text-align: center; }
@@ -66,12 +98,14 @@
         </div>
     </div>
 
+    <!-- ADMİN İÇERİK ALANI -->
     <div class="admin-wrap" id="adminContent" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:10px;">
             <h1 style="color:var(--brand-yellow); font-size:1.4rem;"><i class="fa-solid fa-gauge-high"></i> إدارة تكسي البلد</h1>
             <a href="/" style="color:var(--text-muted); text-decoration:none; font-size:0.85rem;"><i class="fa-solid fa-arrow-left"></i> زيارة الموقع الرئيسي</a>
         </div>
 
+        <!-- İSTATİSTİKLER -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon gold"><i class="fa-solid fa-users"></i></div>
@@ -87,34 +121,52 @@
             </div>
         </div>
 
-        <!-- RADAR HARİTASI -->
+        <!-- RADAR & ŞEHİR FİLTRESİ -->
         <div class="panel-card">
-            <h3 style="margin-bottom:10px; font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي للسيارات</h3>
+            <div class="panel-header-flex">
+                <h3 style="font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي للسيارات</h3>
+                
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="font-size:0.85rem; color:var(--text-muted); font-weight:700;"><i class="fa-solid fa-filter"></i> فلترة حسب الموقع:</label>
+                    <select id="cityFilterSelect" class="filter-select" onchange="handleCityFilterChange()">
+                        <option value="all">كل المحافظات (الكل)</option>
+                        <option value="دمشق">دمشق</option>
+                        <option value="ريف دمشق">ريف دمشق</option>
+                        <option value="حمص">حمص</option>
+                        <option value="حلب">حلب</option>
+                        <option value="اللاذقية">اللاذقية</option>
+                        <option value="طرطوس">طرطوس</option>
+                        <option value="حماة">حماة</option>
+                        <option value="درعا">درعا</option>
+                        <option value="السويداء">السويداء</option>
+                    </select>
+                </div>
+            </div>
             <div id="radarMap"></div>
         </div>
 
-        <!-- Yeni Sürücü Tanımlama (Şifreli & WhatsApp Bildirimli) -->
+        <!-- YENİ SÜRÜCÜ EKLEME -->
         <div class="panel-card">
-            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل سائق جديد وتحديد كلمة السر</h3>
+            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل كابتن جديد وتحديد كلمة السر</h3>
             <form onsubmit="addNewDriver(event)">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
                     <input type="text" id="newDName" class="form-input" placeholder="اسم السائق" required>
-                    <input type="text" id="newDPhone" class="form-input" placeholder="رقم الهاتف (963962000111)" required>
-                    <input type="text" id="newDPass" class="form-input" placeholder="كلمة سر السائق (PIN)" required>
+                    <input type="text" id="newDPhone" class="form-input" placeholder="رقم الهاتف (963...)" required>
+                    <input type="text" id="newDPass" class="form-input" placeholder="كلمة المرور (PIN)" required>
                     <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة" required>
                     <input type="number" id="newDDays" class="form-input" value="7" min="1" placeholder="أيام الاشتراك" required>
                 </div>
-                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 10px 18px;">إضافة وتفعيل السائق وإرسال كلمة السر</button>
+                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 11px 20px;">إضافة وتفعيل السائق وإرسال بيانات الدخول</button>
             </form>
         </div>
 
-        <!-- Sürücü Listesi -->
+        <!-- SÜRÜCÜ LİSTESİ -->
         <div class="panel-card">
-            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-list"></i> إدارة السائقين وكلمات المرور</h3>
+            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-list"></i> قائمة السائقين (مع تحديد المحافظة تلقائياً عبر GPS)</h3>
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
-                        <tr><th>السائق</th><th>الهاتف</th><th>كلمة السر</th><th>السيارة</th><th>الحالة</th><th>الأيام</th><th>العمليات</th></tr>
+                        <tr><th>السائق</th><th>المحافظة الحالية</th><th>الهاتف</th><th>كلمة السر</th><th>السيارة</th><th>الحالة</th><th>الأيام</th><th>العمليات</th></tr>
                     </thead>
                     <tbody id="adminTableBody"></tbody>
                 </table>
@@ -122,6 +174,7 @@
         </div>
     </div>
 
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
@@ -134,6 +187,19 @@
         let radarMap;
         let driverMarkers = {};
         let driversList = [];
+        let selectedCityFilter = 'all';
+
+        const cityCoordinates = {
+            'دمشق': [33.5138, 36.2765],
+            'ريف دمشق': [33.5400, 36.3800],
+            'حمص': [34.7324, 36.7137],
+            'حلب': [36.2021, 37.1343],
+            'اللاذقية': [35.5317, 35.7900],
+            'طرطوس': [34.8890, 35.8866],
+            'حماة': [35.1318, 36.7578],
+            'درعا': [32.6255, 36.1055],
+            'السويداء': [32.7090, 36.5695]
+        };
 
         function handleAdminLogin(e) {
             e.preventDefault();
@@ -162,10 +228,24 @@
         }
 
         function initRadarMap() {
-            if(radarMap) return;
+            if(radarMap) { radarMap.invalidateSize(); return; }
             radarMap = L.map('radarMap').setView([33.5138, 36.2765], 12);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(radarMap);
             updateMapMarkers();
+        }
+
+        function handleCityFilterChange() {
+            selectedCityFilter = document.getElementById('cityFilterSelect').value;
+            if(radarMap && selectedCityFilter !== 'all' && cityCoordinates[selectedCityFilter]) {
+                radarMap.flyTo(cityCoordinates[selectedCityFilter], 12);
+            }
+            renderTable();
+            updateMapMarkers();
+        }
+
+        function getFilteredDrivers() {
+            if(selectedCityFilter === 'all') return driversList;
+            return driversList.filter(d => (d.city || 'دمشق') === selectedCityFilter);
         }
 
         function updateMapMarkers() {
@@ -173,18 +253,20 @@
             for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
             driverMarkers = {};
 
-            driversList.forEach(d => {
+            const list = getFilteredDrivers();
+
+            list.forEach(d => {
                 if(d.lat && d.lng) {
                     const daysLeft = calculateDays(d.expiryTimestamp);
                     const color = daysLeft <= 0 ? '#ef4444' : (d.isOnline ? '#22c55e' : '#fcba03');
                     const statusText = daysLeft <= 0 ? 'منتهي' : (d.isOnline ? 'متاح' : 'استراحة');
                     
                     const radarIcon = L.divIcon({
-                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap;">🚖 ${d.name} (${statusText})</div>`,
+                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5);">🚖 ${d.name} (${d.city || 'دمشق'})</div>`,
                         iconSize: [85, 25]
                     });
-                    const waLink = `https://wa.me/${d.phone}?text=${encodeURIComponent('🚕 مشوار جديد لك من الإدارة.')}`;
-                    const popup = `<strong>${d.name}</strong> (${d.car})<br>الرمز: <code>${d.password || 'غير محدد'}</code><br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
+                    const waLink = `https://wa.me/${d.phone}?text=${encodeURIComponent('🚕 مشوار جديد لك من إدارة تكسي البلد.')}`;
+                    const popup = `<strong>${d.name}</strong> (${d.car})<br>المحافظة الحالية: <b>${d.city || 'دمشق'}</b><br>كلمة السر: <code>${d.password || 'غير محدد'}</code><br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
                     driverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(radarMap).bindPopup(popup);
                 }
             });
@@ -199,17 +281,22 @@
         function renderTable() {
             const tbody = document.getElementById('adminTableBody');
             tbody.innerHTML = '';
-            if(driversList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين مسجلين.</td></tr>`;
+            
+            const list = getFilteredDrivers();
+
+            if(list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين في هذا الموقع.</td></tr>`;
                 return;
             }
-            driversList.forEach(d => {
+
+            list.forEach(d => {
                 const daysLeft = calculateDays(d.expiryTimestamp);
                 const isExp = daysLeft <= 0;
                 const statusBadge = isExp ? `<span class="badge badge-expired">منتهي</span>` : (d.isOnline ? `<span class="badge badge-active">متاح</span>` : `<span class="badge badge-busy">استراحة</span>`);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${d.name}</strong></td>
+                    <td><span class="badge badge-city"><i class="fa-solid fa-location-arrow"></i> ${d.city || 'دمشق'}</span></td>
                     <td dir="ltr">+${d.phone}</td>
                     <td>
                         <strong style="color:var(--brand-yellow);">${d.password || '1234'}</strong>
@@ -240,9 +327,9 @@
                 alert("رقم الهاتف مسجل مسبقاً!"); return;
             }
 
-            // Firebase Kaydı
             driversRef.push({
                 name, phone, password, car,
+                city: 'دمشق',
                 expiryTimestamp: Date.now() + (days * 24 * 60 * 60 * 1000),
                 isOnline: true,
                 lat: 33.5138 + (Math.random() - 0.5) * 0.03,
@@ -251,10 +338,9 @@
 
             e.target.reset();
 
-            // Şoföre Gönderilecek Şifreli WhatsApp Mesajı
-            const infoMsg = `أهلاً بك كابتن ${name} 🚖\nتم تسجيلك وتفعيل اشتراكك بنجاح في تطبيق *تكسي البلد* لمدة (${days}) أيام.\n\n🔐 *بيانات الدخول الخاصة بك:*\n• رقم الهاتف: ${phone}\n• كلمة المرور (PIN): *${password}*\n\n🌐 *رابط الدخول لبدء العمل:*\nhttps://taxialbalad.com\n(اضغط على "شاشة السائق" وسجّل دخولك لمشاركة موقعك واستقبال المشاوير).`;
+            const infoMsg = `أهلاً بك كابتن ${name} 🚖\nتم تسجيلك وتفعيل اشتراكك بنجاح في تطبيق *تكسي البلد* لمدة (${days}) أيام.\n\n🔐 *بيانات الدخول:*\n• رقم الهاتف: ${phone}\n• رمز المرور (PIN): *${password}*\n\n🌐 *رابط تطبيق الكابتن:*\nhttps://taxialbalad.com/driver.html`;
 
-            alert(`✅ تم تسجيل السائق (${name}) بنجاح!\nسيتم الآن فتح واتساب لإرسال بيانات الدخول وكلمة السر له.`);
+            alert(`✅ تم تسجيل السائق (${name}) بنجاح! سيتم تحديد موقعه ومحافظته تلقائياً بمجرد دخوله التطبيق.`);
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(infoMsg)}`, '_blank');
         }
 
@@ -265,7 +351,7 @@
             if(newPass && newPass.trim() !== "") {
                 driversRef.child(fbKey).update({ password: newPass.trim() });
                 
-                const passMsg = `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في *تكسي البلد* إلى: *${newPass.trim()}*`;
+                const passMsg = `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في تطبيق *تكسي البلد* إلى: *${newPass.trim()}*`;
                 if(confirm("تم تحديث كلمة المرور! هل تود إرسال الرمز الجديد للسائق عبر واتساب؟")) {
                     window.open(`https://wa.me/${driver.phone}?text=${encodeURIComponent(passMsg)}`, '_blank');
                 }
