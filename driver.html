@@ -8,7 +8,7 @@
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase SDK (v8) -->
@@ -20,7 +20,6 @@
             --brand-yellow: #fcba03;
             --brand-yellow-glow: rgba(252, 186, 3, 0.35);
             --brand-black: #0d0d0d;
-            --brand-dark: #161616;
             --brand-card: #1f1f1f;
             --accent-red: #ef4444;
             --accent-green: #22c55e;
@@ -29,27 +28,19 @@
             --text-muted: #a3a3a3;
         }
 
-        *, *::before, *::after {
-            margin: 0; padding: 0; box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Cairo', sans-serif;
             background-color: var(--brand-black);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 1.5rem 1rem;
         }
 
-        .driver-container {
-            width: 100%;
-            max-width: 440px;
-        }
+        .driver-container { width: 100%; max-width: 440px; }
 
         .driver-card {
             background: linear-gradient(160deg, #222222 0%, #141414 100%);
@@ -63,102 +54,43 @@
         }
 
         .driver-card::before {
-            content: '';
-            position: absolute;
+            content: ''; position: absolute;
             top: 0; left: 0; width: 100%; height: 6px;
             background: repeating-linear-gradient(90deg, var(--brand-yellow), var(--brand-yellow) 15px, #000 15px, #000 30px);
         }
 
         .app-logo {
-            width: 95px;
-            height: 95px;
+            width: 90px; height: 90px;
             border-radius: 50%;
             border: 3px solid var(--brand-yellow);
             margin: 0.5rem auto 1.2rem;
-            display: block;
-            background: #fff;
+            display: block; background: #fff;
             object-fit: cover;
             box-shadow: 0 6px 25px var(--brand-yellow-glow);
         }
 
-        .brand-heading h1 {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--brand-yellow);
-            line-height: 1.2;
-        }
+        .brand-heading h1 { font-size: 1.5rem; font-weight: 900; color: var(--brand-yellow); line-height: 1.2; }
+        .brand-heading p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.6rem; font-weight: 600; }
 
-        .brand-heading p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 1.6rem;
-            font-weight: 600;
-        }
-
-        /* Form Elemanları */
-        .form-group {
-            text-align: right;
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        .input-icon-wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-icon-wrap i {
-            position: absolute;
-            right: 14px;
-            color: var(--brand-yellow);
-            font-size: 1rem;
-        }
-
+        .form-group { text-align: right; margin-bottom: 1rem; }
+        .form-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; display: block; }
+        .input-icon-wrap { position: relative; display: flex; align-items: center; }
+        .input-icon-wrap i { position: absolute; right: 14px; color: var(--brand-yellow); font-size: 1rem; }
+        
         .form-input {
-            width: 100%;
-            padding: 13px 42px 13px 14px;
-            border-radius: 12px;
-            border: 1.5px solid #333;
-            background: #111;
-            color: #fff;
-            outline: none;
-            font-size: 1rem;
-            font-weight: 700;
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus {
-            border-color: var(--brand-yellow);
+            width: 100%; padding: 13px 42px 13px 14px;
+            border-radius: 12px; border: 1.5px solid #333;
+            background: #111; color: #fff; outline: none;
+            font-size: 1rem; font-weight: 700;
         }
 
         .btn-submit {
-            width: 100%;
-            background: linear-gradient(135deg, var(--brand-yellow) 0%, #d49b00 100%);
-            color: #000;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 1.15rem;
-            font-weight: 900;
-            cursor: pointer;
-            margin-top: 0.5rem;
+            width: 100%; background: linear-gradient(135deg, var(--brand-yellow) 0%, #d49b00 100%);
+            color: #000; border: none; padding: 14px; border-radius: 12px;
+            font-size: 1.15rem; font-weight: 900; cursor: pointer; margin-top: 0.5rem;
             box-shadow: 0 6px 20px rgba(252, 186, 3, 0.3);
-            transition: transform 0.2s;
         }
 
-        .btn-submit:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Panel Görünümü */
         .driver-info-badge {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(252, 186, 3, 0.2);
@@ -171,23 +103,16 @@
         }
 
         .gps-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            display: inline-flex; align-items: center; gap: 8px;
             background: rgba(59, 130, 246, 0.15);
             border: 1px solid var(--accent-blue);
             color: var(--accent-blue);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 800;
-            margin-bottom: 1.2rem;
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 800; margin-bottom: 1.2rem;
         }
 
         .gps-pulse {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+            width: 8px; height: 8px; border-radius: 50%;
             background: var(--accent-blue);
             box-shadow: 0 0 10px var(--accent-blue);
             animation: pulse 1.5s infinite;
@@ -201,100 +126,42 @@
 
         .credit-card-meter {
             background: linear-gradient(145deg, #111 0%, #080808 100%);
-            border-radius: 18px;
-            padding: 1.4rem;
-            margin-bottom: 1.4rem;
+            border-radius: 18px; padding: 1.4rem; margin-bottom: 1.4rem;
             border: 1px solid rgba(252, 186, 3, 0.3);
-            position: relative;
-        }
-
-        .credit-card-meter .lbl {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 700;
         }
 
         .credit-number {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: var(--brand-yellow);
-            line-height: 1;
-            margin: 0.3rem 0;
+            font-size: 3.5rem; font-weight: 900; color: var(--brand-yellow);
+            line-height: 1; margin: 0.3rem 0;
             text-shadow: 0 0 20px var(--brand-yellow-glow);
         }
 
-        .badge {
-            padding: 5px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 800;
-            display: inline-block;
-        }
+        .badge { padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; display: inline-block; }
         .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
         .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
         .badge-busy { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
 
         .toggle-status-btn {
-            width: 100%;
-            padding: 16px;
-            border-radius: 14px;
-            font-size: 1.15rem;
-            font-weight: 900;
-            cursor: pointer;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.2s;
+            width: 100%; padding: 16px; border-radius: 14px;
+            font-size: 1.15rem; font-weight: 900; cursor: pointer; border: none;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .btn-to-break { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35); }
-        .btn-to-work { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: #000; box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35); }
+        .btn-to-break { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; }
+        .btn-to-work { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: #000; }
 
         .driver-expired-box {
-            background: rgba(239, 68, 68, 0.1);
-            border: 2px dashed var(--accent-red);
-            border-radius: 18px;
-            padding: 1.5rem 1.2rem;
-            margin-top: 1rem;
+            background: rgba(239, 68, 68, 0.1); border: 2px dashed var(--accent-red);
+            border-radius: 18px; padding: 1.5rem 1.2rem; margin-top: 1rem;
         }
-        .driver-expired-box p {
-            color: #ffb4b4;
-            font-size: 0.95rem;
-            font-weight: 700;
-            line-height: 1.5;
-            margin-bottom: 1.2rem;
-        }
+        .driver-expired-box p { color: #ffb4b4; font-size: 0.95rem; font-weight: 700; line-height: 1.5; margin-bottom: 1.2rem; }
         .btn-renew-sub {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-            color: #ffffff;
-            text-decoration: none;
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 900;
-            font-size: 1.05rem;
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
+            color: #ffffff; text-decoration: none; width: 100%; padding: 14px;
+            border-radius: 12px; font-weight: 900; font-size: 1.05rem;
         }
 
-        .btn-logout {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            margin-top: 1.5rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: color 0.2s;
-        }
-        .btn-logout:hover { color: #fff; }
+        .btn-logout { background: transparent; border: none; color: var(--text-muted); margin-top: 1.5rem; cursor: pointer; font-size: 0.9rem; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -306,7 +173,7 @@
             
             <div class="brand-heading">
                 <h1>تكسي البلد | كابتن</h1>
-                <p>بوابة تسجيل دخول السائقين المعتمدين</p>
+                <p>بوابة تسجيل دخول السائقين</p>
             </div>
             
             <form onsubmit="handleDriverLogin(event)">
@@ -339,7 +206,9 @@
             <div class="driver-info-badge">
                 <div style="text-align: right;">
                     <div id="dName" style="font-size: 1.15rem; font-weight: 900; color: #fff;">-</div>
-                    <div id="dCar" style="font-size: 0.8rem; color: var(--brand-yellow); font-weight: 700;">-</div>
+                    <div style="font-size: 0.8rem; color: var(--brand-yellow); font-weight: 700;">
+                        <span id="dCar">-</span> | <i class="fa-solid fa-location-dot"></i> <span id="dCityDisplay">جاري تحديد المحافظة...</span>
+                    </div>
                 </div>
                 <div id="dStatusBadge" class="badge badge-active">-</div>
             </div>
@@ -350,17 +219,15 @@
             </div>
 
             <div class="credit-card-meter">
-                <div class="lbl">الأيام المتبقية في اشتراكك</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">الأيام المتبقية في اشتراكك</div>
                 <div class="credit-number" id="dDays">0</div>
                 <div id="dExpiryDate" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px; font-weight:700;">ينتهي في: --</div>
             </div>
 
-            <!-- Çalışma Durumu Butonu -->
             <button class="toggle-status-btn btn-to-break" id="driverToggleOnlineBtn" onclick="toggleOnline()">
                 <i class="fa-solid fa-pause"></i> <span>أخذ استراحة (إيقاف الاستقبال)</span>
             </button>
 
-            <!-- Gün Bittiğinde Görünecek Alan -->
             <div id="driverExpiredBox" class="driver-expired-box" style="display:none;">
                 <p>
                     <i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-red); margin-left:4px;"></i>
@@ -392,6 +259,38 @@
         let wakeLock = null;
 
         const savedPhone = localStorage.getItem('taxi_driver_phone');
+
+        // Koordinata göre en yakın Suriye vilayetini matematiksel olarak hesaplama
+        const syrianCities = [
+            { name: 'دمشق', lat: 33.5138, lng: 36.2765 },
+            { name: 'ريف دمشق', lat: 33.5400, lng: 36.3800 },
+            { name: 'حمص', lat: 34.7324, lng: 36.7137 },
+            { name: 'حلب', lat: 36.2021, lng: 37.1343 },
+            { name: 'حماة', lat: 35.1318, lng: 36.7578 },
+            { name: 'اللاذقية', lat: 35.5317, lng: 35.7900 },
+            { name: 'طرطوس', lat: 34.8890, lng: 35.8866 },
+            { name: 'درعا', lat: 32.6255, lng: 36.1055 },
+            { name: 'السويداء', lat: 32.7090, lng: 36.5695 },
+            { name: 'القنيطرة', lat: 33.1250, lng: 35.8200 },
+            { name: 'دير الزور', lat: 35.3350, lng: 40.1450 },
+            { name: 'الرقة', lat: 35.9500, lng: 39.0100 },
+            { name: 'الحسكة', lat: 36.5000, lng: 40.7500 },
+            { name: 'إدلب', lat: 35.9306, lng: 36.6339 }
+        ];
+
+        function getClosestCity(lat, lng) {
+            let closestCity = 'دمشق';
+            let minDistance = Infinity;
+
+            syrianCities.forEach(city => {
+                const dist = Math.hypot(city.lat - lat, city.lng - lng);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestCity = city.name;
+                }
+            });
+            return closestCity;
+        }
 
         driversRef.on('value', (snapshot) => {
             const data = snapshot.val();
@@ -449,6 +348,7 @@
             const daysLeft = calculateDays(activeDriver.expiryTimestamp);
             document.getElementById('dName').innerText = `كابتن ${activeDriver.name}`;
             document.getElementById('dCar').innerText = activeDriver.car;
+            document.getElementById('dCityDisplay').innerText = activeDriver.city || 'دمشق';
             document.getElementById('dDays').innerText = daysLeft;
             
             const expDate = new Date(activeDriver.expiryTimestamp);
@@ -511,14 +411,20 @@
             if(gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
 
             gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const detectedCity = getClosestCity(lat, lng);
+
                 if(activeDriver && activeDriver.fbKey) {
                     driversRef.child(activeDriver.fbKey).update({
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude,
+                        lat: lat,
+                        lng: lng,
+                        city: detectedCity,
                         lastGpsUpdate: Date.now()
                     });
+                    document.getElementById('dCityDisplay').innerText = detectedCity;
                 }
-                document.getElementById('driverGpsStatus').innerText = "GPS متصل ومشارك بنجاح";
+                document.getElementById('driverGpsStatus').innerText = `GPS متصل ومشارك (${detectedCity})`;
             }, function() {
                 document.getElementById('driverGpsStatus').innerText = "تعذر تحديد موقع GPS";
             }, { enableHighAccuracy: true, timeout: 20000 });
