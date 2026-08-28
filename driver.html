@@ -206,9 +206,9 @@
 </head>
 <body>
 
-    <!-- ARKA PLANDA UYGULAMANIN UYUTULMASINI ENGELLEYEN SESSİZ SES ELEMENTİ -->
-    <audio id="silentAudioTracker" loop preload="auto">
-        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    <!-- Arka plan kilitleyici ses elementi -->
+    <audio id="bgKeepAliveAudio" loop preload="auto">
+        <source src="https://raw.githubusercontent.com/anars/blank-audio/master/10-minutes-of-silence.mp3" type="audio/mp3">
     </audio>
 
     <div class="driver-container">
@@ -260,7 +260,7 @@
 
             <div class="gps-pill" id="driverGpsBadge">
                 <span class="gps-pulse"></span>
-                <span id="driverGpsStatus">GPS متصل ومشارك بالخلفية</span>
+                <span id="driverGpsStatus">GPS متصل ويعمل بالخلفية</span>
             </div>
 
             <div class="credit-card-meter">
@@ -344,6 +344,28 @@
                 }
             });
             return closestCity;
+        }
+
+        // ANDROID'İN ÜST BİLDİRİM ÇUBUĞUNA MEDYA KİLİDİ KOYAN SİSTEM
+        function setupMediaSession() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: 'تكسي البلد | كابتن متصل',
+                    artist: activeDriver ? activeDriver.name : 'جاري العمل',
+                    album: 'خدمة تتبع الموقع المباشر في الخلفية',
+                    artwork: [
+                        { src: 'logo.jpg', sizes: '512x512', type: 'image/png' }
+                    ]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => startGpsTracking());
+                navigator.mediaSession.setActionHandler('pause', () => {});
+            }
+
+            const audio = document.getElementById('bgKeepAliveAudio');
+            if (audio) {
+                audio.play().catch(() => {});
+            }
         }
 
         driversRef.on('value', (snapshot) => {
@@ -452,32 +474,6 @@
             }
         }
 
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {}
-        }
-
-        function playSilentAudio() {
-            try {
-                const audio = document.getElementById('silentAudioTracker');
-                if (audio) {
-                    audio.play().catch(() => {});
-                }
-            } catch(e) {}
-        }
-
-        function pauseSilentAudio() {
-            try {
-                const audio = document.getElementById('silentAudioTracker');
-                if (audio) {
-                    audio.pause();
-                }
-            } catch(e) {}
-        }
-
         function pushLocation(lat, lng) {
             if(!activeDriver || !activeDriver.fbKey) return;
             const detectedCity = getClosestCity(lat, lng);
@@ -488,12 +484,19 @@
                 lastGpsUpdate: Date.now()
             });
             document.getElementById('dCityDisplay').innerText = detectedCity;
-            document.getElementById('driverGpsStatus').innerText = `GPS نشط ومشارك (${detectedCity})`;
+            document.getElementById('driverGpsStatus').innerText = `GPS نشط (${detectedCity})`;
+        }
+
+        function forceLocationFetch() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    pushLocation(pos.coords.latitude, pos.coords.longitude);
+                }, null, { enableHighAccuracy: true, timeout: 7000 });
+            }
         }
 
         function startGpsTracking() {
-            requestWakeLock();
-            playSilentAudio();
+            setupMediaSession();
 
             if(!activeDriver || !activeDriver.isOnline || !("geolocation" in navigator)) {
                 stopGpsTracking();
@@ -502,35 +505,30 @@
             }
 
             stopGpsTracking();
-            playSilentAudio();
+            setupMediaSession();
+            forceLocationFetch();
 
-            // 1. Canlı GPS Takibi
             gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
                 pushLocation(pos.coords.latitude, pos.coords.longitude);
-            }, function(err) {
-                document.getElementById('driverGpsStatus').innerText = "جاري إعادة محاولة التقاط GPS...";
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            }, function(err) {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 
-            // 2. Arka Planda Kapanmayı Önleyen 5 Saniyelik Kalp Atışı
+            // Arka planda her 4 saniyede bir konumu zorla yenile
             gpsHeartbeatInterval = setInterval(() => {
-                navigator.geolocation.getCurrentPosition(function(pos) {
-                    pushLocation(pos.coords.latitude, pos.coords.longitude);
-                }, null, { enableHighAccuracy: true, timeout: 8000 });
-            }, 5000);
+                forceLocationFetch();
+            }, 4000);
         }
 
         function stopGpsTracking() {
-            pauseSilentAudio();
+            const audio = document.getElementById('bgKeepAliveAudio');
+            if (audio) { audio.pause(); }
             if(gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
             if(gpsHeartbeatInterval !== null) { clearInterval(gpsHeartbeatInterval); gpsHeartbeatInterval = null; }
-            if(wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); }
         }
 
-        // Ekran veya sekme durumu değiştiğinde bağlantıyı canlı tut
         document.addEventListener('visibilitychange', () => {
             if (activeDriver && activeDriver.isOnline) {
-                requestWakeLock();
-                playSilentAudio();
+                setupMediaSession();
+                forceLocationFetch();
                 if (gpsHeartbeatInterval === null) {
                     startGpsTracking();
                 }
@@ -539,5 +537,6 @@
     </script>
 </body>
 </html>
+
 
 
