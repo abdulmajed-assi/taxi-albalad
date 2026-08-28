@@ -67,7 +67,6 @@
             outline: none; margin-bottom: 8px; font-weight: 700; font-size: 0.95rem;
         }
 
-        /* Otomatik +963 Sabit Alanı */
         .phone-input-group {
             display: flex;
             align-items: center;
@@ -177,7 +176,7 @@
             <div id="radarMap"></div>
         </div>
 
-        <!-- YENİ SÜRÜCÜ EKLEME (+963 OTOMATİK) -->
+        <!-- YENİ SÜRÜCÜ EKLEME -->
         <div class="panel-card">
             <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل كابتن جديد وتحديد كلمة السر</h3>
             <form onsubmit="addNewDriver(event)">
@@ -186,7 +185,7 @@
                     
                     <div class="phone-input-group">
                         <span class="country-prefix">+963</span>
-                        <input type="text" id="newDPhoneLocal" placeholder="962000111" required maxlength="10">
+                        <input type="text" id="newDPhoneLocal" placeholder="962750014" required maxlength="12">
                     </div>
 
                     <input type="text" id="newDPass" class="form-input" placeholder="كلمة المرور (PIN)" required>
@@ -237,6 +236,25 @@
             'درعا': [32.6255, 36.1055],
             'السويداء': [32.7090, 36.5695]
         };
+
+        // Numarayı WhatsApp standartlarına göre kesin olarak temizleme fonksiyonu
+        function formatPhoneForWhatsApp(inputPhone) {
+            let digits = inputPhone.toString().replace(/[^0-9]/g, '');
+            
+            // Eğer başında 00963 varsa 963 yap
+            if (digits.startsWith('00963')) {
+                digits = digits.substring(2);
+            }
+            // Eğer başında 09 varsa (yerel format) -> 9639 yap
+            else if (digits.startsWith('09')) {
+                digits = '963' + digits.substring(1);
+            }
+            // Eğer başında 963 yoksa ve 9 haneli yazıldıysa (örn: 962750014) -> 963 ekle
+            else if (!digits.startsWith('963')) {
+                digits = '963' + digits;
+            }
+            return digits;
+        }
 
         function handleAdminLogin(e) {
             e.preventDefault();
@@ -302,7 +320,8 @@
                         html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5);">🚖 ${d.name} (${d.city || 'دمشق'})</div>`,
                         iconSize: [85, 25]
                     });
-                    const waLink = `https://wa.me/${d.phone}?text=${encodeURIComponent('🚕 مشوار جديد لك من إدارة تكسي البلد.')}`;
+                    const cleanPhone = formatPhoneForWhatsApp(d.phone);
+                    const waLink = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent('🚕 مشوار جديد لك من إدارة تكسي البلد.')}`;
                     const popup = `<strong>${d.name}</strong> (${d.car})<br>المحافظة الحالية: <b>${d.city || 'دمشق'}</b><br>كلمة السر: <code>${d.password || 'غير محدد'}</code><br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
                     driverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(radarMap).bindPopup(popup);
                 }
@@ -334,7 +353,7 @@
                 tr.innerHTML = `
                     <td><strong>${d.name}</strong></td>
                     <td><span class="badge badge-city"><i class="fa-solid fa-location-arrow"></i> ${d.city || 'دمشق'}</span></td>
-                    <td dir="ltr">+${d.phone}</td>
+                    <td dir="ltr">+${formatPhoneForWhatsApp(d.phone)}</td>
                     <td>
                         <strong style="color:var(--brand-yellow);">${d.password || '1234'}</strong>
                         <button onclick="adminChangePassword('${d.fbKey}')" style="background:transparent;border:none;color:var(--accent-blue);cursor:pointer;margin-right:4px;" title="تغيير كلمة السر"><i class="fa-solid fa-pen"></i></button>
@@ -356,29 +375,21 @@
         function addNewDriver(e) {
             e.preventDefault();
             const name = document.getElementById('newDName').value.trim();
-            let rawLocalPhone = document.getElementById('newDPhoneLocal').value.replace(/[^0-9]/g, '');
-            
-            // Eğer numaranın başına sıfır (0) konduysa sil (örn: 0962... -> 962...)
-            if(rawLocalPhone.startsWith('0')) {
-                rawLocalPhone = rawLocalPhone.substring(1);
-            }
-
-            // Numara zaten 963 içeriyorsa temizle ve standart +963 formatı oluştur
-            if(rawLocalPhone.startsWith('963')) {
-                rawLocalPhone = rawLocalPhone.substring(3);
-            }
-
-            const phone = "963" + rawLocalPhone;
+            const rawInput = document.getElementById('newDPhoneLocal').value.trim();
+            const cleanPhone = formatPhoneForWhatsApp(rawInput);
             const password = document.getElementById('newDPass').value.trim();
             const car = document.getElementById('newDCar').value.trim();
             const days = parseInt(document.getElementById('newDDays').value) || 7;
 
-            if(driversList.some(d => d.phone === phone)) {
+            if(driversList.some(d => formatPhoneForWhatsApp(d.phone) === cleanPhone)) {
                 alert("رقم الهاتف مسجل مسبقاً!"); return;
             }
 
             driversRef.push({
-                name, phone, password, car,
+                name: name,
+                phone: cleanPhone,
+                password: password,
+                car: car,
                 city: 'دمشق',
                 expiryTimestamp: Date.now() + (days * 24 * 60 * 60 * 1000),
                 isOnline: true,
@@ -388,31 +399,32 @@
 
             e.target.reset();
 
-            // Şoföre WhatsApp Giriş Mesajı
-            const infoMsg = `🚖 *مرحباً بك كابتن ${name} في تكسي البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n🔐 *بيانات الدخول إلى حسابك:*\n📱 *رقم الهاتف:* ${phone}\n🔑 *كلمة المرور (PIN):* *${password}*\n\n📲 *رابط الدخول أو تحميل التطبيق:*\nhttps://taxialbalad.com/driver.html\n\n📌 *خطوات البدء:*\n1. افتح الرابط أو التطبيق.\n2. سجّل الدخول برقمك وكلمة المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل الـ GPS لاستقبال المشاوير.\n\nنتمنى لك عملاً موفقاً ورزقاً مباركاً!`;
+            const infoMsg = `🚖 *مرحباً بك كابتن ${name} في تكسي البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n🔐 *بيانات الدخول إلى حسابك:*\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *كلمة المرور (PIN):* *${password}*\n\n📲 *رابط الدخول أو تحميل التطبيق:*\nhttps://taxialbalad.com/driver.html\n\n📌 *خطوات البدء:*\n1. افتح الرابط أو التطبيق.\n2. سجّل الدخول برقمك وكلمة المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل الـ GPS لاستقبال المشاوير.\n\nنتمنى لك عملاً موفقاً ورزقاً مباركاً!`;
 
-            alert(`✅ تم تسجيل السائق (${name}) بنجاح!\nالرقم المسجل: +${phone}\nسيتم الآن فتح واتساب لإرسال بيانات الدخول له.`);
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(infoMsg)}`, '_blank');
+            alert(`✅ تم تسجيل السائق (${name}) بنجاح!\nالرقم المعتمد: +${cleanPhone}`);
+            window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(infoMsg)}`, '_blank');
         }
 
         function resendWelcomeMessage(fbKey) {
             const driver = driversList.find(d => d.fbKey === fbKey);
             if(!driver) return;
+            const cleanPhone = formatPhoneForWhatsApp(driver.phone);
             const daysLeft = calculateDays(driver.expiryTimestamp);
-            const infoMsg = `🚖 *بيانات الدخول إلى تكسي البلد (كابتن ${driver.name})*\n\n📱 *رقم الهاتف:* ${driver.phone}\n🔑 *كلمة المرور (PIN):* *${driver.password || '1234'}*\n⏳ *الأيام المتبقية:* ${daysLeft} يوم\n\n📲 *رابط الدخول للعمل:*\nhttps://taxialbalad.com/driver.html`;
-            window.open(`https://wa.me/${driver.phone}?text=${encodeURIComponent(infoMsg)}`, '_blank');
+            const infoMsg = `🚖 *بيانات الدخول إلى تكسي البلد (كابتن ${driver.name})*\n\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *كلمة المرور (PIN):* *${driver.password || '1234'}*\n⏳ *الأيام المتبقية:* ${daysLeft} يوم\n\n📲 *رابط الدخول للعمل:*\nhttps://taxialbalad.com/driver.html`;
+            window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(infoMsg)}`, '_blank');
         }
 
         function adminChangePassword(fbKey) {
             const driver = driversList.find(d => d.fbKey === fbKey);
             if(!driver) return;
+            const cleanPhone = formatPhoneForWhatsApp(driver.phone);
             const newPass = prompt(`أدخل كلمة المرور الجديدة للسائق (${driver.name}):`);
             if(newPass && newPass.trim() !== "") {
                 driversRef.child(fbKey).update({ password: newPass.trim() });
                 
                 const passMsg = `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في تطبيق *تكسي البلد* إلى: *${newPass.trim()}*\nرابط الدخول: https://taxialbalad.com/driver.html`;
                 if(confirm("تم تحديث كلمة المرور! هل تود إرسال الرمز الجديد للسائق عبر واتساب؟")) {
-                    window.open(`https://wa.me/${driver.phone}?text=${encodeURIComponent(passMsg)}`, '_blank');
+                    window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(passMsg)}`, '_blank');
                 }
             }
         }
