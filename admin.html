@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة والرادار | تكسي البلد</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --brand-yellow: #fcba03;
+            --brand-black: #111111;
+            --brand-card: #222222;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
+            --text-main: #ffffff;
+            --text-muted: #a3a3a3;
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--brand-black); color: var(--text-main); min-height: 100vh; padding: 1.5rem 1rem; }
+        .admin-wrap { max-width: 1000px; margin: 0 auto; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 12px; padding: 1rem; display: flex; align-items: center; gap: 10px; }
+        .stat-icon { width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .stat-icon.gold { background: rgba(252, 186, 3, 0.15); color: var(--brand-yellow); }
+        .stat-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+        .stat-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+        .panel-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.5rem; }
+        #radarMap { width: 100%; height: 420px; border-radius: 10px; border: 1px solid var(--brand-yellow); }
+        table { width: 100%; border-collapse: collapse; text-align: inherit; }
+        th, td { padding: 10px; border-bottom: 1px solid rgba(252, 186, 3, 0.2); font-size: 0.85rem; }
+        th { background: #141414; color: var(--text-muted); }
+        .btn-action { background: var(--brand-yellow); color: #000; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+        .form-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #fff; color: #000; outline: none; margin-bottom: 8px; font-weight: 600; }
+        
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
+        .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .badge-busy { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
+
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .auth-box { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 2rem; max-width: 360px; width: 100%; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <!-- GİRİŞ EKRANI -->
+    <div id="adminAuthBox" class="auth-overlay">
+        <div class="auth-box">
+            <h2 style="color:var(--brand-yellow); margin-bottom:8px;"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</h2>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">أدخل رمز الأمان للمتابعة</p>
+            <form onsubmit="handleAdminLogin(event)">
+                <input type="password" id="adminPinInput" class="form-input" placeholder="••••••" required>
+                <button type="submit" class="btn-action" style="width:100%; padding:12px; font-size:1rem;">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="admin-wrap" id="adminContent" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+            <h1 style="color:var(--brand-yellow); font-size:1.4rem;"><i class="fa-solid fa-gauge-high"></i> إدارة تكسي البلد</h1>
+            <a href="/" style="color:var(--text-muted); text-decoration:none; font-size:0.85rem;"><i class="fa-solid fa-arrow-left"></i> زيارة الموقع الرئيسي</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="fa-solid fa-users"></i></div>
+                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">إجمالي السائقين</h4><p id="adminStatDrivers" style="font-size:1.2rem; font-weight:800;">0</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">متاح للعمل الآن</h4><p id="adminStatActive" style="font-size:1.2rem; font-weight:800;">0</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fa-solid fa-calendar-xmark"></i></div>
+                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">منتهي الاشتراك</h4><p id="adminStatExpired" style="font-size:1.2rem; font-weight:800;">0</p></div>
+            </div>
+        </div>
+
+        <!-- RADAR HARİTASI -->
+        <div class="panel-card">
+            <h3 style="margin-bottom:10px; font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي للسيارات</h3>
+            <div id="radarMap"></div>
+        </div>
+
+        <!-- Yeni Sürücü Tanımlama (Şifreli) -->
+        <div class="panel-card">
+            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل سائق جديد وتحديد كلمة السر</h3>
+            <form onsubmit="addNewDriver(event)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                    <input type="text" id="newDName" class="form-input" placeholder="اسم السائق" required>
+                    <input type="text" id="newDPhone" class="form-input" placeholder="رقم الهاتف (963962000111)" required>
+                    <input type="text" id="newDPass" class="form-input" placeholder="كلمة سر السائق (PIN)" required>
+                    <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة" required>
+                    <input type="number" id="newDDays" class="form-input" value="7" min="1" placeholder="أيام الاشتراك" required>
+                </div>
+                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 10px 18px;">إضافة وتفعيل السائق</button>
+            </form>
+        </div>
+
+        <!-- Sürücü Listesi -->
+        <div class="panel-card">
+            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-list"></i> إدارة السائقين وكلمات المرور</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr><th>السائق</th><th>الهاتف</th><th>كلمة السر</th><th>السيارة</th><th>الحالة</th><th>الأيام</th><th>العمليات</th></tr>
+                    </thead>
+                    <tbody id="adminTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        const ADMIN_PIN = "aa32";
+        const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const driversRef = db.ref('drivers');
+
+        let radarMap;
+        let driverMarkers = {};
+        let driversList = [];
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            if(document.getElementById('adminPinInput').value !== ADMIN_PIN) {
+                alert("❌ رمز الإدارة خاطئ!"); return;
+            }
+            document.getElementById('adminAuthBox').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            initRadarMap();
+        }
+
+        driversRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            driversList = [];
+            if(data) {
+                Object.keys(data).forEach(key => driversList.push({ ...data[key], fbKey: key }));
+            }
+            renderTable();
+            updateStats();
+            updateMapMarkers();
+        });
+
+        function calculateDays(expiryTimestamp) {
+            const diff = expiryTimestamp - Date.now();
+            return diff <= 0 ? 0 : Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        function initRadarMap() {
+            if(radarMap) return;
+            radarMap = L.map('radarMap').setView([33.5138, 36.2765], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(radarMap);
+            updateMapMarkers();
+        }
+
+        function updateMapMarkers() {
+            if(!radarMap) return;
+            for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
+            driverMarkers = {};
+
+            driversList.forEach(d => {
+                if(d.lat && d.lng) {
+                    const daysLeft = calculateDays(d.expiryTimestamp);
+                    const color = daysLeft <= 0 ? '#ef4444' : (d.isOnline ? '#22c55e' : '#fcba03');
+                    const statusText = daysLeft <= 0 ? 'منتهي' : (d.isOnline ? 'متاح' : 'استراحة');
+                    
+                    const radarIcon = L.divIcon({
+                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap;">🚖 ${d.name} (${statusText})</div>`,
+                        iconSize: [85, 25]
+                    });
+                    const waLink = `https://wa.me/${d.phone}?text=${encodeURIComponent('🚕 مشوار جديد لك من الإدارة.')}`;
+                    const popup = `<strong>${d.name}</strong> (${d.car})<br>الرمز: <code>${d.password || 'غير محدد'}</code><br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
+                    driverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(radarMap).bindPopup(popup);
+                }
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('adminStatDrivers').innerText = driversList.length;
+            document.getElementById('adminStatActive').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) > 0 && d.isOnline).length;
+            document.getElementById('adminStatExpired').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) <= 0).length;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+            if(driversList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين مسجلين.</td></tr>`;
+                return;
+            }
+            driversList.forEach(d => {
+                const daysLeft = calculateDays(d.expiryTimestamp);
+                const isExp = daysLeft <= 0;
+                const statusBadge = isExp ? `<span class="badge badge-expired">منتهي</span>` : (d.isOnline ? `<span class="badge badge-active">متاح</span>` : `<span class="badge badge-busy">استراحة</span>`);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${d.name}</strong></td>
+                    <td dir="ltr">+${d.phone}</td>
+                    <td>
+                        <strong style="color:var(--brand-yellow);">${d.password || '1234'}</strong>
+                        <button onclick="adminChangePassword('${d.fbKey}')" style="background:transparent;border:none;color:var(--accent-blue);cursor:pointer;margin-right:4px;" title="تغيير كلمة السر"><i class="fa-solid fa-pen"></i></button>
+                    </td>
+                    <td>${d.car}</td>
+                    <td>${statusBadge}</td>
+                    <td><strong style="color:${isExp?'#ef4444':'#fcba03'};">${daysLeft} يوم</strong></td>
+                    <td>
+                        <button onclick="addDays('${d.fbKey}', 7)" class="btn-action">+7</button>
+                        <button onclick="addDays('${d.fbKey}', 30)" class="btn-action">+30</button>
+                        <button onclick="deleteDriver('${d.fbKey}')" style="background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;padding:4px;cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addNewDriver(e) {
+            e.preventDefault();
+            const name = document.getElementById('newDName').value.trim();
+            const phone = document.getElementById('newDPhone').value.replace(/[^0-9]/g, '');
+            const password = document.getElementById('newDPass').value.trim();
+            const car = document.getElementById('newDCar').value.trim();
+            const days = parseInt(document.getElementById('newDDays').value) || 7;
+
+            if(driversList.some(d => d.phone === phone)) {
+                alert("رقم الهاتف مسجل مسبقاً!"); return;
+            }
+
+            driversRef.push({
+                name, phone, password, car,
+                expiryTimestamp: Date.now() + (days * 24 * 60 * 60 * 1000),
+                isOnline: true,
+                lat: 33.5138 + (Math.random() - 0.5) * 0.03,
+                lng: 36.2765 + (Math.random() - 0.5) * 0.03
+            });
+
+            e.target.reset();
+            alert("تم تسجيل السائق بنجاح وتعيين كلمة السر!");
+        }
+
+        function adminChangePassword(fbKey) {
+            const newPass = prompt("أدخل كلمة المرور الجديدة للسائق:");
+            if(newPass && newPass.trim() !== "") {
+                driversRef.child(fbKey).update({ password: newPass.trim() });
+                alert("تم تحديث كلمة المرور بنجاح!");
+            }
+        }
+
+        function addDays(fbKey, daysToAdd) {
+            const driver = driversList.find(d => d.fbKey === fbKey);
+            if(driver) {
+                const base = (driver.expiryTimestamp && driver.expiryTimestamp > Date.now()) ? driver.expiryTimestamp : Date.now();
+                driversRef.child(fbKey).update({ expiryTimestamp: base + (daysToAdd * 24 * 60 * 60 * 1000) });
+            }
+        }
+
+        function deleteDriver(fbKey) {
+            if(confirm("حذف السائق نهائياً من النظام؟")) {
+                driversRef.child(fbKey).remove();
+            }
+        }
+    </script>
+</body>
+</html>
