@@ -150,10 +150,10 @@
             <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل كابتن جديد وتحديد كلمة السر</h3>
             <form onsubmit="addNewDriver(event)">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
-                    <input type="text" id="newDName" class="form-input" placeholder="اسم السائق" required>
+                    <input type="text" id="newDName" class="form-input" placeholder="اسم السائق (مثلاً: أحمد)" required>
                     <input type="text" id="newDPhone" class="form-input" placeholder="رقم الهاتف (963...)" required>
                     <input type="text" id="newDPass" class="form-input" placeholder="كلمة المرور (PIN)" required>
-                    <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة" required>
+                    <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة (مثلاً: كيا ريو 12345)" required>
                     <input type="number" id="newDDays" class="form-input" value="7" min="1" placeholder="أيام الاشتراك" required>
                 </div>
                 <button type="submit" class="btn-action" style="margin-top: 6px; padding: 11px 20px;">إضافة وتفعيل السائق وإرسال بيانات الدخول</button>
@@ -308,6 +308,7 @@
                     <td>
                         <button onclick="addDays('${d.fbKey}', 7)" class="btn-action">+7</button>
                         <button onclick="addDays('${d.fbKey}', 30)" class="btn-action">+30</button>
+                        <button onclick="resendWelcomeMessage('${d.fbKey}')" style="background:transparent;border:1px solid var(--accent-green);color:var(--accent-green);border-radius:6px;padding:4px 8px;cursor:pointer;margin-right:4px;" title="إعادة إرسال بيانات الدخول عبر واتساب"><i class="fa-brands fa-whatsapp"></i></button>
                         <button onclick="deleteDriver('${d.fbKey}')" style="background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;padding:4px;cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
@@ -338,10 +339,19 @@
 
             e.target.reset();
 
-            const infoMsg = `أهلاً بك كابتن ${name} 🚖\nتم تسجيلك وتفعيل اشتراكك بنجاح في تطبيق *تكسي البلد* لمدة (${days}) أيام.\n\n🔐 *بيانات الدخول:*\n• رقم الهاتف: ${phone}\n• رمز المرور (PIN): *${password}*\n\n🌐 *رابط تطبيق الكابتن:*\nhttps://taxialbalad.com/driver.html`;
+            // Şoföre Gidecek Tam Detaylı WhatsApp Karşılama Mesajı
+            const infoMsg = `🚖 *مرحباً بك كابتن ${name} في تكسي البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n🔐 *بيانات الدخول إلى حسابك:*\n📱 *رقم الهاتف:* ${phone}\n🔑 *كلمة المرور (PIN):* *${password}*\n\n📲 *رابط الدخول أو تحميل التطبيق:*\nhttps://taxialbalad.com/driver.html\n\n📌 *خطوات البدء:*\n1. افتح الرابط أو التطبيق.\n2. سجّل الدخول برقمك وكلمة المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل الـ GPS لاستقبال المشاوير.\n\nنتمنى لك عملاً موفقاً ورزقاً مباركاً!`;
 
-            alert(`✅ تم تسجيل السائق (${name}) بنجاح! سيتم تحديد موقعه ومحافظته تلقائياً بمجرد دخوله التطبيق.`);
+            alert(`✅ تم تسجيل السائق (${name}) بنجاح!\nسيتم الآن فتح تطبيق واتساب لإرسال بيانات الدخول والرابط وكلمة السر له.`);
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(infoMsg)}`, '_blank');
+        }
+
+        function resendWelcomeMessage(fbKey) {
+            const driver = driversList.find(d => d.fbKey === fbKey);
+            if(!driver) return;
+            const daysLeft = calculateDays(driver.expiryTimestamp);
+            const infoMsg = `🚖 *بيانات الدخول إلى تكسي البلد (كابتن ${driver.name})*\n\n📱 *رقم الهاتف:* ${driver.phone}\n🔑 *كلمة المرور (PIN):* *${driver.password || '1234'}*\n⏳ *الأيام المتبقية:* ${daysLeft} يوم\n\n📲 *رابط الدخول للعمل:*\nhttps://taxialbalad.com/driver.html`;
+            window.open(`https://wa.me/${driver.phone}?text=${encodeURIComponent(infoMsg)}`, '_blank');
         }
 
         function adminChangePassword(fbKey) {
@@ -351,7 +361,7 @@
             if(newPass && newPass.trim() !== "") {
                 driversRef.child(fbKey).update({ password: newPass.trim() });
                 
-                const passMsg = `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في تطبيق *تكسي البلد* إلى: *${newPass.trim()}*`;
+                const passMsg = `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في تطبيق *تكسي البلد* إلى: *${newPass.trim()}*\nرابط الدخول: https://taxialbalad.com/driver.html`;
                 if(confirm("تم تحديث كلمة المرور! هل تود إرسال الرمز الجديد للسائق عبر واتساب؟")) {
                     window.open(`https://wa.me/${driver.phone}?text=${encodeURIComponent(passMsg)}`, '_blank');
                 }
