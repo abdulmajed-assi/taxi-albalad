@@ -73,16 +73,57 @@
         .brand-heading p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.6rem; font-weight: 600; }
 
         .form-group { text-align: right; margin-bottom: 1rem; }
-        .form-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; display: block; }
+        .form-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; display: block; }
+        
+        /* GÖRSELDEKİ ÖZEL +963 NUMARA KUTUSU TASARIMI */
+        .phone-input-row {
+            display: flex;
+            align-items: stretch;
+            direction: ltr !important;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #333;
+            transition: border-color 0.2s;
+        }
+        .phone-input-row:focus-within {
+            border-color: var(--brand-yellow);
+        }
+        .phone-input-row .prefix-tag {
+            background: #eef2f6;
+            color: #0b132b;
+            font-weight: 900;
+            font-size: 1.15rem;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 2px solid #cbd5e1;
+            user-select: none;
+            letter-spacing: 0.5px;
+        }
+        .phone-input-row input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #111111;
+            font-size: 1.15rem;
+            font-weight: 800;
+            padding: 12px 14px;
+            direction: ltr;
+        }
+
         .input-icon-wrap { position: relative; display: flex; align-items: center; }
         .input-icon-wrap i { position: absolute; right: 14px; color: var(--brand-yellow); font-size: 1rem; }
         
-        .form-input {
+        .form-input-pass {
             width: 100%; padding: 13px 42px 13px 14px;
-            border-radius: 12px; border: 1.5px solid #333;
+            border-radius: 12px; border: 2px solid #333;
             background: #111; color: #fff; outline: none;
             font-size: 1rem; font-weight: 700;
         }
+        .form-input-pass:focus { border-color: var(--brand-yellow); }
 
         .btn-submit {
             width: 100%; background: linear-gradient(135deg, var(--brand-yellow) 0%, #d49b00 100%);
@@ -107,12 +148,12 @@
             background: rgba(59, 130, 246, 0.15);
             border: 1px solid var(--accent-blue);
             color: var(--accent-blue);
-            padding: 6px 14px; border-radius: 20px;
-            font-size: 0.8rem; font-weight: 800; margin-bottom: 1.2rem;
+            padding: 7px 16px; border-radius: 20px;
+            font-size: 0.82rem; font-weight: 800; margin-bottom: 1.2rem;
         }
 
         .gps-pulse {
-            width: 8px; height: 8px; border-radius: 50%;
+            width: 9px; height: 9px; border-radius: 50%;
             background: var(--accent-blue);
             box-shadow: 0 0 10px var(--accent-blue);
             animation: pulse 1.5s infinite;
@@ -120,7 +161,7 @@
 
         @keyframes pulse {
             0% { transform: scale(0.95); opacity: 0.7; }
-            50% { transform: scale(1.3); opacity: 1; }
+            50% { transform: scale(1.35); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0.7; }
         }
 
@@ -179,9 +220,9 @@
             <form onsubmit="handleDriverLogin(event)">
                 <div class="form-group">
                     <label class="form-label">رقم الهاتف</label>
-                    <div class="input-icon-wrap">
-                        <i class="fa-solid fa-phone"></i>
-                        <input type="text" id="driverPhoneInput" class="form-input" placeholder="مثال: 963962000111" required>
+                    <div class="phone-input-row">
+                        <span class="prefix-tag">+963</span>
+                        <input type="tel" id="driverLocalPhoneInput" placeholder="962750014" required>
                     </div>
                 </div>
 
@@ -189,7 +230,7 @@
                     <label class="form-label">رمز المرور (PIN)</label>
                     <div class="input-icon-wrap">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="driverPassInput" class="form-input" placeholder="••••" required>
+                        <input type="password" id="driverPassInput" class="form-input-pass" placeholder="••••" required>
                     </div>
                 </div>
 
@@ -207,7 +248,7 @@
                 <div style="text-align: right;">
                     <div id="dName" style="font-size: 1.15rem; font-weight: 900; color: #fff;">-</div>
                     <div style="font-size: 0.8rem; color: var(--brand-yellow); font-weight: 700;">
-                        <span id="dCar">-</span> | <i class="fa-solid fa-location-dot"></i> <span id="dCityDisplay">جاري تحديد المحافظة...</span>
+                        <span id="dCar">-</span> | <i class="fa-solid fa-location-dot"></i> <span id="dCityDisplay">جاري تحديد الموقع...</span>
                     </div>
                 </div>
                 <div id="dStatusBadge" class="badge badge-active">-</div>
@@ -215,7 +256,7 @@
 
             <div class="gps-pill" id="driverGpsBadge">
                 <span class="gps-pulse"></span>
-                <span id="driverGpsStatus">جاري فحص اتصال GPS...</span>
+                <span id="driverGpsStatus">GPS متصل ومشارك بالخلفية</span>
             </div>
 
             <div class="credit-card-meter">
@@ -256,11 +297,21 @@
         let activeDriver = null;
         let driversList = [];
         let gpsWatchId = null;
+        let gpsHeartbeatInterval = null;
         let wakeLock = null;
 
         const savedPhone = localStorage.getItem('taxi_driver_phone');
 
-        // Koordinata göre en yakın Suriye vilayetini matematiksel olarak hesaplama
+        // Numarayı WhatsApp ve Firebase ile %100 uyumlu 963XXXXXXXXX formatına çeviren temizleyici
+        function cleanSyrianPhone(raw) {
+            let d = raw.toString().replace(/[^0-9]/g, '');
+            if (d.startsWith('00963')) d = d.substring(2);
+            if (d.startsWith('9630')) d = '963' + d.substring(4);
+            else if (d.startsWith('0')) d = '963' + d.substring(1);
+            else if (!d.startsWith('963')) d = '963' + d;
+            return d;
+        }
+
         const syrianCities = [
             { name: 'دمشق', lat: 33.5138, lng: 36.2765 },
             { name: 'ريف دمشق', lat: 33.5400, lng: 36.3800 },
@@ -299,10 +350,10 @@
                 Object.keys(data).forEach(key => driversList.push({ ...data[key], fbKey: key }));
             }
             if(activeDriver) {
-                const updated = driversList.find(d => d.phone === activeDriver.phone);
+                const updated = driversList.find(d => cleanSyrianPhone(d.phone) === cleanSyrianPhone(activeDriver.phone));
                 if(updated) { activeDriver = updated; renderPanel(); }
             } else if(savedPhone) {
-                const found = driversList.find(d => d.phone === savedPhone);
+                const found = driversList.find(d => cleanSyrianPhone(d.phone) === cleanSyrianPhone(savedPhone));
                 if(found) {
                     activeDriver = found;
                     document.getElementById('driverLoginBox').style.display = 'none';
@@ -320,15 +371,16 @@
 
         function handleDriverLogin(e) {
             e.preventDefault();
-            const phone = document.getElementById('driverPhoneInput').value.replace(/[^0-9]/g, '');
+            const rawPhone = document.getElementById('driverLocalPhoneInput').value;
+            const fullPhone = cleanSyrianPhone(rawPhone);
             const pass = document.getElementById('driverPassInput').value.trim();
 
-            const driver = driversList.find(d => d.phone === phone);
+            const driver = driversList.find(d => cleanSyrianPhone(d.phone) === fullPhone);
             if(!driver) { alert("❌ رقم الهاتف غير مسجل لدى الإدارة!"); return; }
             if(driver.password && driver.password !== pass) { alert("❌ رمز المرور (PIN) غير صحيح!"); return; }
 
             activeDriver = driver;
-            localStorage.setItem('taxi_driver_phone', phone);
+            localStorage.setItem('taxi_driver_phone', fullPhone);
             document.getElementById('driverLoginBox').style.display = 'none';
             document.getElementById('driverPanelBox').style.display = 'block';
             renderPanel();
@@ -338,7 +390,7 @@
         function logoutDriver() {
             localStorage.removeItem('taxi_driver_phone');
             activeDriver = null;
-            if(gpsWatchId) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+            stopGpsTracking();
             document.getElementById('driverPanelBox').style.display = 'none';
             document.getElementById('driverLoginBox').style.display = 'block';
         }
@@ -390,7 +442,11 @@
             driversRef.child(activeDriver.fbKey).update({ isOnline: newStatus });
             activeDriver.isOnline = newStatus;
             renderPanel();
-            startGpsTracking();
+            if(newStatus) {
+                startGpsTracking();
+            } else {
+                stopGpsTracking();
+            }
         }
 
         async function requestWakeLock() {
@@ -401,34 +457,57 @@
             } catch (err) {}
         }
 
+        function pushLocation(lat, lng) {
+            if(!activeDriver || !activeDriver.fbKey) return;
+            const detectedCity = getClosestCity(lat, lng);
+            driversRef.child(activeDriver.fbKey).update({
+                lat: lat,
+                lng: lng,
+                city: detectedCity,
+                lastGpsUpdate: Date.now()
+            });
+            document.getElementById('dCityDisplay').innerText = detectedCity;
+            document.getElementById('driverGpsStatus').innerText = `GPS نشط ومشارك (${detectedCity})`;
+        }
+
         function startGpsTracking() {
             requestWakeLock();
             if(!activeDriver || !activeDriver.isOnline || !("geolocation" in navigator)) {
-                if(gpsWatchId) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+                stopGpsTracking();
                 document.getElementById('driverGpsStatus').innerText = "متوقف (أنت في استراحة)";
                 return;
             }
-            if(gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
 
+            stopGpsTracking();
+
+            // 1. Canlı Hareket Takibi (watchPosition)
             gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                const detectedCity = getClosestCity(lat, lng);
+                pushLocation(pos.coords.latitude, pos.coords.longitude);
+            }, function(err) {
+                document.getElementById('driverGpsStatus').innerText = "جاري إعادة محاولة التقاط GPS...";
+            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 
-                if(activeDriver && activeDriver.fbKey) {
-                    driversRef.child(activeDriver.fbKey).update({
-                        lat: lat,
-                        lng: lng,
-                        city: detectedCity,
-                        lastGpsUpdate: Date.now()
-                    });
-                    document.getElementById('dCityDisplay').innerText = detectedCity;
-                }
-                document.getElementById('driverGpsStatus').innerText = `GPS متصل ومشارك (${detectedCity})`;
-            }, function() {
-                document.getElementById('driverGpsStatus').innerText = "تعذر تحديد موقع GPS";
-            }, { enableHighAccuracy: true, timeout: 20000 });
+            // 2. Arka Planda Uyumasını Engelleyen Periyodik Kalp Atışı (Heartbeat - Her 10 Saniyede Bir)
+            gpsHeartbeatInterval = setInterval(() => {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    pushLocation(pos.coords.latitude, pos.coords.longitude);
+                }, null, { enableHighAccuracy: true, timeout: 10000 });
+            }, 10000);
         }
+
+        function stopGpsTracking() {
+            if(gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+            if(gpsHeartbeatInterval !== null) { clearInterval(gpsHeartbeatInterval); gpsHeartbeatInterval = null; }
+            if(wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); }
+        }
+
+        // Uygulama alta alınıp tekrar öne geldiğinde GPS'i anında yeniden tetikle
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && activeDriver && activeDriver.isOnline) {
+                startGpsTracking();
+            }
+        });
     </script>
 </body>
 </html>
+
