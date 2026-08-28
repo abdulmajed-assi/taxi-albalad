@@ -75,7 +75,6 @@
         .form-group { text-align: right; margin-bottom: 1rem; }
         .form-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; display: block; }
         
-        /* GÖRSELDEKİ ÖZEL +963 NUMARA KUTUSU TASARIMI */
         .phone-input-row {
             display: flex;
             align-items: stretch;
@@ -207,6 +206,11 @@
 </head>
 <body>
 
+    <!-- ARKA PLAN UYUTMAYI ENGELLEYEN GİZLİ SESSİZ SES ELEMENTİ -->
+    <audio id="silentAudioTracker" loop preload="auto">
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    </audio>
+
     <div class="driver-container">
         <!-- 1. GİRİŞ EKRANI -->
         <div id="driverLoginBox" class="driver-card">
@@ -302,7 +306,6 @@
 
         const savedPhone = localStorage.getItem('taxi_driver_phone');
 
-        // Numarayı WhatsApp ve Firebase ile %100 uyumlu 963XXXXXXXXX formatına çeviren temizleyici
         function cleanSyrianPhone(raw) {
             let d = raw.toString().replace(/[^0-9]/g, '');
             if (d.startsWith('00963')) d = d.substring(2);
@@ -457,6 +460,24 @@
             } catch (err) {}
         }
 
+        function playSilentAudio() {
+            try {
+                const audio = document.getElementById('silentAudioTracker');
+                if (audio) {
+                    audio.play().catch(() => {});
+                }
+            } catch(e) {}
+        }
+
+        function pauseSilentAudio() {
+            try {
+                const audio = document.getElementById('silentAudioTracker');
+                if (audio) {
+                    audio.pause();
+                }
+            } catch(e) {}
+        }
+
         function pushLocation(lat, lng) {
             if(!activeDriver || !activeDriver.fbKey) return;
             const detectedCity = getClosestCity(lat, lng);
@@ -472,6 +493,8 @@
 
         function startGpsTracking() {
             requestWakeLock();
+            playSilentAudio();
+
             if(!activeDriver || !activeDriver.isOnline || !("geolocation" in navigator)) {
                 stopGpsTracking();
                 document.getElementById('driverGpsStatus').innerText = "متوقف (أنت في استراحة)";
@@ -479,35 +502,40 @@
             }
 
             stopGpsTracking();
+            playSilentAudio();
 
-            // 1. Canlı Hareket Takibi (watchPosition)
+            // 1. Canlı GPS Dinleme
             gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
                 pushLocation(pos.coords.latitude, pos.coords.longitude);
             }, function(err) {
                 document.getElementById('driverGpsStatus').innerText = "جاري إعادة محاولة التقاط GPS...";
-            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 
-            // 2. Arka Planda Uyumasını Engelleyen Periyodik Kalp Atışı (Heartbeat - Her 10 Saniyede Bir)
+            // 2. Arka Planda Kapanmayı Önleyen 5 Saniyelik Kalp Atışı
             gpsHeartbeatInterval = setInterval(() => {
                 navigator.geolocation.getCurrentPosition(function(pos) {
                     pushLocation(pos.coords.latitude, pos.coords.longitude);
-                }, null, { enableHighAccuracy: true, timeout: 10000 });
-            }, 10000);
+                }, null, { enableHighAccuracy: true, timeout: 8000 });
+            }, 5000);
         }
 
         function stopGpsTracking() {
+            pauseSilentAudio();
             if(gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
             if(gpsHeartbeatInterval !== null) { clearInterval(gpsHeartbeatInterval); gpsHeartbeatInterval = null; }
             if(wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); }
         }
 
-        // Uygulama alta alınıp tekrar öne geldiğinde GPS'i anında yeniden tetikle
+        // Ekran veya sekme durumu değiştiğinde bağlantıyı yeniden uyanık tut
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible' && activeDriver && activeDriver.isOnline) {
-                startGpsTracking();
+            if (activeDriver && activeDriver.isOnline) {
+                requestWakeLock();
+                playSilentAudio();
+                if (gpsHeartbeatInterval === null) {
+                    startGpsTracking();
+                }
             }
         });
     </script>
 </body>
 </html>
-
