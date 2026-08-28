@@ -67,11 +67,12 @@
             outline: none; margin-bottom: 8px; font-weight: 700; font-size: 0.95rem;
         }
 
+        /* GÖRSELDEKİ ÖZEL +963 NUMARA KUTUSU TASARIMI */
         .phone-input-group {
             display: flex;
-            align-items: center;
-            direction: ltr;
-            background: #fff;
+            align-items: stretch;
+            direction: ltr !important;
+            background: #ffffff;
             border-radius: 8px;
             border: 1px solid #444;
             margin-bottom: 8px;
@@ -79,13 +80,16 @@
         }
 
         .country-prefix {
-            background: #e2e8f0;
-            color: #0f172a;
-            padding: 11px 12px;
+            background: #eef2f6;
+            color: #0b132b;
+            padding: 11px 13px;
             font-weight: 900;
-            font-size: 0.95rem;
-            border-right: 1px solid #cbd5e1;
+            font-size: 1.05rem;
+            border-right: 2px solid #cbd5e1;
             user-select: none;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
         }
 
         .phone-input-group input {
@@ -93,9 +97,10 @@
             outline: none;
             padding: 11px;
             width: 100%;
-            font-weight: 700;
-            font-size: 0.95rem;
+            font-weight: 800;
+            font-size: 1.05rem;
             color: #000;
+            direction: ltr;
         }
         
         .filter-select {
@@ -188,14 +193,14 @@
                     
                     <div class="phone-input-group">
                         <span class="country-prefix">+963</span>
-                        <input type="text" id="newDPhoneLocal" placeholder="962750014" required>
+                        <input type="tel" id="newDPhoneLocal" placeholder="962750014" required>
                     </div>
 
                     <input type="text" id="newDPass" class="form-input" placeholder="كلمة المرور (PIN)" required>
                     <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة (كيا 12345)" required>
                     <input type="number" id="newDDays" class="form-input" value="7" min="1" placeholder="أيام الاشتراك" required>
                 </div>
-                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 11px 20px;">إضافة وتفعيل السائق وإرسال التطبيق وبيانات الدخول</button>
+                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 11px 20px;">إضافة وتفعيل السائق وإرسال بيانات الدخول</button>
             </form>
         </div>
 
@@ -421,7 +426,7 @@
 
             e.target.reset();
 
-            const infoMsg = `🚖 *مرحباً بك كابتن ${name} في تكسI البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n📥 *رابط تحميل تطبيق الكابتن المباشر (APK):*\n${DRIVER_APK_DOWNLOAD_URL}\n\n🔐 *بيانات الدخول الخاصة بك:*\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *رمز المرور (PIN):* *${password}*\n\n📌 *خطوات التثبيت والبدء:*\n1. اضغط على رابط التحميل وحمّل التطبيق وثبّته.\n2. افتح التطبيق وسجّل الدخول برقم هاتفك ورمز المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل إذن الموقع (GPS) لتظهر في الرادار وتستقبل المشاوير.`;
+            const infoMsg = `🚖 *مرحباً بك كابتن ${name} في تكسي البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n📥 *رابط تحميل تطبيق الكابتن المباشر (APK):*\n${DRIVER_APK_DOWNLOAD_URL}\n\n🔐 *بيانات الدخول الخاصة بك:*\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *رمز المرور (PIN):* *${password}*\n\n📌 *خطوات التثبيت والبدء:*\n1. حمّل التطبيق وثبّته على هاتفك.\n2. سجّل الدخول برقمك وكلمة المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل الـ GPS لاستقبال المشاوير والظهور على الرادار.`;
 
             currentModalPhone = cleanPhone;
             currentModalMsg = infoMsg;
