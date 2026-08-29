@@ -292,7 +292,13 @@
     </div>
 
     <script>
-        const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
+        // Sayfa açıldığında Android bildirim iznini zorunlu tetikler
+window.addEventListener('DOMContentLoaded', () => {
+    if ('Notification' in window && Notification.permission !== 'granted') {
+        Notification.requestPermission();
+    }
+});
+const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const driversRef = db.ref('drivers');
