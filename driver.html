@@ -206,8 +206,8 @@
 </head>
 <body>
 
-    <!-- Arka plan canlı tutucu HTML5 Audio (Tam Sessiz WAV) -->
-    <audio id="bgKeepAliveAudio" loop playsinline>
+    <!-- Arka plan kesintisiz sessiz ses sinyali -->
+    <audio id="bgKeepAliveAudio" loop playsinline preload="auto">
         <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
     </audio>
 
@@ -292,13 +292,7 @@
     </div>
 
     <script>
-        // Sayfa açıldığında Android bildirim iznini zorunlu tetikler
-window.addEventListener('DOMContentLoaded', () => {
-    if ('Notification' in window && Notification.permission !== 'granted') {
-        Notification.requestPermission();
-    }
-});
-const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
+        const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const driversRef = db.ref('drivers');
@@ -309,8 +303,8 @@ const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.eu
         let gpsWatchId = null;
         let gpsHeartbeatInterval = null;
         let wakeLockInstance = null;
-        let webAudioCtx = null;
-        let audioOscillator = null;
+        let audioCtx = null;
+        let oscNode = null;
 
         const savedPhone = localStorage.getItem('taxi_driver_phone');
 
@@ -354,32 +348,30 @@ const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.eu
             return closestCity;
         }
 
-        // Web Audio API ile duyulmayan mikro ses sentezleme (Tarayıcının asla kapanmamasını sağlar)
-        function startWebAudioKeepAlive() {
+        // Kesintisiz Arka Plan Uyku Önleyici (Audio Synthesizer)
+        function startAudioEngine() {
             try {
-                if (!webAudioCtx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    webAudioCtx = new AudioContext();
+                if (!audioCtx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContextClass();
                 }
-                if (webAudioCtx.state === 'suspended') {
-                    webAudioCtx.resume();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
                 }
-                if (!audioOscillator) {
-                    audioOscillator = webAudioCtx.createOscillator();
-                    const gainNode = webAudioCtx.createGain();
-                    gainNode.gain.value = 0.001; // İnsan kulağının duymayacağı seviye
-                    audioOscillator.connect(gainNode);
-                    gainNode.connect(webAudioCtx.destination);
-                    audioOscillator.start();
+                if (!oscNode) {
+                    oscNode = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0.001; // İnsan kulağının duyamayacağı güç
+                    oscNode.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    oscNode.start();
                 }
-            } catch (e) {
-                console.log("AudioContext hatası:", e);
-            }
+            } catch (e) {}
         }
 
-        // ÜST BİLDİRİM VE ARKA PLAN KİLİDİ
+        // Üst Bildirim ve Kilit Sistemi
         async function setupMediaSession() {
-            startWebAudioKeepAlive();
+            startAudioEngine();
 
             try {
                 if ('wakeLock' in navigator && !wakeLockInstance) {
@@ -555,7 +547,7 @@ const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.eu
                 pushLocation(pos.coords.latitude, pos.coords.longitude);
             }, function(err) {}, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
 
-            // 3 saniyede bir GPS pingi at
+            // Her 3 saniyede bir GPS pingi at
             gpsHeartbeatInterval = setInterval(() => {
                 forceLocationFetch();
             }, 3000);
@@ -564,8 +556,8 @@ const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.eu
         function stopGpsTracking() {
             const audio = document.getElementById('bgKeepAliveAudio');
             if (audio) { audio.pause(); }
-            if (webAudioCtx && webAudioCtx.state === 'running') {
-                webAudioCtx.suspend();
+            if (audioCtx && audioCtx.state === 'running') {
+                audioCtx.suspend();
             }
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.playbackState = "paused";
