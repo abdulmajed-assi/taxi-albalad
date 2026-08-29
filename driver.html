@@ -206,7 +206,7 @@
 </head>
 <body>
 
-    <!-- Gömülü Kesintisiz Sessiz Ses Elemanı (CORS Hatası Vermez) -->
+    <!-- Arka plan canlı tutucu HTML5 Audio (Tam Sessiz WAV) -->
     <audio id="bgKeepAliveAudio" loop playsinline>
         <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
     </audio>
@@ -303,6 +303,8 @@
         let gpsWatchId = null;
         let gpsHeartbeatInterval = null;
         let wakeLockInstance = null;
+        let webAudioCtx = null;
+        let audioOscillator = null;
 
         const savedPhone = localStorage.getItem('taxi_driver_phone');
 
@@ -346,20 +348,43 @@
             return closestCity;
         }
 
-        // ANDROID ÜST BİLDİRİM VE ARKA PLAN KİLİDİ
+        // Web Audio API ile duyulmayan mikro ses sentezleme (Tarayıcının asla kapanmamasını sağlar)
+        function startWebAudioKeepAlive() {
+            try {
+                if (!webAudioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    webAudioCtx = new AudioContext();
+                }
+                if (webAudioCtx.state === 'suspended') {
+                    webAudioCtx.resume();
+                }
+                if (!audioOscillator) {
+                    audioOscillator = webAudioCtx.createOscillator();
+                    const gainNode = webAudioCtx.createGain();
+                    gainNode.gain.value = 0.001; // İnsan kulağının duymayacağı seviye
+                    audioOscillator.connect(gainNode);
+                    gainNode.connect(webAudioCtx.destination);
+                    audioOscillator.start();
+                }
+            } catch (e) {
+                console.log("AudioContext hatası:", e);
+            }
+        }
+
+        // ÜST BİLDİRİM VE ARKA PLAN KİLİDİ
         async function setupMediaSession() {
-            // 1. Ekran Kilidini Açık Tut
+            startWebAudioKeepAlive();
+
             try {
                 if ('wakeLock' in navigator && !wakeLockInstance) {
                     wakeLockInstance = await navigator.wakeLock.request('screen');
                 }
             } catch(e) {}
 
-            // 2. Bildirim Çubuğu Medya Kartı
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: '🚖 كابتن تكسي البلد (أونلاين)',
-                    artist: activeDriver ? `الكابتن: ${activeDriver.name}` : 'جاري العمل واستقبال المشاوير',
+                    title: '🚖 كابتن تكسي البلد (متصل الآن)',
+                    artist: activeDriver ? `الكابتن: ${activeDriver.name}` : 'استقبال الطلبات نشط',
                     album: 'خدمة التتبع المباشر تعمل في الخلفية',
                     artwork: [
                         { src: 'logo.jpg', sizes: '512x512', type: 'image/jpeg' }
@@ -371,7 +396,6 @@
                 navigator.mediaSession.setActionHandler('pause', () => {});
             }
 
-            // 3. Arka Plan Canlı Tutma Sesi
             const audio = document.getElementById('bgKeepAliveAudio');
             if (audio) {
                 audio.play().catch(() => {});
@@ -504,7 +528,7 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(pos) {
                     pushLocation(pos.coords.latitude, pos.coords.longitude);
-                }, null, { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 });
+                }, null, { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 });
             }
         }
 
@@ -523,7 +547,7 @@
 
             gpsWatchId = navigator.geolocation.watchPosition(function(pos) {
                 pushLocation(pos.coords.latitude, pos.coords.longitude);
-            }, function(err) {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            }, function(err) {}, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
 
             // 3 saniyede bir GPS pingi at
             gpsHeartbeatInterval = setInterval(() => {
@@ -534,6 +558,9 @@
         function stopGpsTracking() {
             const audio = document.getElementById('bgKeepAliveAudio');
             if (audio) { audio.pause(); }
+            if (webAudioCtx && webAudioCtx.state === 'running') {
+                webAudioCtx.suspend();
+            }
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.playbackState = "paused";
             }
@@ -541,7 +568,7 @@
             if(gpsHeartbeatInterval !== null) { clearInterval(gpsHeartbeatInterval); gpsHeartbeatInterval = null; }
         }
 
-        // Ekran kapandığında veya başka uygulamaya geçildiğinde zorla canlı tut
+        // Ekran kilitlendiğinde veya başka uygulamaya geçildiğinde zorla yeniden tetikle
         document.addEventListener('visibilitychange', () => {
             if (activeDriver && activeDriver.isOnline) {
                 setupMediaSession();
@@ -554,3 +581,4 @@
     </script>
 </body>
 </html>
+
