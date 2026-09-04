@@ -32,7 +32,7 @@
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--brand-black); color: var(--text-main); min-height: 100vh; padding: 1.5rem 1rem; }
-        .admin-wrap { max-width: 1100px; margin: 0 auto; }
+        .admin-wrap { max-width: 1150px; margin: 0 auto; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         .stat-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 12px; padding: 1rem; display: flex; align-items: center; gap: 10px; }
@@ -107,6 +107,22 @@
         
         .btn-action { background: var(--brand-yellow); color: #000; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; transition: transform 0.1s; }
         .btn-action:hover { transform: scale(1.05); }
+
+        .btn-assign {
+            background: #22c55e;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            transition: transform 0.1s;
+        }
+        .btn-assign:hover { transform: scale(1.05); background: #16a34a; }
         
         .form-input {
             width: 100%; padding: 12px; border-radius: 8px;
@@ -160,11 +176,23 @@
 
         .modal-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
         .modal-card { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 1.8rem; max-width: 480px; width: 100%; text-align: right; }
+
+        .price-box {
+            background: rgba(252, 186, 3, 0.1);
+            border: 1px dashed var(--brand-yellow);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 14px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--brand-yellow);
+        }
     </style>
 </head>
 <body>
 
-    <!-- GİRİŞ EKRANI (İPUCU VE AD KALDIRILMIŞ TEMİZ KUTULAR) -->
+    <!-- GİRİŞ EKRANI -->
     <div id="adminAuthBox" class="auth-overlay">
         <div class="auth-box">
             <h2 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</h2>
@@ -301,7 +329,17 @@
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
-                        <tr><th>السائق</th><th>المحافظة الحالية</th><th>الهاتف</th><th>كلمة السر</th><th>السيارة</th><th>الحالة</th><th>الأيام</th><th>العمليات</th></tr>
+                        <tr>
+                            <th style="background:#1f2937; color:#fcba03;">إرسال طلب</th>
+                            <th>السائق</th>
+                            <th>المحافظة الحالية</th>
+                            <th>الهاتف</th>
+                            <th>كلمة السر</th>
+                            <th>السيارة</th>
+                            <th>الحالة</th>
+                            <th>الأيام</th>
+                            <th>العمليات</th>
+                        </tr>
                     </thead>
                     <tbody id="adminTableBody"></tbody>
                 </table>
@@ -309,7 +347,37 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP -->
+    <!-- GÖREVLENDİRME MODALI -->
+    <div id="assignModal" class="modal-wrap" style="display:none;">
+        <div class="modal-card">
+            <h3 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-paper-plane"></i> تعيين مهمة جديدة للكابتن</h3>
+            <p id="assignDriverInfo" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:14px;"></p>
+            
+            <label style="font-size:0.85rem; color:#fff; display:block; margin-bottom:4px;">مكان الركوب (Alış Yeri):</label>
+            <input type="text" id="assignPickup" class="form-input" placeholder="مثال: الصليبة - جانب صيدلية النور" required>
+
+            <label style="font-size:0.85rem; color:#fff; display:block; margin-bottom:4px;">الوجهة / مكان النزول (Gidiş Yeri):</label>
+            <input type="text" id="assignDropoff" class="form-input" placeholder="مثال: مشروع السابع - قرب مدرسة البعث" required>
+
+            <label style="font-size:0.85rem; color:#fff; display:block; margin-bottom:4px;">المسافة التقريبية (كم):</label>
+            <input type="number" id="assignDistance" class="form-input" value="4" min="0.5" step="0.5" oninput="updateAssignPricePreview()">
+
+            <div class="price-box">
+                الأجرة المقدرة للكابتن: <span id="assignPriceText">12,000</span> ل.س
+            </div>
+
+            <div style="display:flex; gap:8px;">
+                <button onclick="confirmAndSendAssignment()" class="btn-action" style="background:#25d366; color:#fff; flex:2; padding:11px;">
+                    <i class="fa-brands fa-whatsapp"></i> إرسال التفاصيل عبر واتساب
+                </button>
+                <button onclick="closeAssignModal()" style="background:#333; color:#fff; border:none; padding:11px 16px; border-radius:6px; cursor:pointer; font-weight:700;">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP (KAYIT BAŞARILI BİLDİRİMİ) -->
     <div id="infoModal" class="modal-wrap" style="display:none;">
         <div class="modal-card">
             <h3 style="color:var(--brand-yellow); margin-bottom:10px;"><i class="fa-solid fa-circle-check" style="color:var(--accent-green);"></i> تم تسجيل السائق بنجاح!</h3>
@@ -343,6 +411,9 @@
         let driversList = [];
         let currentModalPhone = "";
         let currentModalMsg = "";
+
+        // Görevlendirme değişkenleri
+        let activeAssignDriver = null;
 
         // GÖRSELLERDEKİ TÜM ŞAM BÖLGELERİ & SOKAKLARI + DİĞER İLLERİN KOORDİNATLARI
         const knownLocations = {
@@ -468,7 +539,6 @@
             updateMapMarkers();
         }
 
-        // AKILLI ARAMA VE SÜRÜCÜYE GÖTÜRME
         function searchLocationAndDrivers() {
             const query = document.getElementById('areaSearchInput').value.trim().toLowerCase();
             if (!query) {
@@ -476,7 +546,6 @@
                 return;
             }
 
-            // 1. Koordinat listesinde doğrudan var mı bak
             let targetCoords = null;
             for (let place in knownLocations) {
                 if (place.toLowerCase() === query || place.toLowerCase().includes(query) || query.includes(place.toLowerCase())) {
@@ -485,7 +554,6 @@
                 }
             }
 
-            // 2. Bu bölgeye en yakın veya bu şehirdeki sürücüyü bul
             let nearestDriver = null;
             if (targetCoords) {
                 let minDistance = Infinity;
@@ -500,7 +568,6 @@
                 });
             }
 
-            // 3. Eğer sürücü varsa sürücüye odaklan ve bilgi balonunu aç
             if (nearestDriver && nearestDriver.lat && nearestDriver.lng) {
                 radarMap.flyTo([nearestDriver.lat, nearestDriver.lng], 16, { duration: 1.5 });
                 setTimeout(() => {
@@ -509,10 +576,8 @@
                     }
                 }, 1600);
             } else if (targetCoords) {
-                // Sürücü yoksa bölgeye odaklan
                 radarMap.flyTo(targetCoords, 15, { duration: 1.5 });
             } else {
-                // 4. Listede yoksa harita servisinden ara
                 fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=sy&q=${encodeURIComponent(query)}`)
                     .then(res => res.json())
                     .then(data => {
@@ -574,7 +639,7 @@
             tbody.innerHTML = '';
 
             if(driversList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين مسجلين حالياً.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين مسجلين حالياً.</td></tr>`;
                 return;
             }
 
@@ -584,6 +649,11 @@
                 const statusBadge = isExp ? `<span class="badge badge-expired">منتهي</span>` : (d.isOnline ? `<span class="badge badge-active">متاح</span>` : `<span class="badge badge-busy">استراحة</span>`);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
+                    <td>
+                        <button onclick="openAssignModal('${d.fbKey}')" class="btn-assign" title="إرسال طلب ومهمة للكابتن">
+                            <i class="fa-solid fa-taxi"></i> تكليف
+                        </button>
+                    </td>
                     <td><strong>${d.name}</strong></td>
                     <td><span class="badge badge-city"><i class="fa-solid fa-location-arrow"></i> ${d.city || 'دمشق'}</span></td>
                     <td dir="ltr">+${cleanSyrianPhone(d.phone)}</td>
@@ -603,6 +673,76 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        // --- GÖREVLENDİRME & FİYAT HESAPLAMA (YallaGo İndirimli) ---
+        function calculateTripPrice(km) {
+            // YallaGo bazlı ancak daha uygun: 4,000 SP Açılış + 2,000 SP/Km
+            const baseFare = 4000;
+            const perKm = 2000;
+            let total = baseFare + (km * perKm);
+            return Math.round(total / 500) * 500; // En yakın 500 katı
+        }
+
+        function updateAssignPricePreview() {
+            const km = parseFloat(document.getElementById('assignDistance').value) || 1;
+            const price = calculateTripPrice(km);
+            document.getElementById('assignPriceText').innerText = price.toLocaleString();
+        }
+
+        function openAssignModal(fbKey) {
+            const driver = driversList.find(d => d.fbKey === fbKey);
+            if(!driver) return;
+            activeAssignDriver = driver;
+
+            document.getElementById('assignDriverInfo').innerText = `إرسال طلب مباشر إلى: الكابتن ${driver.name} (${driver.car})`;
+            document.getElementById('assignPickup').value = '';
+            document.getElementById('assignDropoff').value = '';
+            document.getElementById('assignDistance').value = '4';
+            updateAssignPricePreview();
+
+            document.getElementById('assignModal').style.display = 'flex';
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').style.display = 'none';
+            activeAssignDriver = null;
+        }
+
+        function confirmAndSendAssignment() {
+            if(!activeAssignDriver) return;
+
+            const pickup = document.getElementById('assignPickup').value.trim();
+            const dropoff = document.getElementById('assignDropoff').value.trim();
+            const km = parseFloat(document.getElementById('assignDistance').value) || 1;
+
+            if(!pickup || !dropoff) {
+                alert("يرجى إدخال نقطة الانطلاق والوجهة بشكل صحيح!");
+                return;
+            }
+
+            const price = calculateTripPrice(km);
+
+            // Link içermeyen, tamamen yazılı ve net bildirim mesajı
+            const taskMsg = 
+`🚖 *طلب تكسي جديد - تكسي البلد*
+
+مرحباً كابتن ${activeAssignDriver.name}، لديك مهمة توصيل جديدة:
+
+📍 *نقطة الركوب (الانطلاق):*
+${pickup}
+
+🏁 *مكان النزول (الوجهة):*
+${dropoff}
+
+📏 *المسافة التقديرية:* ${km} كم
+💰 *الأجرة المقدرة للرحلة:* ${price.toLocaleString()} ليرة سورية
+
+يرجى تأكيد الاستلام والتوجه مباشرة إلى الزبون.`;
+
+            const waUrl = getWhatsAppUrl(activeAssignDriver.phone, taskMsg);
+            window.open(waUrl, '_blank');
+            closeAssignModal();
         }
 
         function addNewDriver(e) {
