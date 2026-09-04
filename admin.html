@@ -181,7 +181,7 @@
             background: rgba(252, 186, 3, 0.1);
             border: 1px dashed var(--brand-yellow);
             border-radius: 8px;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
             margin-bottom: 14px;
             font-size: 1rem;
@@ -199,10 +199,10 @@
             <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:18px;">تسجيل الدخول إلى النظام الإداري</p>
             
             <form onsubmit="handleAdminLogin(event)" style="text-align: right;">
-                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">اسم المستخدم (Username):</label>
+                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">اسم المستخدم:</label>
                 <input type="text" id="adminUserInput" class="form-input" placeholder="" autocomplete="off" required style="direction: ltr; font-weight: 800;">
                 
-                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">كلمة المرور (Password):</label>
+                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">كلمة المرور:</label>
                 <input type="password" id="adminPinInput" class="form-input" placeholder="" required style="direction: ltr; font-weight: 800;">
                 
                 <button type="submit" class="btn-action" style="width:100%; padding:13px; font-size:1.1rem; margin-top: 6px;">
@@ -246,7 +246,7 @@
 
             <div class="radar-controls-wrap">
                 <div class="search-input-group">
-                    <input type="text" id="areaSearchInput" list="syriaPlacesList" placeholder="اكتب أو اختر الحي / الشارع (مثل: الميدان، المزة، الحميدية، برزة...)" onkeypress="handleSearchKeyPress(event)">
+                    <input type="text" id="areaSearchInput" list="syriaPlacesList" placeholder="اكتب أو اختر الحي / الشارع (مثل: الميدan، المزة، الحميدية، الصليبة...)" onkeypress="handleSearchKeyPress(event)">
                     <datalist id="syriaPlacesList">
                         <option value="الأمين">
                         <option value="الحميدية">
@@ -258,10 +258,9 @@
                         <option value="دمشق">
                         <option value="فارس الخوري">
                         <option value="كفرسوسة">
-                        <option value="Mahmoud Khalil St">
                         <option value="مساكن برزة">
                         <option value="مشروع دمر">
-                        <option value="Maysaloon">
+                        <option value="ميسلون">
                         <option value="مزة 86">
                         <option value="سوق مدحت باشا">
                         <option value="القابون">
@@ -285,6 +284,9 @@
                         <option value="حمص">
                         <option value="حلب">
                         <option value="اللاذقية">
+                        <option value="الصليبة">
+                        <option value="مشروع السابع">
+                        <option value="الزراعة">
                         <option value="طرطوس">
                         <option value="حماة">
                         <option value="درعا">
@@ -347,28 +349,26 @@
         </div>
     </div>
 
-    <!-- GÖREVLENDİRME MODALI -->
+    <!-- GÖREVLENDİRME MODALI (TAM ARAPÇA & OTOMATİK HESAPLAMA) -->
     <div id="assignModal" class="modal-wrap" style="display:none;">
         <div class="modal-card">
-            <h3 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-paper-plane"></i> تعيين مهمة جديدة للكابتن</h3>
+            <h3 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-paper-plane"></i> تعيين مهمة توصيل للكابتن</h3>
             <p id="assignDriverInfo" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:14px;"></p>
             
-            <label style="font-size:0.85rem; color:#fff; display:block; margin-bottom:4px;">مكان الركوب (Alış Yeri):</label>
-            <input type="text" id="assignPickup" class="form-input" placeholder="مثال: الصليبة - جانب صيدلية النور" required>
+            <label style="font-size:0.85rem; color:#fff; display:block; margin-bottom:4px;">مكان الركوب (نقطة الانطلاق):</label>
+            <input type="text" id="assignPickup" list="syriaPlacesList" class="form-input" placeholder="مثال: الصليبة أو المزة..." onchange="triggerAutoCalculateDistance()" required>
 
-            <label style="font-size:0.85rem; color:#fff; display:block; margin-bottom:4px;">الوجهة / مكان النزول (Gidiş Yeri):</label>
-            <input type="text" id="assignDropoff" class="form-input" placeholder="مثال: مشروع السابع - قرب مدرسة البعث" required>
-
-            <label style="font-size:0.85rem; color:#fff; display:block; margin-bottom:4px;">المسافة التقريبية (كم):</label>
-            <input type="number" id="assignDistance" class="form-input" value="4" min="0.5" step="0.5" oninput="updateAssignPricePreview()">
+            <label style="font-size:0.85rem; color:#fff; display:block; margin-bottom:4px;">مكان النزول (الوجهة المقصودة):</label>
+            <input type="text" id="assignDropoff" list="syriaPlacesList" class="form-input" placeholder="مثال: مشروع السابع أو كفرسوسة..." onchange="triggerAutoCalculateDistance()" required>
 
             <div class="price-box">
-                الأجرة المقدرة للكابتن: <span id="assignPriceText">12,000</span> ل.س
+                <div style="font-size: 0.85rem; color: #a3a3a3; margin-bottom: 4px;" id="assignCalcStatus">المسافة المقدرة تلقائياً: 4.0 كم</div>
+                الأجرة الإجمالية المقدرة: <span id="assignPriceText">25,000</span> ليرة سورية
             </div>
 
             <div style="display:flex; gap:8px;">
                 <button onclick="confirmAndSendAssignment()" class="btn-action" style="background:#25d366; color:#fff; flex:2; padding:11px;">
-                    <i class="fa-brands fa-whatsapp"></i> إرسال التفاصيل عبر واتساب
+                    <i class="fa-brands fa-whatsapp"></i> إرسال تفاصيل المهمة عبر واتساب
                 </button>
                 <button onclick="closeAssignModal()" style="background:#333; color:#fff; border:none; padding:11px 16px; border-radius:6px; cursor:pointer; font-weight:700;">
                     إلغاء
@@ -412,10 +412,11 @@
         let currentModalPhone = "";
         let currentModalMsg = "";
 
-        // Görevlendirme değişkenleri
+        // Görevlendirme Değişkenleri
         let activeAssignDriver = null;
+        let currentCalculatedKm = 4.0;
 
-        // GÖRSELLERDEKİ TÜM ŞAM BÖLGELERİ & SOKAKLARI + DİĞER İLLERİN KOORDİNATLARI
+        // Bilinen Bölge ve Şehir Koordinatları
         const knownLocations = {
             'الأمين': [33.5080, 36.3120],
             'الحميدية': [33.5110, 36.3000],
@@ -427,10 +428,8 @@
             'دمشق': [33.5138, 36.2765],
             'فارس الخوري': [33.5310, 36.3180],
             'كفرسوسة': [33.4912, 36.2736],
-            'mahmoud khalil st': [33.5190, 36.2850],
             'مساكن برزة': [33.5680, 36.3350],
             'مشروع دمر': [33.5360, 36.2300],
-            'maysaloon': [33.5170, 36.2910],
             'ميسلون': [33.5170, 36.2910],
             'مزة 86': [33.4980, 36.2350],
             'سوق مدحت باشا': [33.5075, 36.3060],
@@ -459,6 +458,9 @@
             'حمص': [34.7324, 36.7137],
             'حلب': [36.2021, 37.1343],
             'اللاذقية': [35.5317, 35.7900],
+            'الصليبة': [35.5210, 35.7820],
+            'مشروع السابع': [35.5420, 35.7950],
+            'الزراعة': [35.5350, 35.8020],
             'طرطوس': [34.8890, 35.8866],
             'حماة': [35.1318, 36.7578],
             'درعا': [32.6255, 36.1055],
@@ -675,18 +677,66 @@
             });
         }
 
-        // --- GÖREVLENDİRME & FİYAT HESAPLAMA (YallaGo İndirimli) ---
-        function calculateTripPrice(km) {
-            // YallaGo bazlı ancak daha uygun: 4,000 SP Açılış + 2,000 SP/Km
-            const baseFare = 4000;
-            const perKm = 2000;
-            let total = baseFare + (km * perKm);
-            return Math.round(total / 500) * 500; // En yakın 500 katı
+        // --- FİYATLANDIRMA VE OTOMATİK KİLOMETRE HESAPLAMA (Açılış 5000 + Km Başı 5000) ---
+        function calculatePrice(km) {
+            const baseFare = 5000;
+            const perKm = 5000;
+            const total = baseFare + (km * perKm);
+            return Math.round(total / 500) * 500;
         }
 
-        function updateAssignPricePreview() {
-            const km = parseFloat(document.getElementById('assignDistance').value) || 1;
-            const price = calculateTripPrice(km);
+        async function resolveCoordinates(placeName) {
+            const clean = placeName.trim();
+            for (let key in knownLocations) {
+                if (key === clean || clean.includes(key) || key.includes(clean)) {
+                    return knownLocations[key];
+                }
+            }
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=sy&q=${encodeURIComponent(clean)}`);
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        async function triggerAutoCalculateDistance() {
+            const pickup = document.getElementById('assignPickup').value.trim();
+            const dropoff = document.getElementById('assignDropoff').value.trim();
+            const statusEl = document.getElementById('assignCalcStatus');
+
+            if (!pickup || !dropoff) return;
+
+            statusEl.innerText = "جاري حساب المسافة بدقة عبر مسار الخريطة...";
+
+            const coords1 = await resolveCoordinates(pickup);
+            const coords2 = await resolveCoordinates(dropoff);
+
+            if (coords1 && coords2) {
+                try {
+                    // OSRM Açık Rota Motoru ile gerçek yol mesafesi çekimi
+                    const url = `https://router.project-osrm.org/route/v1/driving/${coords1[1]},${coords1[0]};${coords2[1]},${coords2[0]}?overview=false`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data && data.routes && data.routes.length > 0) {
+                        currentCalculatedKm = Math.max(1, parseFloat((data.routes[0].distance / 1000).toFixed(1)));
+                    } else {
+                        // Kuş uçuşu alternatif rota katsayısı (1.35)
+                        const crow = Math.hypot((coords1[0]-coords2[0])*111, (coords1[1]-coords2[1])*95);
+                        currentCalculatedKm = Math.max(1, parseFloat((crow * 1.35).toFixed(1)));
+                    }
+                } catch (e) {
+                    const crow = Math.hypot((coords1[0]-coords2[0])*111, (coords1[1]-coords2[1])*95);
+                    currentCalculatedKm = Math.max(1, parseFloat((crow * 1.35).toFixed(1)));
+                }
+            } else {
+                currentCalculatedKm = 4.0; // Varsayılan şehir içi mesafe
+            }
+
+            statusEl.innerText = `المسافة المقدرة تلقائياً: ${currentCalculatedKm} كم`;
+            const price = calculatePrice(currentCalculatedKm);
             document.getElementById('assignPriceText').innerText = price.toLocaleString();
         }
 
@@ -695,11 +745,12 @@
             if(!driver) return;
             activeAssignDriver = driver;
 
-            document.getElementById('assignDriverInfo').innerText = `إرسال طلب مباشر إلى: الكابتن ${driver.name} (${driver.car})`;
+            document.getElementById('assignDriverInfo').innerText = `إرسال طلب وتكليف مباشر إلى الكابتن: ${driver.name} (${driver.car})`;
             document.getElementById('assignPickup').value = '';
             document.getElementById('assignDropoff').value = '';
-            document.getElementById('assignDistance').value = '4';
-            updateAssignPricePreview();
+            currentCalculatedKm = 4.0;
+            document.getElementById('assignCalcStatus').innerText = `المسافة المقدرة تلقائياً: 4.0 كم`;
+            document.getElementById('assignPriceText').innerText = calculatePrice(4.0).toLocaleString();
 
             document.getElementById('assignModal').style.display = 'flex';
         }
@@ -714,31 +765,31 @@
 
             const pickup = document.getElementById('assignPickup').value.trim();
             const dropoff = document.getElementById('assignDropoff').value.trim();
-            const km = parseFloat(document.getElementById('assignDistance').value) || 1;
 
             if(!pickup || !dropoff) {
-                alert("يرجى إدخال نقطة الانطلاق والوجهة بشكل صحيح!");
+                alert("يرجى إدخال مكان الركوب والوجهة بشكل صحيح!");
                 return;
             }
 
-            const price = calculateTripPrice(km);
+            const price = calculatePrice(currentCalculatedKm);
 
-            // Link içermeyen, tamamen yazılı ve net bildirim mesajı
+            // Tamamen Arapça, link içermeyen, açık ve net bildirim metni
             const taskMsg = 
 `🚖 *طلب تكسي جديد - تكسي البلد*
 
 مرحباً كابتن ${activeAssignDriver.name}، لديك مهمة توصيل جديدة:
 
-📍 *نقطة الركوب (الانطلاق):*
+📍 *مكان الركوب (الانطلاق):*
 ${pickup}
 
 🏁 *مكان النزول (الوجهة):*
 ${dropoff}
 
-📏 *المسافة التقديرية:* ${km} كم
+📏 *المسافة التقديرية:* ${currentCalculatedKm} كم
 💰 *الأجرة المقدرة للرحلة:* ${price.toLocaleString()} ليرة سورية
+(فتحة العداد: 5,000 ل.س + 5,000 ل.س لكل كم)
 
-يرجى تأكيد الاستلام والتوجه مباشرة إلى الزبون.`;
+يرجى التوجه فوراً للزبون أو الرد لتأكيد الاستلام.`;
 
             const waUrl = getWhatsAppUrl(activeAssignDriver.phone, taskMsg);
             window.open(waUrl, '_blank');
