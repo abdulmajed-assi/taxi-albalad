@@ -225,6 +225,21 @@
             font-weight: 800;
             color: var(--brand-yellow);
         }
+
+        /* نافذة البالون على الخريطة */
+        .leaflet-popup-content-wrapper {
+            background: #1c1c1e !important;
+            color: #fff !important;
+            border-radius: 12px !important;
+            border: 1.5px solid var(--brand-yellow) !important;
+            direction: rtl !important;
+            text-align: right !important;
+            font-family: 'Cairo', sans-serif !important;
+        }
+        .leaflet-popup-tip {
+            background: #1c1c1e !important;
+            border: 1px solid var(--brand-yellow) !important;
+        }
     </style>
 </head>
 <body>
@@ -341,7 +356,7 @@
         </div>
     </div>
 
-    <!-- GÖREVLENDİRME MODALI (HARİTALI, TIKLAYIP / SÜRÜKLEYİP SEÇMELİ) -->
+    <!-- GÖREVLENDİRME MODALI (HARİTALI, TIKLAYIP / SÜRÜKLEYİP SEÇMELİ + NOT ALANLI) -->
     <div id="assignModal" class="modal-wrap" style="display:none;">
         <div class="modal-card">
             <h3 style="color:var(--brand-yellow); margin-bottom:4px;"><i class="fa-solid fa-paper-plane"></i> تعيين مهمة توصيل وحساب المسار</h3>
@@ -374,6 +389,10 @@
                 💡 يمكنك سحب العلامة الخضراء أو الحمراء مباشرة لتعديل الموقع بدقة.
             </p>
 
+            <!-- HİTAP / EK BİLGİ / NOT EKLEME ALANI -->
+            <label style="font-size:0.8rem; color:var(--brand-yellow); font-weight: bold; display:block; margin-bottom:2px;">📝 ملاحظات إضافية للكابتن (اختياري - كاسم الزبون أو الهاتف أو تعليمات):</label>
+            <input type="text" id="assignExtraNote" class="form-input" placeholder="مثال: رقم الزبون 0988... / البناء جانب الصيدلية طابق ثاني">
+
             <div class="price-box">
                 <div style="font-size: 0.85rem; color: #a3a3a3; margin-bottom: 2px;" id="assignCalcStatus">المسافة المقدرة: 4.0 كم</div>
                 الأجرة الإجمالية المقدرة: <span id="assignPriceText">25,000</span> ليرة سورية
@@ -405,9 +424,9 @@
         </div>
     </div>
 
-    <!-- ŞAMLAR İÇİN KAPSAMLI DATALIST (Bölge, Sokak, Köprü, Kapı, AVM) -->
+    <!-- ŞAMLAR İÇİN KAPSAMLI DATALIST -->
     <datalist id="syriaPlacesList">
-        <!-- بوابات دمشق التاريخية -->
+        <!-- بوابات دمشق -->
         <option value="باب توما">
         <option value="باب شرقي">
         <option value="باب كيسان">
@@ -417,7 +436,7 @@
         <option value="باب الفراديس">
         <option value="باب سريجة">
         
-        <!-- الجسور والأنفاق والعقد المرورية -->
+        <!-- الجسور والأنفاق -->
         <option value="جسر السيد الرئيس">
         <option value="جسر الفكتوريا">
         <option value="جسر الثورة">
@@ -429,7 +448,6 @@
         <option value="نفق الأمويين">
         <option value="نفق كفرسوسة">
         <option value="نفق العباسيين">
-        <option value="جسر الوزان">
 
         <!-- الساحات والميادين العامة -->
         <option value="ساحة الأمويين">
@@ -464,15 +482,12 @@
         <option value="أوتوستراد العدوي">
         <option value="أوتوستراد الفيحاء">
         <option value="أوتوستراد درعا الدولي">
-        <option value="شارع القوتلي">
-        <option value="شارع برنية">
-        <option value="شارع مدحت باشا">
         <option value="سوق الحميدية">
         <option value="سوق الحريقة">
+        <option value="سوق مدحت باشا">
         <option value="سوق البزورية">
-        <option value="سوق التنابل">
 
-        <!-- المولات والمراكز التجارية والمشافي -->
+        <!-- المولات والمراكز والمشافي -->
         <option value="شام سيتي سنتر (المزة)">
         <option value="ماسة بلازا (المالكي)">
         <option value="قاسيون مول (برزة)">
@@ -487,14 +502,12 @@
         <option value="مشفى ابن النفيس">
         <option value="جامعة دمشق">
         <option value="حديقة تشرين">
-        <option value="حديقة التجارة">
-        <option value="مكتبة الأسد">
 
         <!-- أحياء دمشق -->
         <option value="المزة">
+        <option value="مزة 86">
         <option value="المزة فيلات غربية">
         <option value="المزة فيلات شرقية">
-        <option value="مزة 86">
         <option value="أبو رمانة">
         <option value="المالكي">
         <option value="الروضة">
@@ -514,14 +527,10 @@
         <option value="الزاهرة">
         <option value="الزاهرة القديمة">
         <option value="الزاهرة الجديدة">
-        <option value="دف الشوك">
         <option value="التضامن">
         <option value="اليرموك">
         <option value="كفرسوسة">
         <option value="مشروع دمر">
-        <option value="دمر البلد">
-        <option value="القدم">
-        <option value="دمر الشرقية">
 
         <!-- مدن وبلدات ريف دمشق -->
         <option value="ريف دمشق">
@@ -540,9 +549,6 @@
         <option value="معربا">
         <option value="دوما">
         <option value="حرستا">
-        <option value="عربين">
-        <option value="سقبا">
-        <option value="كفر بطنا">
         <option value="عين ترما">
         <option value="المليحة">
         <option value="السيدة زينب">
@@ -550,7 +556,7 @@
         <option value="يعفور">
         <option value="الهامة">
 
-        <!-- المحافظات السورية الأخرى -->
+        <!-- المحافظات -->
         <option value="حمص">
         <option value="حلب">
         <option value="اللاذقية">
@@ -592,7 +598,7 @@
         let pickupMarker = null;
         let dropoffMarker = null;
         let routePolyline = null;
-        let mapClickSelectMode = 'pickup'; // 'pickup' veya 'dropoff'
+        let mapClickSelectMode = 'pickup';
 
         // ريف دمشق
         const rifDimashqKeywords = [
@@ -614,9 +620,8 @@
             'شام سيتي سنتر', 'ماسة بلازا', 'قاسيون مول', 'داماسكوس مول'
         ];
 
-        // إحداثيات الأماكن التفصيلية بدمشق
+        // إحداثيات الأماكن
         const knownLocations = {
-            // بوابات دمشق
             'باب توما': [33.5145, 36.3160],
             'باب شرقي': [33.5098, 36.3205],
             'باب كيسان': [33.5050, 36.3190],
@@ -625,8 +630,6 @@
             'باب السلام': [33.5152, 36.3125],
             'باب الفراديس': [33.5140, 36.3080],
             'باب سريجة': [33.5090, 36.2990],
-
-            // جسور وأنفاق
             'جسر السيد الرئيس': [33.5140, 36.2910],
             'جسر الفكتوريا': [33.5125, 36.2950],
             'جسر الثورة': [33.5180, 36.2995],
@@ -635,8 +638,6 @@
             'نفق الأمويين': [33.5145, 36.2760],
             'نفق كفرسوسة': [33.4980, 36.2750],
             'نفق العباسيين': [33.5285, 36.3240],
-
-            // ساحات وميادين
             'ساحة الأمويين': [33.5145, 36.2765],
             'ساحة المرجة': [33.5130, 36.2975],
             'ساحة يوسف العظمة': [33.5155, 36.2930],
@@ -649,8 +650,6 @@
             'ساحة باب توما': [33.5148, 36.3155],
             'ساحة شمدين': [33.5380, 36.2930],
             'ساحة باب مصلى': [33.4985, 36.3030],
-
-            // شوارع وأسواق
             'شارع الحمراء': [33.5200, 36.2880],
             'شارع الصالحية': [33.5230, 36.2920],
             'شارع الشعلان': [33.5180, 36.2900],
@@ -667,8 +666,6 @@
             'سوق الحميدية': [33.5110, 36.3000],
             'سوق الحريقة': [33.5095, 36.3030],
             'سوق مدحت باشا': [33.5075, 36.3060],
-
-            // مولات ومعالم ومشافي
             'شام سيتي سنتر': [33.5035, 36.2480],
             'ماسة بلازا': [33.5220, 36.2750],
             'قاسيون مول': [33.5590, 36.3210],
@@ -680,8 +677,6 @@
             'مشفى المجتهد': [33.4970, 36.3020],
             'جامعة دمشق': [33.5085, 36.2880],
             'حديقة تشرين': [33.5180, 36.2720],
-
-            // أحياء دمشق
             'دمشق': [33.5138, 36.2765],
             'المزة': [33.5015, 36.2486],
             'مزة 86': [33.4980, 36.2350],
@@ -704,8 +699,6 @@
             'اليرموك': [33.4650, 36.3050],
             'كفرسوسة': [33.4912, 36.2736],
             'مشروع دمر': [33.5360, 36.2300],
-
-            // ريف دمشق
             'ريف دمشق': [33.5400, 36.3800],
             'جرمانا': [33.4833, 36.3500],
             'قدسيا': [33.5650, 36.2100],
@@ -723,8 +716,6 @@
             'السيدة زينب': [33.4450, 36.3400],
             'الصبورة': [33.5450, 36.1000],
             'يعفور': [33.5500, 36.0650],
-
-            // محافظات أخرى
             'حمص': [34.7324, 36.7137],
             'حلب': [36.2021, 37.1343],
             'اللاذقية': [35.5317, 35.7900],
@@ -865,6 +856,7 @@
             radarMap.flyTo([33.5138, 36.2765], 13);
         }
 
+        // تحديث إشارات السائقين على رادار الخريطة (مع زري التكليف والواتساب المباشر)
         function updateMapMarkers() {
             if(!radarMap) return;
             for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
@@ -874,17 +866,40 @@
                 if(d.lat && d.lng) {
                     const daysLeft = calculateDays(d.expiryTimestamp);
                     const color = daysLeft <= 0 ? '#ef4444' : (d.isOnline ? '#22c55e' : '#fcba03');
-                    const statusText = daysLeft <= 0 ? 'منتهي' : (d.isOnline ? 'متاح' : 'استراحة');
+                    const statusText = daysLeft <= 0 ? 'منتهي' : (d.isOnline ? 'متاح للعمل' : 'استراحة');
                     
                     const radarIcon = L.divIcon({
-                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5);">🚖 ${d.name} (${d.city || 'دمشق'})</div>`,
+                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5); cursor:pointer;">🚖 ${d.name} (${d.city || 'دمشق'})</div>`,
                         iconSize: [85, 25]
                     });
-                    const waLink = getWhatsAppUrl(d.phone, '🚕 مشوار جديد لك من إدارة تكسي البلد.');
-                    const popup = `<strong>${d.name}</strong> (${d.car})<br>المحافظة/المنطقة: <b>${d.city || 'دمشق'}</b><br>كلمة السر: <code>${d.password || 'غير محدد'}</code><br>الحالة: <b>${statusText}</b><br>متبقي: ${daysLeft} يوم<br><a href="${waLink}" target="_blank" style="color:green;font-weight:bold;">واتساب السائق</a>`;
-                    driverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(radarMap).bindPopup(popup);
+
+                    // محتوى البالون المنبثق عند الضغط على السائق
+                    const popupContent = `
+                        <div style="font-size:0.85rem; line-height:1.5;">
+                            <strong style="color:var(--brand-yellow); font-size:1rem;">${d.name}</strong> (${d.car})<br>
+                            📍 المنطقة: <b>${d.city || 'دمشق'}</b><br>
+                            🔑 كلمة السر: <code>${d.password || 'غير محدد'}</code><br>
+                            🟢 الحالة: <b>${statusText}</b> (باقٍ ${daysLeft} يوم)<br>
+                            <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
+                                <button onclick="openAssignModal('${d.fbKey}')" style="background:#22c55e; color:#fff; border:none; padding:7px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
+                                    <i class="fa-solid fa-taxi"></i> تكليف بمهمة وتحديد المسار
+                                </button>
+                                <button onclick="directDriverChat('${d.phone}')" style="background:#25d366; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
+                                    <i class="fa-brands fa-whatsapp"></i> محادثة واتساب سريعة
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    driverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(radarMap).bindPopup(popupContent);
                 }
             });
+        }
+
+        function directDriverChat(phone) {
+            const clean = cleanSyrianPhone(phone);
+            const waUrl = getWhatsAppUrl(clean, 'مرحباً كابتن، من إدارة تكسي البلد.');
+            window.open(waUrl, '_blank');
         }
 
         function updateStats() {
@@ -975,14 +990,13 @@
             return null;
         }
 
-        // استخراج اسم الحي / الشارع من الإحداثيات عكسياً
         async function reverseGeocode(lat, lon) {
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar`);
                 const data = await res.json();
                 if (data && data.address) {
                     const a = data.address;
-                    return a.road || a.suburb || a.neighbourhood || a.quarter || a.city_district || a.city || "نقطة محددة بالخريطة";
+                    return a.road || a.suburb || a.neighbourhood || a.quarter || a.city_district || a.city || "موقع محدد بالخريطة";
                 }
             } catch (e) {}
             return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
@@ -1003,7 +1017,7 @@
 
                 if (mapClickSelectMode === 'pickup') {
                     updatePickupPoint([lat, lng], true);
-                    setSelectMode('dropoff'); // تلقائياً انقل التحديد للنقطة الثانية
+                    setSelectMode('dropoff');
                 } else {
                     updateDropoffPoint([lat, lng], true);
                 }
@@ -1102,13 +1116,11 @@
             let routeGeometry = [[p1.lat, p1.lng], [p2.lat, p2.lng]];
 
             try {
-                // OSRM Açık Rota Motoru
                 const url = `https://router.project-osrm.org/route/v1/driving/${p1.lng},${p1.lat};${p2.lng},${p2.lat}?overview=full&geometries=geojson`;
                 const res = await fetch(url);
                 const data = await res.json();
                 if (data && data.routes && data.routes.length > 0) {
                     currentCalculatedKm = Math.max(1, parseFloat((data.routes[0].distance / 1000).toFixed(1)));
-                    // Koordinat dizisini Leaflet biçimine çevir
                     routeGeometry = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
                 } else {
                     const crow = Math.hypot((p1.lat - p2.lat) * 111, (p1.lng - p2.lng) * 95);
@@ -1119,7 +1131,6 @@
                 currentCalculatedKm = Math.max(1, parseFloat((crow * 1.35).toFixed(1)));
             }
 
-            // Çizgiyi güncelle
             if (routePolyline) {
                 assignMap.removeLayer(routePolyline);
             }
@@ -1144,6 +1155,7 @@
             document.getElementById('assignDriverInfo').innerText = `إرسال طلب وتكليف مباشر إلى الكابتن: ${driver.name} (${driver.car})`;
             document.getElementById('assignPickup').value = '';
             document.getElementById('assignDropoff').value = '';
+            document.getElementById('assignExtraNote').value = '';
             currentCalculatedKm = 4.0;
             isCrossRegionTrip = false;
             document.getElementById('assignCalcStatus').innerText = `المسافة المقدرة: 4.0 كم`;
@@ -1154,12 +1166,10 @@
 
             setTimeout(() => {
                 initAssignMap();
-                // Haritayı sürücünün olduğu yere veya Şam merkezine odakla
                 const center = (driver.lat && driver.lng) ? [driver.lat, driver.lng] : [33.5138, 36.2765];
                 assignMap.setView(center, 13);
                 assignMap.invalidateSize();
 
-                // Önceki işaretçileri temizle
                 if (pickupMarker) { assignMap.removeLayer(pickupMarker); pickupMarker = null; }
                 if (dropoffMarker) { assignMap.removeLayer(dropoffMarker); dropoffMarker = null; }
                 if (routePolyline) { assignMap.removeLayer(routePolyline); routePolyline = null; }
@@ -1176,6 +1186,7 @@
 
             const pickup = document.getElementById('assignPickup').value.trim();
             const dropoff = document.getElementById('assignDropoff').value.trim();
+            const extraNote = document.getElementById('assignExtraNote').value.trim();
 
             if(!pickup || !dropoff) {
                 alert("يرجى إدخال وتحديد مكان الركوب ومكان النزول بشكل صحيح!");
@@ -1185,7 +1196,8 @@
             isCrossRegionTrip = checkCrossRegionTrip(pickup, dropoff);
             const price = calculatePrice(currentCalculatedKm, isCrossRegionTrip);
 
-            let extraNote = isCrossRegionTrip ? "\n⚠️ *ملاحظة:* تم احتساب الأجرة بزيادة (1.5×) نظراً لكون المشوار بين دمشق وريفها." : "";
+            let regionNote = isCrossRegionTrip ? "\n⚠️ *ملاحظة:* تم احتساب الأجرة بزيادة (1.5×) نظراً لكون المشوار بين دمشق وريفها." : "";
+            let customNoteSection = extraNote ? `\n\n📌 *ملاحظات وتفاصيل إضافية:*\n${extraNote}` : "";
 
             const taskMsg = 
 `🚖 *طلب تكسي جديد - تكسي البلد*
@@ -1199,8 +1211,7 @@ ${pickup}
 ${dropoff}
 
 📏 *المسافة التقديرية:* ${currentCalculatedKm} كم
-💰 *الأجرة الإجمالية المقدرة:* ${price.toLocaleString()} ليرة سورية${extraNote}
-(فتحة العداد: 5,000 ل.س + 5,000 ل.س لكل كم)
+💰 *الأجرة الإجمالية المقدرة:* ${price.toLocaleString()} ليرة سورية${regionNote}${customNoteSection}
 
 يرجى التوجه فوراً للزبون أو الرد لتأكيد الاستلام.`;
 
