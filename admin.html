@@ -226,7 +226,6 @@
             color: var(--brand-yellow);
         }
 
-        /* نافذة البالون على الخريطة */
         .leaflet-popup-content-wrapper {
             background: #1c1c1e !important;
             color: #fff !important;
@@ -356,7 +355,7 @@
         </div>
     </div>
 
-    <!-- GÖREVLENDİRME MODALI (HARİTALI, TIKLAYIP / SÜRÜKLEYİP SEÇMELİ + NOT ALANLI) -->
+    <!-- GÖREVLENDİRME MODALI -->
     <div id="assignModal" class="modal-wrap" style="display:none;">
         <div class="modal-card">
             <h3 style="color:var(--brand-yellow); margin-bottom:4px;"><i class="fa-solid fa-paper-plane"></i> تعيين مهمة توصيل وحساب المسار</h3>
@@ -395,7 +394,7 @@
 
             <div class="price-box">
                 <div style="font-size: 0.85rem; color: #a3a3a3; margin-bottom: 2px;" id="assignCalcStatus">المسافة المقدرة: 4.0 كم</div>
-                الأجرة الإجمالية المقدرة: <span id="assignPriceText">25,000</span> ليرة سورية
+                الأجرة الإجمالية المقدرة: <span id="assignPriceText">25,000</span> ليرة سورية <span id="assignPriceShortText" style="color:#22c55e;">(250)</span>
             </div>
 
             <div style="display:flex; gap:8px;">
@@ -426,7 +425,6 @@
 
     <!-- ŞAMLAR İÇİN KAPSAMLI DATALIST -->
     <datalist id="syriaPlacesList">
-        <!-- بوابات دمشق -->
         <option value="باب توما">
         <option value="باب شرقي">
         <option value="باب كيسان">
@@ -435,8 +433,6 @@
         <option value="باب السلام">
         <option value="باب الفراديس">
         <option value="باب سريجة">
-        
-        <!-- الجسور والأنفاق -->
         <option value="جسر السيد الرئيس">
         <option value="جسر الفكتوريا">
         <option value="جسر الثورة">
@@ -448,8 +444,6 @@
         <option value="نفق الأمويين">
         <option value="نفق كفرسوسة">
         <option value="نفق العباسيين">
-
-        <!-- الساحات والميادين العامة -->
         <option value="ساحة الأمويين">
         <option value="ساحة يوسف العظمة (المحافظة)">
         <option value="ساحة المرجة">
@@ -464,8 +458,6 @@
         <option value="ساحة الميسات">
         <option value="ساحة شمدين">
         <option value="ساحة باب مصلى">
-
-        <!-- الشوارع والأسواق الرئيسية -->
         <option value="شارع الحمراء">
         <option value="شارع الصالحية">
         <option value="شارع الشعلان">
@@ -486,8 +478,6 @@
         <option value="سوق الحريقة">
         <option value="سوق مدحت باشا">
         <option value="سوق البزورية">
-
-        <!-- المولات والمراكز والمشافي -->
         <option value="شام سيتي سنتر (المزة)">
         <option value="ماسة بلازا (المالكي)">
         <option value="قاسيون مول (برزة)">
@@ -502,8 +492,6 @@
         <option value="مشفى ابن النفيس">
         <option value="جامعة دمشق">
         <option value="حديقة تشرين">
-
-        <!-- أحياء دمشق -->
         <option value="المزة">
         <option value="مزة 86">
         <option value="المزة فيلات غربية">
@@ -531,8 +519,6 @@
         <option value="اليرموك">
         <option value="كفرسوسة">
         <option value="مشروع دمر">
-
-        <!-- مدن وبلدات ريف دمشق -->
         <option value="ريف دمشق">
         <option value="جرمانا">
         <option value="صحنايا">
@@ -555,8 +541,6 @@
         <option value="الصبورة">
         <option value="يعفور">
         <option value="الهامة">
-
-        <!-- المحافظات -->
         <option value="حمص">
         <option value="حلب">
         <option value="اللاذقية">
@@ -856,7 +840,7 @@
             radarMap.flyTo([33.5138, 36.2765], 13);
         }
 
-        // تحديث إشارات السائقين على رادار الخريطة (مع زري التكليف والواتساب المباشر)
+        // تحديث إشارات السائقين على رادار الخريطة
         function updateMapMarkers() {
             if(!radarMap) return;
             for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
@@ -873,7 +857,6 @@
                         iconSize: [85, 25]
                     });
 
-                    // محتوى البالون المنبثق عند الضغط على السائق
                     const popupContent = `
                         <div style="font-size:0.85rem; line-height:1.5;">
                             <strong style="color:var(--brand-yellow); font-size:1rem;">${d.name}</strong> (${d.car})<br>
@@ -949,15 +932,24 @@
             });
         }
 
-        // --- تسعير الرحلة (فتحة 5000 + كم 5000 + ضرب 1.5 لرحلات ريف دمشق / دمشق) ---
+        // --- تسعير الرحلة مع التقريب لأقرب 5000 والحد الأدنى 20000 ---
         function calculatePrice(km, isCrossRegion) {
             const baseFare = 5000;
             const perKm = 5000;
             let total = baseFare + (km * perKm);
-            if(isCrossRegion) {
+            if (isCrossRegion) {
                 total = total * 1.5;
             }
-            return Math.round(total / 500) * 500;
+            
+            // التقريب لأعلى مضاعف 5000 (مثال: 17500 -> 20000)
+            let rounded = Math.ceil(total / 5000) * 5000;
+
+            // أقل طلب 20000 للطلبات القصيرة
+            if (rounded < 20000) {
+                rounded = 20000;
+            }
+
+            return rounded;
         }
 
         function checkCrossRegionTrip(pickup, dropoff) {
@@ -1144,7 +1136,9 @@
             document.getElementById('assignCalcStatus').innerText = statusText;
 
             const price = calculatePrice(currentCalculatedKm, isCrossRegionTrip);
+            const shortPrice = Math.floor(price / 100);
             document.getElementById('assignPriceText').innerText = price.toLocaleString();
+            document.getElementById('assignPriceShortText').innerText = `(${shortPrice})`;
         }
 
         function openAssignModal(fbKey) {
@@ -1159,7 +1153,10 @@
             currentCalculatedKm = 4.0;
             isCrossRegionTrip = false;
             document.getElementById('assignCalcStatus').innerText = `المسافة المقدرة: 4.0 كم`;
-            document.getElementById('assignPriceText').innerText = calculatePrice(4.0, false).toLocaleString();
+            
+            const initialPrice = calculatePrice(4.0, false);
+            document.getElementById('assignPriceText').innerText = initialPrice.toLocaleString();
+            document.getElementById('assignPriceShortText').innerText = `(${Math.floor(initialPrice / 100)})`;
 
             document.getElementById('assignModal').style.display = 'flex';
             setSelectMode('pickup');
@@ -1195,6 +1192,7 @@
 
             isCrossRegionTrip = checkCrossRegionTrip(pickup, dropoff);
             const price = calculatePrice(currentCalculatedKm, isCrossRegionTrip);
+            const shortPrice = Math.floor(price / 100);
 
             let regionNote = isCrossRegionTrip ? "\n⚠️ *ملاحظة:* تم احتساب الأجرة بزيادة (1.5×) نظراً لكون المشوار بين دمشق وريفها." : "";
             let customNoteSection = extraNote ? `\n\n📌 *ملاحظات وتفاصيل إضافية:*\n${extraNote}` : "";
@@ -1211,7 +1209,7 @@ ${pickup}
 ${dropoff}
 
 📏 *المسافة التقديرية:* ${currentCalculatedKm} كم
-💰 *الأجرة الإجمالية المقدرة:* ${price.toLocaleString()} ليرة سورية${regionNote}${customNoteSection}
+💰 *الأجرة المقدرة للرحلة:* ${price.toLocaleString()} ليرة سورية (${shortPrice})${regionNote}${customNoteSection}
 
 يرجى التوجه فوراً للزبون أو الرد لتأكيد الاستلام.`;
 
