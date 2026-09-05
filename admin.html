@@ -385,21 +385,21 @@
             <!-- İnteraktif Rota & Seçim Haritası -->
             <div id="assignMap"></div>
             <p style="font-size:0.75rem; color:#888; margin-top:-6px; margin-bottom:8px; text-align:center;">
-                💡 يمكنك سحب العلامة الخضراء أو الحمراء مباشرة لتعديل الموقع بدقة.
+                💡 يمكنك سحب العلامة الخضراء أو الحمراء لتعديل الموقع بدقة مع تحديث العنوان والرابط تلقائياً.
             </p>
 
             <!-- HİTAP / EK BİLGİ / NOT EKLEME ALANI -->
-            <label style="font-size:0.8rem; color:var(--brand-yellow); font-weight: bold; display:block; margin-bottom:2px;">📝 ملاحظات إضافية للكابتن (اختياري - كاسم الزبون أو الهاتف أو تعليمات):</label>
+            <label style="font-size:0.8rem; color:var(--brand-yellow); font-weight: bold; display:block; margin-bottom:2px;">📝 ملاحظات إضافية للكابتن (اختياري - كاسم الزبون أو هاتفه):</label>
             <input type="text" id="assignExtraNote" class="form-input" placeholder="مثال: رقم الزبون 0988... / البناء جانب الصيدلية طابق ثاني">
 
             <div class="price-box">
                 <div style="font-size: 0.85rem; color: #a3a3a3; margin-bottom: 2px;" id="assignCalcStatus">المسافة المقدرة: 4.0 كم</div>
-                الأجرة الإجمالية المقدرة: <span id="assignPriceText">25,000</span> ليرة سورية <span id="assignPriceShortText" style="color:#22c55e;">(250)</span>
+                الأجرة الإجمالية المقدرة: <span id="assignPriceText">20,000</span> ليرة سورية <span id="assignPriceShortText" style="color:#22c55e;">(200)</span>
             </div>
 
             <div style="display:flex; gap:8px;">
                 <button onclick="confirmAndSendAssignment()" class="btn-action" style="background:#25d366; color:#fff; flex:2; padding:11px;">
-                    <i class="fa-brands fa-whatsapp"></i> إرسال تفاصيل المهمة عبر واتساب
+                    <i class="fa-brands fa-whatsapp"></i> إرسال تفاصيل المهمة مع الروابط عبر واتساب
                 </button>
                 <button onclick="closeAssignModal()" style="background:#333; color:#fff; border:none; padding:11px 16px; border-radius:6px; cursor:pointer; font-weight:700;">
                     إلغاء
@@ -573,11 +573,14 @@
         let currentModalPhone = "";
         let currentModalMsg = "";
 
-        // Görevlendirme Değişkenleri & Harita Elemanları
+        // Görevlendirme Değişkenleri, Koordinat Saklama & Harita Elemanları
         let activeAssignDriver = null;
         let currentCalculatedKm = 4.0;
         let isCrossRegionTrip = false;
         
+        let currentPickupCoords = null;
+        let currentDropoffCoords = null;
+
         let assignMap = null;
         let pickupMarker = null;
         let dropoffMarker = null;
@@ -840,7 +843,6 @@
             radarMap.flyTo([33.5138, 36.2765], 13);
         }
 
-        // تحديث إشارات السائقين على رادار الخريطة
         function updateMapMarkers() {
             if(!radarMap) return;
             for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
@@ -941,10 +943,8 @@
                 total = total * 1.5;
             }
             
-            // التقريب لأعلى مضاعف 5000 (مثال: 17500 -> 20000)
             let rounded = Math.ceil(total / 5000) * 5000;
 
-            // أقل طلب 20000 للطلبات القصيرة
             if (rounded < 20000) {
                 rounded = 20000;
             }
@@ -982,16 +982,22 @@
             return null;
         }
 
+        // تحويل الإحداثيات إلى اسم شارع / حي عربي دقيق وواضح
         async function reverseGeocode(lat, lon) {
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar`);
                 const data = await res.json();
                 if (data && data.address) {
                     const a = data.address;
-                    return a.road || a.suburb || a.neighbourhood || a.quarter || a.city_district || a.city || "موقع محدد بالخريطة";
+                    const parts = [];
+                    if (a.road) parts.push(a.road);
+                    if (a.neighbourhood || a.suburb || a.quarter) parts.push(a.neighbourhood || a.suburb || a.quarter);
+                    if (a.city_district || a.city || a.town || a.village) parts.push(a.city_district || a.city || a.town || a.village);
+                    if (parts.length > 0) return parts.join('، ');
+                    if (data.display_name) return data.display_name.split(',').slice(0, 3).join('، ');
                 }
             } catch (e) {}
-            return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            return `موقع محدد (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
         }
 
         // --- نظام خريطة التكليف التفاعلية ---
@@ -1008,10 +1014,10 @@
                 const lng = e.latlng.lng;
 
                 if (mapClickSelectMode === 'pickup') {
-                    updatePickupPoint([lat, lng], true);
+                    await updatePickupPoint([lat, lng], true);
                     setSelectMode('dropoff');
                 } else {
-                    updateDropoffPoint([lat, lng], true);
+                    await updateDropoffPoint([lat, lng], true);
                 }
             });
         }
@@ -1031,6 +1037,8 @@
 
         async function updatePickupPoint(coords, fetchName = false) {
             if (!assignMap) return;
+            currentPickupCoords = coords;
+
             if (!pickupMarker) {
                 const iconP = L.divIcon({
                     html: '<div style="background:#22c55e; color:#000; width:28px; height:28px; border-radius:50%; border:3px solid #fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; box-shadow:0 3px 6px rgba(0,0,0,0.4);">📍</div>',
@@ -1040,6 +1048,7 @@
                 pickupMarker = L.marker(coords, { icon: iconP, draggable: true }).addTo(assignMap);
                 pickupMarker.on('dragend', async () => {
                     const pos = pickupMarker.getLatLng();
+                    currentPickupCoords = [pos.lat, pos.lng];
                     const name = await reverseGeocode(pos.lat, pos.lng);
                     document.getElementById('assignPickup').value = name;
                     recalculateRouteAndPrice();
@@ -1057,6 +1066,8 @@
 
         async function updateDropoffPoint(coords, fetchName = false) {
             if (!assignMap) return;
+            currentDropoffCoords = coords;
+
             if (!dropoffMarker) {
                 const iconD = L.divIcon({
                     html: '<div style="background:#ef4444; color:#fff; width:28px; height:28px; border-radius:50%; border:3px solid #fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; box-shadow:0 3px 6px rgba(0,0,0,0.4);">🏁</div>',
@@ -1066,6 +1077,7 @@
                 dropoffMarker = L.marker(coords, { icon: iconD, draggable: true }).addTo(assignMap);
                 dropoffMarker.on('dragend', async () => {
                     const pos = dropoffMarker.getLatLng();
+                    currentDropoffCoords = [pos.lat, pos.lng];
                     const name = await reverseGeocode(pos.lat, pos.lng);
                     document.getElementById('assignDropoff').value = name;
                     recalculateRouteAndPrice();
@@ -1152,6 +1164,9 @@
             document.getElementById('assignExtraNote').value = '';
             currentCalculatedKm = 4.0;
             isCrossRegionTrip = false;
+            currentPickupCoords = null;
+            currentDropoffCoords = null;
+
             document.getElementById('assignCalcStatus').innerText = `المسافة المقدرة: 4.0 كم`;
             
             const initialPrice = calculatePrice(4.0, false);
@@ -1194,7 +1209,18 @@
             const price = calculatePrice(currentCalculatedKm, isCrossRegionTrip);
             const shortPrice = Math.floor(price / 100);
 
-            let regionNote = isCrossRegionTrip ? "\n⚠️ *ملاحظة:* تم احتساب الأجرة بزيادة (1.5×) نظراً لكون المشوار بين دمشق وريفها." : "";
+            // روابط الخرائط الدقيقة للسائق
+            let pickupMapLink = "";
+            let dropoffMapLink = "";
+
+            if (currentPickupCoords) {
+                pickupMapLink = `\n🔗 *موقع الركوب على الخريطة:*\nhttps://maps.google.com/?q=${currentPickupCoords[0].toFixed(5)},${currentPickupCoords[1].toFixed(5)}`;
+            }
+            if (currentDropoffCoords) {
+                dropoffMapLink = `\n🔗 *موقع الوجهة على الخريطة:*\nhttps://maps.google.com/?q=${currentDropoffCoords[0].toFixed(5)},${currentDropoffCoords[1].toFixed(5)}`;
+            }
+
+            let regionNote = isCrossRegionTrip ? "\n⚠️ *ملاحظة:* تم احتساب الأجرة بزيادة (1.5×) لكون المشوار بين دمشق وريفها." : "";
             let customNoteSection = extraNote ? `\n\n📌 *ملاحظات وتفاصيل إضافية:*\n${extraNote}` : "";
 
             const taskMsg = 
@@ -1203,15 +1229,15 @@
 مرحباً كابتن ${activeAssignDriver.name}، لديك مهمة توصيل جديدة:
 
 📍 *مكان الركوب (الانطلاق):*
-${pickup}
+${pickup}${pickupMapLink}
 
 🏁 *مكان النزول (الوجهة):*
-${dropoff}
+${dropoff}${dropoffMapLink}
 
 📏 *المسافة التقديرية:* ${currentCalculatedKm} كم
 💰 *الأجرة المقدرة للرحلة:* ${price.toLocaleString()} ليرة سورية (${shortPrice})${regionNote}${customNoteSection}
 
-يرجى التوجه فوراً للزبون أو الرد لتأكيد الاستلام.`;
+يرجى التوجه فوراً أو فتح روابط الخرائط أعلاه لبدء الملاحة.`;
 
             const waUrl = getWhatsAppUrl(activeAssignDriver.phone, taskMsg);
             window.open(waUrl, '_blank');
