@@ -71,7 +71,6 @@
             border: 1.5px solid var(--brand-yellow);
             border-radius: 10px;
             overflow: hidden;
-            position: relative;
         }
 
         .search-input-group input {
@@ -175,7 +174,7 @@
         .auth-box { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 2.2rem 1.8rem; max-width: 380px; width: 100%; text-align: center; }
 
         .modal-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .modal-card { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 1.5rem; max-width: 580px; width: 100%; text-align: right; max-height: 95vh; overflow-y: auto; }
+        .modal-card { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 1.5rem; max-width: 600px; width: 100%; text-align: right; max-height: 95vh; overflow-y: auto; }
 
         #assignMap {
             width: 100%;
@@ -225,6 +224,20 @@
             font-size: 0.95rem;
             font-weight: 800;
             color: var(--brand-yellow);
+        }
+
+        .select-gov-tab {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--brand-yellow);
+            background: #28282b;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            outline: none;
         }
 
         .leaflet-popup-content-wrapper {
@@ -361,19 +374,62 @@
             <h3 style="color:var(--brand-yellow); margin-bottom:4px;"><i class="fa-solid fa-paper-plane"></i> تعيين مهمة توصيل وحساب المسار</h3>
             <p id="assignDriverInfo" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;"></p>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <div>
-                    <label style="font-size:0.8rem; color:#22c55e; font-weight: bold; display:block; margin-bottom:2px;">📍 نقطة الانطلاق (الركوب):</label>
-                    <input type="text" id="assignPickup" list="syriaPlacesDatalist" class="form-input" placeholder="اكتب أو انقر بالخريطة..." onchange="handleLocationInputChange('pickup')" required>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <!-- جانب نقطة الانطلاق -->
+                <div style="background: rgba(34, 197, 94, 0.05); padding: 8px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                    <label style="font-size:0.8rem; color:#22c55e; font-weight: bold; display:block; margin-bottom:2px;">📍 محافظة الانطلاق:</label>
+                    <select id="assignPickupGov" class="select-gov-tab" onchange="onGovChange('pickup')">
+                        <option value="الكل">جميع المحافظات السورية</option>
+                        <option value="دمشق" selected>دمشق</option>
+                        <option value="ريف دمشق">ريف دمشق</option>
+                        <option value="حلب">حلب</option>
+                        <option value="حمص">حمص</option>
+                        <option value="حماة">حماة</option>
+                        <option value="اللاذقية">اللاذقية</option>
+                        <option value="طرطوس">طرطوس</option>
+                        <option value="إدلب">إدلب</option>
+                        <option value="درعا">درعا</option>
+                        <option value="السويداء">السويداء</option>
+                        <option value="القنيطرة">القنيطرة</option>
+                        <option value="الرقة">الرقة</option>
+                        <option value="دير الزور">دير الزور</option>
+                        <option value="الحسكة">الحسكة</option>
+                    </select>
+
+                    <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:2px;">المكان أو لصق رابط الموقع (Link):</label>
+                    <input type="text" id="assignPickup" list="pickupPlacesDatalist" class="form-input" placeholder="اكتب أول حرف أو الصق رابط خرائط..." oninput="handleLocationInputPaste('pickup')" onchange="handleLocationInputChange('pickup')" required>
+                    <datalist id="pickupPlacesDatalist"></datalist>
                 </div>
-                <div>
-                    <label style="font-size:0.8rem; color:#ef4444; font-weight: bold; display:block; margin-bottom:2px;">🏁 الوجهة المقصودة (النزول):</label>
-                    <input type="text" id="assignDropoff" list="syriaPlacesDatalist" class="form-input" placeholder="اكتب أو انقر بالخريطة..." onchange="handleLocationInputChange('dropoff')" required>
+
+                <!-- جانب نقطة الوصول -->
+                <div style="background: rgba(239, 68, 68, 0.05); padding: 8px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <label style="font-size:0.8rem; color:#ef4444; font-weight: bold; display:block; margin-bottom:2px;">🏁 محافظة الوصول (النزول):</label>
+                    <select id="assignDropoffGov" class="select-gov-tab" onchange="onGovChange('dropoff')">
+                        <option value="الكل">جميع المحافظات السورية</option>
+                        <option value="دمشق" selected>دمشق</option>
+                        <option value="ريف دمشق">ريف دمشق</option>
+                        <option value="حلب">حلب</option>
+                        <option value="حمص">حمص</option>
+                        <option value="حماة">حماة</option>
+                        <option value="اللاذقية">اللاذقية</option>
+                        <option value="طرطوس">طرطوس</option>
+                        <option value="إدلب">إدلب</option>
+                        <option value="درعا">درعا</option>
+                        <option value="السويداء">السويداء</option>
+                        <option value="القنيطرة">القنيطرة</option>
+                        <option value="الرقة">الرقة</option>
+                        <option value="دير الزور">دير الزور</option>
+                        <option value="الحسكة">الحسكة</option>
+                    </select>
+
+                    <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:2px;">المكان أو لصق رابط الموقع (Link):</label>
+                    <input type="text" id="assignDropoff" list="dropoffPlacesDatalist" class="form-input" placeholder="اكتب أول حرف أو الصق رابط خرائط..." oninput="handleLocationInputPaste('dropoff')" onchange="handleLocationInputChange('dropoff')" required>
+                    <datalist id="dropoffPlacesDatalist"></datalist>
                 </div>
             </div>
 
             <!-- أزرار اختيار وضع النقر على الخريطة -->
-            <div class="map-select-mode-btns">
+            <div class="map-select-mode-btns" style="margin-top: 8px;">
                 <button type="button" id="btnPickModePickup" class="btn-mode active-pickup" onclick="setSelectMode('pickup')">
                     <i class="fa-solid fa-location-dot"></i> تحديد الانطلاق بالنقر على الخريطة
                 </button>
@@ -385,12 +441,12 @@
             <!-- خريطة رسم وتعديل المسار -->
             <div id="assignMap"></div>
             <p style="font-size:0.75rem; color:#888; margin-top:-6px; margin-bottom:8px; text-align:center;">
-                💡 اسحب النقطة الخضراء أو الحمراء لتعديل الموقع بدقة مع تحديث اسم الشارع والرابط تلقائياً.
+                💡 يمكنك سحب العلامة الخضراء أو الحمراء لتعديل الموقع بدقة أو لصق رابط الموقع مباشرة في الحقول أعلاه.
             </p>
 
             <!-- ملاحظات إضافية -->
-            <label style="font-size:0.8rem; color:var(--brand-yellow); font-weight: bold; display:block; margin-bottom:2px;">📝 ملاحظات إضافية للكابتن (رقم الزبون، تفاصيل البناء...):</label>
-            <input type="text" id="assignExtraNote" class="form-input" placeholder="مثال: رقم الزبون 0988... / البناء مقابل الصيدلية">
+            <label style="font-size:0.8rem; color:var(--brand-yellow); font-weight: bold; display:block; margin-bottom:2px;">📝 ملاحظات إضافية للكابتن (رقم هاتف الزبون، تعليمات):</label>
+            <input type="text" id="assignExtraNote" class="form-input" placeholder="مثال: رقم الزبون 0988... / البناء جانب الصيدلية">
 
             <div class="price-box">
                 <div style="font-size: 0.85rem; color: #a3a3a3; margin-bottom: 2px;" id="assignCalcStatus">المسافة المقدرة: 4.0 كم</div>
@@ -423,18 +479,16 @@
         </div>
     </div>
 
-    <!-- Datalist لقاعدة بيانات الأماكن السورية للاقتراح التلقائي السريع -->
+    <!-- Datalist عام للرادار -->
     <datalist id="syriaPlacesDatalist"></datalist>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // إعدادات الأدمن
         const ADMIN_USERNAME = "Jonathan";
         const ADMIN_PASSWORD = "Aassi1981";
         
-        // إعدادات Firebase
         const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -461,12 +515,9 @@
         let routePolyline = null;
         let mapClickSelectMode = 'pickup';
 
-        // ==========================================
-        // قاعدة البيانات الجغرافية الشاملة لسوريا (Syria Places DB)
-        // تغطي المحافظات الـ 14 والتصنيفات الـ 45 ذات الأولوية
-        // ==========================================
+        // قاعدة البيانات الجغرافية السورية
         const syriaPlacesDatabase = [
-            // --- 1. المشافي والمراكز الطبية (الأولوية 1) ---
+            // مشافي
             { name: "مشفى المواساة الجامعي", en: "Al Mouwasat Hospital", cat: "Hospitals", gov: "دمشق", lat: 33.5080, lng: 36.2690, priority: 1 },
             { name: "مشفى الأسد الجامعي", en: "Al Assad University Hospital", cat: "Hospitals", gov: "دمشق", lat: 33.5090, lng: 36.2660, priority: 1 },
             { name: "مشفى الأطفال الجامعي", en: "Children Hospital", cat: "Hospitals", gov: "دمشق", lat: 33.5075, lng: 36.2680, priority: 1 },
@@ -475,131 +526,63 @@
             { name: "مشفى ابن النفيس", en: "Ibn Al Nafees Hospital", cat: "Hospitals", gov: "دمشق", lat: 33.5550, lng: 36.3210, priority: 1 },
             { name: "مشفى الهلال الأحمر (شارع بغداد)", en: "Red Crescent Hospital", cat: "Hospitals", gov: "دمشق", lat: 33.5230, lng: 36.3040, priority: 1 },
             { name: "مشفى تشرين العسكري", en: "Tishreen Military Hospital", cat: "Hospitals", gov: "دمشق", lat: 33.5600, lng: 36.3150, priority: 1 },
-            { name: "مشفى الرازي (حلب)", en: "Al Razi Hospital", cat: "Hospitals", gov: "حلب", lat: 36.2110, lng: 37.1420, priority: 1 },
-            { name: "مشفى الجامعة (حلب)", en: "Aleppo University Hospital", cat: "Hospitals", gov: "حلب", lat: 36.2080, lng: 37.1230, priority: 1 },
             { name: "مشفى تشرين الجامعي (اللاذقية)", en: "Tishreen University Hospital", cat: "Hospitals", gov: "اللاذقية", lat: 35.5320, lng: 35.8050, priority: 1 },
             { name: "مشفى الأسد الوطني (اللاذقية)", en: "National Hospital Latakia", cat: "Hospitals", gov: "اللاذقية", lat: 35.5250, lng: 35.7910, priority: 1 },
             { name: "مشفى الباسل (طرطوس)", en: "Al Basel Hospital Tartus", cat: "Hospitals", gov: "طرطوس", lat: 34.8950, lng: 35.8890, priority: 1 },
             { name: "المشفى الوطني (حمص)", en: "Homs National Hospital", cat: "Hospitals", gov: "حمص", lat: 34.7310, lng: 36.7110, priority: 1 },
             { name: "المشفى الوطني (حماة)", en: "Hama National Hospital", cat: "Hospitals", gov: "حماة", lat: 35.1320, lng: 36.7580, priority: 1 },
+            { name: "مشفى الرازي (حلب)", en: "Al Razi Hospital", cat: "Hospitals", gov: "حلب", lat: 36.2110, lng: 37.1420, priority: 1 },
+            { name: "مشفى الجامعة (حلب)", en: "Aleppo University Hospital", cat: "Hospitals", gov: "حلب", lat: 36.2080, lng: 37.1230, priority: 1 },
             { name: "مشفى درعا الوطني", en: "Daraa National Hospital", cat: "Hospitals", gov: "درعا", lat: 32.6280, lng: 36.1040, priority: 1 },
             { name: "مشفى السويداء الوطني", en: "As-Suwayda National Hospital", cat: "Hospitals", gov: "السويداء", lat: 32.7110, lng: 36.5710, priority: 1 },
 
-            // --- 2. المطارات والمنافذ الحدودية (الأولوية 2) ---
+            // مطارات ومنافذ
             { name: "مطار دمشق الدولي", en: "Damascus International Airport", cat: "Airports", gov: "ريف دمشق", lat: 33.4110, lng: 36.5150, priority: 2 },
             { name: "مطار حلب الدولي", en: "Aleppo International Airport", cat: "Airports", gov: "حلب", lat: 36.1800, lng: 37.2240, priority: 2 },
-            { name: "مطار حميميم / باسل الأسد الدولي", en: "Bassel Al-Assad Airport", cat: "Airports", gov: "اللاذقية", lat: 35.4010, lng: 35.9490, priority: 2 },
-            { name: "معبر جديدة يابوس الحدودي", en: "Jdeideh Yabous Border Crossing", cat: "Border Crossings", gov: "ريف دمشق", lat: 33.6520, lng: 35.9750, priority: 2 },
-            { name: "معبر نصيب الحدودي", en: "Nasib Border Crossing", cat: "Border Crossings", gov: "درعا", lat: 32.5210, lng: 36.2020, priority: 2 },
+            { name: "مطار باسل الأسد الدولي (حميميم)", en: "Bassel Al-Assad Airport", cat: "Airports", gov: "اللاذقية", lat: 35.4010, lng: 35.9490, priority: 2 },
+            { name: "معبر جديدة يابوس الحدودي", en: "Jdeideh Yabous Border", cat: "Border Crossings", gov: "ريف دمشق", lat: 33.6520, lng: 35.9750, priority: 2 },
 
-            // --- 3. الكراجات ومحطات النقل والقطارات (الأولوية 3) ---
+            // كراجات ومحطات
             { name: "كراج السيدة زينب (الجنوبي)", en: "Southern Bus Terminal", cat: "Bus Stations", gov: "دمشق", lat: 33.4830, lng: 36.3120, priority: 3 },
             { name: "كراج العباسيين (الشمالي)", en: "Abbassiyin Bus Station", cat: "Bus Stations", gov: "دمشق", lat: 33.5310, lng: 36.3310, priority: 3 },
-            { name: "كراج البولمان (القابون)", en: "Pullman Bus Terminal Qaboun", cat: "Bus Stations", gov: "دمشق", lat: 33.5460, lng: 36.3450, priority: 3 },
+            { name: "كراج البولمان (القابون)", en: "Pullman Bus Terminal", cat: "Bus Stations", gov: "دمشق", lat: 33.5460, lng: 36.3450, priority: 3 },
             { name: "كراج السومرية", en: "Al Somariah Bus Terminal", cat: "Bus Stations", gov: "دمشق", lat: 33.4790, lng: 36.2110, priority: 3 },
             { name: "كراج البرامكة للجامعات", en: "Baramkeh Bus Station", cat: "Bus Stations", gov: "دمشق", lat: 33.5070, lng: 36.2890, priority: 3 },
             { name: "كراج الراموسة (حلب)", en: "Ramouseh Bus Station", cat: "Bus Stations", gov: "حلب", lat: 36.1680, lng: 37.1350, priority: 3 },
             { name: "كراج البولمان (حمص)", en: "Homs Pullman Station", cat: "Bus Stations", gov: "حمص", lat: 34.7410, lng: 36.7230, priority: 3 },
-            { name: "كراج الفاروس (اللاذقية)", en: "Al Farous Bus Station Latakia", cat: "Bus Stations", gov: "اللاذقية", lat: 35.5450, lng: 35.7990, priority: 3 },
+            { name: "كراج الفاروس (اللاذقية)", en: "Al Farous Bus Station", cat: "Bus Stations", gov: "اللاذقية", lat: 35.5450, lng: 35.7990, priority: 3 },
             { name: "كراج البولمان (طرطوس)", en: "Tartus Bus Station", cat: "Bus Stations", gov: "طرطوس", lat: 34.8910, lng: 35.8890, priority: 3 },
-            { name: "محطة قطار الحجاز", en: "Hejaz Railway Station", cat: "Railway Stations", gov: "دمشق", lat: 33.5115, lng: 36.2965, priority: 3 },
-            { name: "محطة قطار القدم", en: "Al Qadam Railway Station", cat: "Railway Stations", gov: "دمشق", lat: 33.4680, lng: 36.2950, priority: 3 },
 
-            // --- 4. الهيئات والوزارات والهجرة والجوازات (الأولوية 4) ---
-            { name: "إدارة الهجرة والجوازات (المرجة)", en: "Immigration and Passports Directorate", cat: "Immigration Offices", gov: "دمشق", lat: 33.5120, lng: 36.2990, priority: 4 },
-            { name: "قصر العدل (دمشق)", en: "Damascus Palace of Justice", cat: "Courts", gov: "دمشق", lat: 33.5090, lng: 36.2980, priority: 4 },
-            { name: "مبنى محافظة دمشق (يوسف العظمة)", en: "Damascus Governorate Building", cat: "Municipalities", gov: "دمشق", lat: 33.5155, lng: 36.2930, priority: 4 },
-            { name: "وزارة الخارجية السورية", en: "Ministry of Foreign Affairs", cat: "Ministries", gov: "دمشق", lat: 33.5070, lng: 36.2750, priority: 4 },
-            { name: "وزارة التعليم العالي", en: "Ministry of Higher Education", cat: "Ministries", gov: "دمشق", lat: 33.5050, lng: 36.2620, priority: 4 },
-            { name: "وزارة الداخلية السورية", en: "Ministry of Interior", cat: "Ministries", gov: "دمشق", lat: 33.4990, lng: 36.2730, priority: 4 },
-            { name: "فرع المرور (دمشق)", en: "Damascus Traffic Department", cat: "Traffic Departments", gov: "دمشق", lat: 33.5040, lng: 36.2940, priority: 4 },
-            { name: "قيادة شرطة دمشق (المرجة)", en: "Damascus Police HQ", cat: "Police Stations", gov: "دمشق", lat: 33.5135, lng: 36.2985, priority: 4 },
-
-            // --- 5 و 6. الجامعات والكليات والمعاهد (الأولوية 5 و 6) ---
+            // جامعات ومعاهد
             { name: "جامعة دمشق (المدينة الجامعية المزة)", en: "Damascus University Campus", cat: "Universities", gov: "دمشق", lat: 33.5040, lng: 36.2630, priority: 6 },
-            { name: "كلية الطب البشري (جامعة دمشق)", en: "Faculty of Medicine Damascus", cat: "Universities", gov: "دمشق", lat: 33.5085, lng: 36.2685, priority: 6 },
-            { name: "كلية الهندسة المدنية والميكانيكية (البرامكة)", en: "Faculty of Engineering", cat: "Universities", gov: "دمشق", lat: 33.5095, lng: 36.2870, priority: 6 },
-            { name: "كلية الحقوق والشريعة (البرامكة)", en: "Faculty of Law", cat: "Universities", gov: "دمشق", lat: 33.5080, lng: 36.2890, priority: 6 },
-            { name: "جامعة حلب", en: "University of Aleppo", cat: "Universities", gov: "حلب", lat: 36.2090, lng: 37.1210, priority: 6 },
             { name: "جامعة تشرين (اللاذقية)", en: "Tishreen University", cat: "Universities", gov: "اللاذقية", lat: 35.5340, lng: 35.8080, priority: 6 },
             { name: "جامعة البعث (حمص)", en: "Al-Baath University", cat: "Universities", gov: "حمص", lat: 34.7140, lng: 36.7050, priority: 6 },
+            { name: "جامعة حلب", en: "University of Aleppo", cat: "Universities", gov: "حلب", lat: 36.2090, lng: 37.1210, priority: 6 },
             { name: "جامعة طرطوس", en: "Tartus University", cat: "Universities", gov: "طرطوس", lat: 34.8960, lng: 35.8850, priority: 6 },
             { name: "جامعة حماة", en: "Hama University", cat: "Universities", gov: "حماة", lat: 35.1380, lng: 36.7510, priority: 6 },
-            { name: "المعهد العالي للعلوم التطبيقية والتكنولوجيا (HIAST)", en: "HIAST Damascus", cat: "Institutes", gov: "دمشق", lat: 33.5680, lng: 36.3350, priority: 5 },
 
-            // --- 7 و 8. الطرق السريعة والجسور والأنفاق وبوابات دمشق (الأولوية 7 و 8) ---
+            // بوابات وجسور وطرق
             { name: "باب توما", en: "Bab Touma", cat: "Historical Gates", gov: "دمشق", lat: 33.5145, lng: 36.3160, priority: 8 },
             { name: "باب شرقي", en: "Bab Sharqi", cat: "Historical Gates", gov: "دمشق", lat: 33.5098, lng: 36.3205, priority: 8 },
             { name: "باب الجابية", en: "Bab Al-Jabiya", cat: "Historical Gates", gov: "دمشق", lat: 33.5085, lng: 36.3015, priority: 8 },
             { name: "باب كيسان", en: "Bab Kisan", cat: "Historical Gates", gov: "دمشق", lat: 33.5050, lng: 36.3190, priority: 8 },
-            { name: "باب الصغير", en: "Bab Al-Saghir", cat: "Historical Gates", gov: "دمشق", lat: 33.5065, lng: 36.3050, priority: 8 },
-            { name: "باب السلام", en: "Bab Al-Salam", cat: "Historical Gates", gov: "دمشق", lat: 33.5152, lng: 36.3125, priority: 8 },
             { name: "جسر السيد الرئيس", en: "President Bridge", cat: "Bridges", gov: "دمشق", lat: 33.5140, lng: 36.2910, priority: 8 },
             { name: "جسر الفكتوريا", en: "Victoria Bridge", cat: "Bridges", gov: "دمشق", lat: 33.5125, lng: 36.2950, priority: 8 },
             { name: "جسر الثورة", en: "Al-Thawra Bridge", cat: "Bridges", gov: "دمشق", lat: 33.5180, lng: 36.2995, priority: 8 },
-            { name: "جسر المزة", en: "Mazzeh Bridge", cat: "Bridges", gov: "دمشق", lat: 33.5060, lng: 36.2650, priority: 8 },
-            { name: "نفق الأمويين", en: "Umayyad Tunnel", cat: "Tunnels", gov: "دمشق", lat: 33.5145, lng: 36.2760, priority: 8 },
-            { name: "نفق كفرسوسة", en: "Kafr Sousa Tunnel", cat: "Tunnels", gov: "دمشق", lat: 33.4980, lng: 36.2750, priority: 8 },
             { name: "أوتوستراد المزة", en: "Mazzeh Highway", cat: "Streets & Roads", gov: "دمشق", lat: 33.5015, lng: 36.2486, priority: 7 },
             { name: "أوتوستراد العدوي", en: "Al-Adawi Highway", cat: "Streets & Roads", gov: "دمشق", lat: 33.5350, lng: 36.3150, priority: 7 },
-            { name: "أوتوستراد الفيحاء", en: "Al-Fayhaa Highway", cat: "Streets & Roads", gov: "دمشق", lat: 33.5360, lng: 36.3050, priority: 7 },
-            { name: "أوتوستراد دمشق بيروت الدولي", en: "Damascus Beirut Highway", cat: "Streets & Roads", gov: "ريف دمشق", lat: 33.5650, lng: 36.1500, priority: 7 },
-            { name: "أوتوستراد دمشق حمص الدولي (M5)", en: "M5 International Highway", cat: "Streets & Roads", gov: "ريف دمشق", lat: 33.6200, lng: 36.4200, priority: 7 },
 
-            // --- 9. الأسواق والمراكز التجارية والمولات (الأولوية 9) ---
+            // مولات وأسواق
             { name: "شام سيتي سنتر (المزة)", en: "Cham City Center", cat: "Shopping Centers", gov: "دمشق", lat: 33.5035, lng: 36.2480, priority: 9 },
             { name: "ماسة بلازا (المالكي)", en: "Massa Plaza", cat: "Shopping Centers", gov: "دمشق", lat: 33.5220, lng: 36.2750, priority: 9 },
             { name: "قاسيون مول (مساكن برزة)", en: "Qasioun Mall", cat: "Shopping Centers", gov: "دمشق", lat: 33.5590, lng: 36.3210, priority: 9 },
             { name: "داماسكوس مول (كفرسوسة)", en: "Damascus Mall", cat: "Shopping Centers", gov: "دمشق", lat: 33.4920, lng: 36.2720, priority: 9 },
             { name: "سيتي سنتر دمر", en: "Dumar City Center", cat: "Shopping Centers", gov: "دمشق", lat: 33.5360, lng: 36.2300, priority: 9 },
-            { name: "تاون سنتر (أوتوستراد درعا)", en: "Town Center", cat: "Shopping Centers", gov: "ريف دمشق", lat: 33.4200, lng: 36.2600, priority: 9 },
             { name: "سوق الحميدية", en: "Al-Hamidiyah Souq", cat: "Markets", gov: "دمشق", lat: 33.5110, lng: 36.3000, priority: 9 },
-            { name: "سوق الحريقة", en: "Al-Hariqa Market", cat: "Markets", gov: "دمشق", lat: 33.5095, lng: 36.3030, priority: 9 },
-            { name: "سوق مدحت باشا", en: "Midhat Pasha Souq", cat: "Markets", gov: "دمشق", lat: 33.5075, lng: 36.3060, priority: 9 },
-            { name: "سوق البزورية", en: "Al-Buzuriyah Souq", cat: "Markets", gov: "دمشق", lat: 33.5090, lng: 36.3050, priority: 9 },
             { name: "سوق الصالحية", en: "Al-Salihiyah Market", cat: "Markets", gov: "دمشق", lat: 33.5210, lng: 36.2930, priority: 9 },
             { name: "سوق الشعلان", en: "Al-Shaalan Market", cat: "Markets", gov: "دمشق", lat: 33.5180, lng: 36.2900, priority: 9 },
-            { name: "سوق الحمراء", en: "Al-Hamra Street Market", cat: "Markets", gov: "دمشق", lat: 33.5200, lng: 36.2880, priority: 9 },
-            { name: "سوق العطارين (حلب)", en: "Al-Attarin Souq Aleppo", cat: "Markets", gov: "حلب", lat: 36.1980, lng: 37.1550, priority: 9 },
-            { name: "سوق هنانو (اللاذقية)", en: "Hanano Street Market", cat: "Markets", gov: "اللاذقية", lat: 35.5220, lng: 35.7860, priority: 9 },
 
-            // --- 10. الفنادق ومرافق الإقامة (الأولوية 10) ---
-            { name: "فندق فور سيزونز دمشق", en: "Four Seasons Hotel Damascus", cat: "Hotels", gov: "دمشق", lat: 33.5150, lng: 36.2880, priority: 10 },
-            { name: "فندق داما روز (الميريديان سابقاً)", en: "Dama Rose Hotel", cat: "Hotels", gov: "دمشق", lat: 33.5155, lng: 36.2840, priority: 10 },
-            { name: "فندق الشام (شارع ميسلون)", en: "Cham Palace Hotel", cat: "Hotels", gov: "دمشق", lat: 33.5165, lng: 36.2915, priority: 10 },
-            { name: "فندق إيبلا الشام (طريق المطار)", en: "Ebla Cham Palace", cat: "Hotels", gov: "ريف دمشق", lat: 33.4450, lng: 36.4150, priority: 10 },
-            { name: "فندق كولدن مزة", en: "Golden Mazzeh Hotel", cat: "Hotels", gov: "دمشق", lat: 33.5010, lng: 36.2490, priority: 10 },
-            { name: "فندق شهباء حلب", en: "Shahba Aleppo Hotel", cat: "Hotels", gov: "حلب", lat: 36.2250, lng: 37.1280, priority: 10 },
-            { name: "منتجع لاميرا (المريديان سابقاً - اللاذقية)", en: "Lamera Resort Latakia", cat: "Hotels", gov: "اللاذقية", lat: 35.5650, lng: 35.7480, priority: 10 },
-            { name: "فندق جونادا (طرطوس)", en: "Junada Hotel Tartus", cat: "Hotels", gov: "طرطوس", lat: 34.8820, lng: 35.8750, priority: 10 },
-
-            // --- 11. المعالم التاريخية، الدينية، السياحية والحدائق (الأولوية 11) ---
-            { name: "الجامع الأموي الكبير", en: "Umayyad Mosque", cat: "Religious Sites", gov: "دمشق", lat: 33.5118, lng: 36.3065, priority: 11 },
-            { name: "قلعة دمشق", en: "Citadel of Damascus", cat: "Historical Sites", gov: "دمشق", lat: 33.5130, lng: 36.3015, priority: 11 },
-            { name: "قلعة حلب", en: "Citadel of Aleppo", cat: "Historical Sites", gov: "حلب", lat: 36.1992, lng: 37.1628, priority: 11 },
-            { name: "قلعة صلاح الدين الأيوبي", en: "Saladin Castle", cat: "Historical Sites", gov: "اللاذقية", lat: 35.5960, lng: 36.0580, priority: 11 },
-            { name: "قلعة الحصن", en: "Krak des Chevaliers", cat: "Historical Sites", gov: "حمص", lat: 34.7565, lng: 36.2940, priority: 11 },
-            { name: "نواعير حماة", en: "Norias of Hama", cat: "Tourist Attractions", gov: "حماة", lat: 35.1340, lng: 36.7520, priority: 11 },
-            { name: "مقام السيدة زينب", en: "Sayyidah Zaynab Shrine", cat: "Religious Sites", gov: "ريف دمشق", lat: 33.4440, lng: 36.3410, priority: 11 },
-            { name: "دير سيدة صيدنايا", en: "Sednaya Monastery", cat: "Religious Sites", gov: "ريف دمشق", lat: 33.6930, lng: 36.3740, priority: 11 },
-            { name: "دير مار تقلا (معلولا)", en: "Mar Taqla Maaloula", cat: "Religious Sites", gov: "ريف دمشق", lat: 33.8450, lng: 36.5450, priority: 11 },
-            { name: "حديقة تشرين (دمشق)", en: "Tishreen Park", cat: "Parks", gov: "دمشق", lat: 33.5180, lng: 36.2720, priority: 11 },
-            { name: "حديقة التجارة", en: "Al-Tijara Park", cat: "Parks", gov: "دمشق", lat: 33.5310, lng: 36.3150, priority: 11 },
-            { name: "ساحة الأمويين ونصب السيف الدمشقي", en: "Umayyad Square & Damascene Sword", cat: "Important Public Places", gov: "دمشق", lat: 33.5145, lng: 36.2765, priority: 11 },
-            { name: "ساحة العباسيين", en: "Abbassiyin Square", cat: "Important Public Places", gov: "دمشق", lat: 33.5285, lng: 36.3240, priority: 11 },
-            { name: "ساحة السبع بحرات", en: "Sabaa Bahrat Square", cat: "Important Public Places", gov: "دمشق", lat: 33.5195, lng: 36.3005, priority: 11 },
-
-            // --- 12. أحياء ومناطق مراكز المدن والبلدات في المحافظات الـ 14 ---
-            // دمشق
-            { name: "حي المزة", en: "Mazzeh District", cat: "Cities & Towns", gov: "دمشق", lat: 33.5015, lng: 36.2486, priority: 12 },
-            { name: "حي كفرسوسة", en: "Kafr Sousa", cat: "Cities & Towns", gov: "دمشق", lat: 33.4912, lng: 36.2736, priority: 12 },
-            { name: "حي الميدان", en: "Al-Midan", cat: "Cities & Towns", gov: "دمشق", lat: 33.4900, lng: 36.3000, priority: 12 },
-            { name: "حي أبو رمانة", en: "Abu Roumaneh", cat: "Cities & Towns", gov: "دمشق", lat: 33.5195, lng: 36.2800, priority: 12 },
-            { name: "حي المالكي", en: "Al-Malki", cat: "Cities & Towns", gov: "دمشق", lat: 33.5240, lng: 36.2780, priority: 12 },
-            { name: "حي ركن الدين", en: "Rukn al-Din", cat: "Cities & Towns", gov: "دمشق", lat: 33.5350, lng: 36.2950, priority: 12 },
-            { name: "مشروع دمر", en: "Dumar Project", cat: "Cities & Towns", gov: "دمشق", lat: 33.5360, lng: 36.2300, priority: 12 },
-            { name: "حي برزة", en: "Barzeh", cat: "Cities & Towns", gov: "دمشق", lat: 33.5600, lng: 36.3200, priority: 12 },
-            // ريف دمشق
+            // مدن وبلدات ريف دمشق
             { name: "مدينة جرمانا", en: "Jaramana", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.4833, lng: 36.3500, priority: 12 },
             { name: "مدينة قدسيا", en: "Qudsaya", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.5650, lng: 36.2100, priority: 12 },
             { name: "مدينة صحنايا", en: "Sahnaya", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.4350, lng: 36.2400, priority: 12 },
@@ -609,42 +592,33 @@
             { name: "مدينة جديدة عرطوز", en: "Jdeidat Artouz", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.4380, lng: 36.1750, priority: 12 },
             { name: "مدينة التل", en: "Al-Tall", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.6000, lng: 36.3100, priority: 12 },
             { name: "مدينة دوما", en: "Douma", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.5700, lng: 36.4000, priority: 12 },
-            { name: "مدينة النبك", en: "Al-Nabek", cat: "Cities & Towns", gov: "ريف دمشق", lat: 34.0250, lng: 36.7280, priority: 12 },
-            { name: "مدينة يبرود", en: "Yabroud", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.9670, lng: 36.6580, priority: 12 },
             { name: "منطقة يعفور", en: "Yafour", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.5500, lng: 36.0650, priority: 12 },
             { name: "منطقة الصبورة", en: "Al-Sabboura", cat: "Cities & Towns", gov: "ريف دمشق", lat: 33.5450, lng: 36.1000, priority: 12 },
+            { name: "مقام السيدة زينب", en: "Sayyidah Zaynab Shrine", cat: "Religious Sites", gov: "ريف دمشق", lat: 33.4440, lng: 36.3410, priority: 11 },
+
             // باقي المحافظات
             { name: "مدينة اللاذقية (المركز)", en: "Latakia City Center", cat: "Cities & Towns", gov: "اللاذقية", lat: 35.5317, lng: 35.7900, priority: 12 },
             { name: "حي الصليبة (اللاذقية)", en: "Sleibeh Latakia", cat: "Cities & Towns", gov: "اللاذقية", lat: 35.5210, lng: 35.7820, priority: 12 },
             { name: "مشروع السابع (اللاذقية)", en: "7th Project Latakia", cat: "Cities & Towns", gov: "اللاذقية", lat: 35.5420, lng: 35.7950, priority: 12 },
-            { name: "حي الزراعة (اللاذقية)", en: "Al-Ziraa Latakia", cat: "Cities & Towns", gov: "اللاذقية", lat: 35.5350, lng: 35.8020, priority: 12 },
-            { name: "مدينة جبلة", en: "Jableh", cat: "Cities & Towns", gov: "اللاذقية", lat: 35.3610, lng: 35.9260, priority: 12 },
             { name: "مدينة طرطوس (المركز)", en: "Tartus City Center", cat: "Cities & Towns", gov: "طرطوس", lat: 34.8890, lng: 35.8866, priority: 12 },
-            { name: "مدينة بانياس", en: "Baniyas", cat: "Cities & Towns", gov: "طرطوس", lat: 35.1820, lng: 35.9400, priority: 12 },
-            { name: "مدينة صافيتا", en: "Safita", cat: "Cities & Towns", gov: "طرطوس", lat: 34.8210, lng: 36.1180, priority: 12 },
             { name: "مدينة حمص (المركز)", en: "Homs City Center", cat: "Cities & Towns", gov: "حمص", lat: 34.7324, lng: 36.7137, priority: 12 },
-            { name: "حي الإنشاءات (حمص)", en: "Inshaat Homs", cat: "Cities & Towns", gov: "حمص", lat: 34.7210, lng: 36.6950, priority: 12 },
             { name: "مدينة حماة (المركز)", en: "Hama City Center", cat: "Cities & Towns", gov: "حماة", lat: 35.1318, lng: 36.7578, priority: 12 },
-            { name: "مدينة مصياف", en: "Masyaf", cat: "Cities & Towns", gov: "حماة", lat: 35.0650, lng: 36.3420, priority: 12 },
             { name: "مدينة حلب (المركز)", en: "Aleppo City Center", cat: "Cities & Towns", gov: "حلب", lat: 36.2021, lng: 37.1343, priority: 12 },
-            { name: "حي الفرقان (حلب)", en: "Al-Furqan Aleppo", cat: "Cities & Towns", gov: "حلب", lat: 36.2150, lng: 37.1180, priority: 12 },
-            { name: "حي الشهباء (حلب)", en: "Al-Shahbaa Aleppo", cat: "Cities & Towns", gov: "حلب", lat: 36.2280, lng: 37.1290, priority: 12 },
-            { name: "مدينة إدلب (المركز)", en: "Idlib City Center", cat: "Cities & Towns", gov: "إدلب", lat: 35.9306, lng: 36.6339, priority: 12 },
             { name: "مدينة درعا (المركز)", en: "Daraa City Center", cat: "Cities & Towns", gov: "درعا", lat: 32.6255, lng: 36.1055, priority: 12 },
             { name: "مدينة السويداء (المركز)", en: "As-Suwayda City Center", cat: "Cities & Towns", gov: "السويداء", lat: 32.7090, lng: 36.5695, priority: 12 },
             { name: "مدينة القنيطرة (المركز)", en: "Quneitra", cat: "Cities & Towns", gov: "القنيطرة", lat: 33.1250, lng: 35.8200, priority: 12 },
+            { name: "مدينة إدلب (المركز)", en: "Idlib City Center", cat: "Cities & Towns", gov: "إدلب", lat: 35.9306, lng: 36.6339, priority: 12 },
             { name: "مدينة الرقة (المركز)", en: "Raqqa City Center", cat: "Cities & Towns", gov: "الرقة", lat: 35.9500, lng: 39.0100, priority: 12 },
-            { name: "مدينة دير الزور (المركز)", en: "Deir ez-Zor City Center", cat: "Cities & Towns", gov: "دير الزور", lat: 35.3350, lng: 40.1450, priority: 12 },
-            { name: "مدينة الحسكة (المركز)", en: "Al-Hasakah City Center", cat: "Cities & Towns", gov: "الحسكة", lat: 36.5000, lng: 40.7500, priority: 12 },
+            { name: "مدينة دير الزور (المركز)", en: "Deir ez-Zor", cat: "Cities & Towns", gov: "دير الزور", lat: 35.3350, lng: 40.1450, priority: 12 },
+            { name: "مدينة الحسكة (المركز)", en: "Al-Hasakah", cat: "Cities & Towns", gov: "الحسكة", lat: 36.5000, lng: 40.7500, priority: 12 },
             { name: "مدينة القامشلي", en: "Qamishli", cat: "Cities & Towns", gov: "الحسكة", lat: 37.0500, lng: 41.2200, priority: 12 }
         ];
 
-        // قائمة الكلمات الدالة على ريف دمشق للتحقق من شرط ضرب 1.5
         const rifDimashqKeywords = [
             'ريف دمشق', 'جرمانا', 'قدسيا', 'صحنايا', 'داريا', 'معضمية', 
             'التل', 'الكسوة', 'دوما', 'حرستا', 'الصبورة', 'يعفور', 
             'اشرفية صحنايا', 'عين ترما', 'كفر بطنا', 'سقبا', 'عربين', 'جديدة عرطوز',
-            'قطنا', 'معربا', 'المليحة', 'السيدة زينب', 'الهامة', 'ضاحية قدسيا', 'صيدنايا', 'معلولا'
+            'قطنا', 'معربا', 'المليحة', 'السيدة زينب', 'الهامة', 'ضاحية قدسيا'
         ];
 
         const damascusCityKeywords = [
@@ -653,13 +627,11 @@
             'كفرسوسة', 'ركن الدين', 'العباسيين', 'ابو رمانة', 'القصور', 
             'شارع الحمراء', 'الحجاز', 'المهاجرين', 'الشهبندر', 'شارع الثورة', 
             'الزاهرة', 'العدوي', 'التضامن', 'القابون', 'ميسلون', 'سوق مدحت باشا',
-            'باب توما', 'باب شرقي', 'باب الجابية', 'باب كيسان', 'باب الصغير',
-            'جسر السيد الرئيس', 'جسر الفكتوريا', 'جسر الثورة', 'ساحة الأمويين',
-            'شام سيتي سنتر', 'ماسة بلازا', 'قاسيون مول', 'داماسكوس مول'
+            'باب توما', 'باب شرقي', 'باب الجابية', 'باب كيسان', 'باب الصغير'
         ];
 
-        // تهيئة قائمة الاقتراحات في واجهة المستخدم
-        function populatePlacesDatalist() {
+        // تعبئة الـ Datalist العام والرئيسي
+        function populateGeneralDatalist() {
             const dl = document.getElementById('syriaPlacesDatalist');
             dl.innerHTML = '';
             syriaPlacesDatabase.forEach(p => {
@@ -670,32 +642,101 @@
             });
         }
 
-        // توحيد النصوص العربية لتسهيل البحث المرن والتعامل مع الأخطاء الإملائية
+        // تحديث قائمة الأماكن وفق المحافظة المختارة
+        function updateFilteredDatalist(type) {
+            const gov = document.getElementById(type === 'pickup' ? 'assignPickupGov' : 'assignDropoffGov').value;
+            const datalistId = type === 'pickup' ? 'pickupPlacesDatalist' : 'dropoffPlacesDatalist';
+            const dl = document.getElementById(datalistId);
+            dl.innerHTML = '';
+
+            const filtered = syriaPlacesDatabase.filter(p => gov === 'الكل' || p.gov === gov);
+            // ترتيب حسب الأولوية
+            filtered.sort((a, b) => a.priority - b.priority);
+
+            filtered.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.name;
+                opt.label = `${p.cat} (${p.gov})`;
+                dl.appendChild(opt);
+            });
+        }
+
+        function onGovChange(type) {
+            updateFilteredDatalist(type);
+            const inputEl = document.getElementById(type === 'pickup' ? 'assignPickup' : 'assignDropoff');
+            inputEl.value = '';
+            inputEl.focus();
+        }
+
+        // فحص واستخراج الإحداثيات من الروابط الملصقة
+        function extractCoordsFromText(text) {
+            if (!text) return null;
+            text = text.trim();
+
+            // 1. فحص هل هو إحداثي مباشر "lat,lng"
+            const directCoordMatch = text.match(/^(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)$/);
+            if (directCoordMatch) {
+                return [parseFloat(directCoordMatch[1]), parseFloat(directCoordMatch[3])];
+            }
+
+            // 2. روابط Google Maps (?q=lat,lng أو @lat,lng)
+            const gmapsQMatch = text.match(/[?&]q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)/);
+            if (gmapsQMatch) {
+                return [parseFloat(gmapsQMatch[1]), parseFloat(gmapsQMatch[3])];
+            }
+            const gmapsAtMatch = text.match(/@(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)/);
+            if (gmapsAtMatch) {
+                return [parseFloat(gmapsAtMatch[1]), parseFloat(gmapsAtMatch[3])];
+            }
+
+            // 3. روابط OpenStreetMap
+            const osmMatch = text.match(/#map=\d+\/(-?\d+(\.\d+)?)\/(-?\d+(\.\d+)?)/);
+            if (osmMatch) {
+                return [parseFloat(osmMatch[1]), parseFloat(osmMatch[3])];
+            }
+
+            return null;
+        }
+
+        // التعامل الفوري مع لصق الرابط في الحقل
+        async function handleLocationInputPaste(type) {
+            const inputEl = document.getElementById(type === 'pickup' ? 'assignPickup' : 'assignDropoff');
+            const val = inputEl.value.trim();
+            const coords = extractCoordsFromText(val);
+
+            if (coords) {
+                inputEl.value = `موقع عبر الرابط (${coords[0].toFixed(4)}, ${coords[1].toFixed(4)})`;
+                if (type === 'pickup') {
+                    await updatePickupPoint(coords, false);
+                } else {
+                    await updateDropoffPoint(coords, false);
+                }
+            }
+        }
+
         function normalizeSearchText(text) {
             if (!text) return '';
             let t = text.trim().toLowerCase();
             t = t.replace(/[إأآا]/g, 'ا');
             t = t.replace(/ة/g, 'ه');
             t = t.replace(/[يى]/g, 'ي');
-            t = t.replace(/[\u064B-\u065F]/g, ''); // تشكيل
-            t = t.replace(/\bال(\w+)/g, '$1'); // إزالة الـ التعريف في المطابقة
+            t = t.replace(/[\u064B-\u065F]/g, '');
+            t = t.replace(/\bال(\w+)/g, '$1');
             return t;
         }
 
-        // محرك البحث الذكي المرتب حسب الأولوية والقرب
-        function searchInPlacesDatabase(query) {
+        function searchInPlacesDatabase(query, targetGov = 'الكل') {
             const cleanQuery = normalizeSearchText(query);
             if (!cleanQuery) return null;
 
-            // 1. مطابقة مباشرة
             let matched = syriaPlacesDatabase.filter(p => {
+                if (targetGov !== 'الكل' && p.gov !== targetGov) return false;
                 const arNorm = normalizeSearchText(p.name);
                 const enNorm = (p.en || '').toLowerCase();
                 return arNorm.includes(cleanQuery) || cleanQuery.includes(arNorm) || enNorm.includes(cleanQuery);
             });
 
             if (matched.length > 0) {
-                // الترتيب حسب الأولوية (الأولى تظهر أولاً: المشافي ثم المطارات...)
                 matched.sort((a, b) => a.priority - b.priority);
                 return [matched[0].lat, matched[0].lng, matched[0].name];
             }
@@ -718,7 +759,6 @@
             return isMobile ? `https://wa.me/${clean}?text=${encoded}` : `https://web.whatsapp.com/send?phone=${clean}&text=${encoded}`;
         }
 
-        // المصادقة
         function handleAdminLogin(e) {
             e.preventDefault();
             const inputUser = document.getElementById('adminUserInput').value.trim();
@@ -728,7 +768,7 @@
                 sessionStorage.setItem('admin_auth', 'true');
                 document.getElementById('adminAuthBox').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
-                populatePlacesDatalist();
+                populateGeneralDatalist();
                 initRadarMap();
             } else {
                 alert("❌ اسم المستخدم أو كلمة المرور غير صحيحة!");
@@ -740,9 +780,8 @@
             location.reload();
         }
 
-        // الفحص التلقائي للجلسة
         window.addEventListener('DOMContentLoaded', () => {
-            populatePlacesDatalist();
+            populateGeneralDatalist();
             if (sessionStorage.getItem('admin_auth') === 'true') {
                 document.getElementById('adminAuthBox').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
@@ -750,7 +789,6 @@
             }
         });
 
-        // الاستماع الحي لقاعدة بيانات السائقين
         driversRef.on('value', (snapshot) => {
             const data = snapshot.val();
             driversList = [];
@@ -774,7 +812,6 @@
             updateMapMarkers();
         }
 
-        // البحث على الخريطة
         async function searchLocationAndDrivers() {
             const query = document.getElementById('areaSearchInput').value.trim();
             if (!query) {
@@ -782,14 +819,12 @@
                 return;
             }
 
-            // 1. البحث في قاعدة بيانات الأماكن السورية
             const localResult = searchInPlacesDatabase(query);
             if (localResult) {
                 radarMap.flyTo([localResult[0], localResult[1]], 16, { duration: 1.5 });
                 return;
             }
 
-            // 2. البحث عبر مزود الخرائط العام في حال عدم العثور محلياً
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=sy&q=${encodeURIComponent(query)}`);
                 const data = await res.json();
@@ -812,7 +847,6 @@
             radarMap.flyTo([33.5138, 36.2765], 13);
         }
 
-        // تحديث إشارات السائقين على الرادار
         function updateMapMarkers() {
             if(!radarMap) return;
             for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
@@ -904,7 +938,7 @@
             });
         }
 
-        // معادلة التسعير
+        // حساب الأجرة: فتحة 5000 + 5000 لكل كم، أدنى طلب 20000، تقريب لـ 5000، ضرب 1.5 للريف
         function calculatePrice(km, isCrossRegion) {
             const baseFare = 5000;
             const perKm = 5000;
@@ -932,8 +966,13 @@
             return (isPickupCity && isDropoffRif) || (isPickupRif && isDropoffCity);
         }
 
-        async function resolveCoordinates(placeName) {
-            const local = searchInPlacesDatabase(placeName);
+        async function resolveCoordinates(placeName, targetGov = 'الكل') {
+            // فحص هل هو رابط مباشر أولاً
+            const direct = extractCoordsFromText(placeName);
+            if (direct) return direct;
+
+            // البحث في قاعدة البيانات المحلية بالمحافظة
+            const local = searchInPlacesDatabase(placeName, targetGov);
             if (local) return [local[0], local[1]];
 
             try {
@@ -960,10 +999,9 @@
                     if (data.display_name) return data.display_name.split(',').slice(0, 3).join('، ');
                 }
             } catch (e) {}
-            return `موقع محدد (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+            return `موقع (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
         }
 
-        // إدارة خريطة التكليف
         function initAssignMap() {
             if (assignMap) {
                 assignMap.invalidateSize();
@@ -1058,13 +1096,15 @@
 
         async function handleLocationInputChange(type) {
             const inputVal = document.getElementById(type === 'pickup' ? 'assignPickup' : 'assignDropoff').value.trim();
+            const govVal = document.getElementById(type === 'pickup' ? 'assignPickupGov' : 'assignDropoffGov').value;
             if (!inputVal) return;
-            const coords = await resolveCoordinates(inputVal);
+
+            const coords = await resolveCoordinates(inputVal, govVal);
             if (coords) {
                 if (type === 'pickup') {
-                    updatePickupPoint(coords, false);
+                    await updatePickupPoint(coords, false);
                 } else {
-                    updateDropoffPoint(coords, false);
+                    await updateDropoffPoint(coords, false);
                 }
             }
         }
@@ -1078,7 +1118,7 @@
             const dropoffName = document.getElementById('assignDropoff').value;
 
             isCrossRegionTrip = checkCrossRegionTrip(pickupName, dropoffName);
-            document.getElementById('assignCalcStatus').innerText = "جاري حساب المسار التقديري...";
+            document.getElementById('assignCalcStatus').innerText = "جاري رسم المسار وحساب الكلفة بدقة...";
 
             let routeGeometry = [[p1.lat, p1.lng], [p2.lat, p2.lng]];
 
@@ -1122,6 +1162,13 @@
             activeAssignDriver = driver;
 
             document.getElementById('assignDriverInfo').innerText = `إرسال طلب مباشر إلى الكابتن: ${driver.name} (${driver.car})`;
+            
+            // تهيئة القوائم المنسدلة وفق المحافظة
+            document.getElementById('assignPickupGov').value = 'دمشق';
+            document.getElementById('assignDropoffGov').value = 'دمشق';
+            updateFilteredDatalist('pickup');
+            updateFilteredDatalist('dropoff');
+
             document.getElementById('assignPickup').value = '';
             document.getElementById('assignDropoff').value = '';
             document.getElementById('assignExtraNote').value = '';
@@ -1175,7 +1222,7 @@
             let dropoffMapLink = "";
 
             if (currentPickupCoords) {
-                pickupMapLink = `\n🔗 *رابط موقع الركوب على الخريطة:*\nhttps://maps.google.com/?q=${currentPickupCoords[0].toFixed(5)},${currentPickupCoords[1].toFixed(5)}`;
+                pickupMapLink = `\n🔗 *رابط موقع الركوب للزبون على الخريطة:*\nhttps://maps.google.com/?q=${currentPickupCoords[0].toFixed(5)},${currentPickupCoords[1].toFixed(5)}`;
             }
             if (currentDropoffCoords) {
                 dropoffMapLink = `\n🔗 *رابط موقع النزول على الخريطة:*\nhttps://maps.google.com/?q=${currentDropoffCoords[0].toFixed(5)},${currentDropoffCoords[1].toFixed(5)}`;
@@ -1198,14 +1245,14 @@ ${dropoff}${dropoffMapLink}
 📏 *المسافة التقديرية:* ${currentCalculatedKm} كم
 💰 *الأجرة المقدرة للرحلة:* ${price.toLocaleString()} ليرة سورية (${shortPrice})${regionNote}${customNoteSection}
 
-يرجى التوجه فوراً أو فتح الروابط أعلاه لبدء التوجيه الملاحي.`;
+يرجى التوجه فوراً أو فتح الروابط أعلاه لبدء التوجيه الملاحي المباشر.`;
 
             const waUrl = getWhatsAppUrl(activeAssignDriver.phone, taskMsg);
             window.open(waUrl, '_blank');
             closeAssignModal();
         }
 
-        // إضافة سائق جديد
+        // تسجيل سائق جديد
         function addNewDriver(e) {
             e.preventDefault();
             const name = document.getElementById('newDName').value.trim();
