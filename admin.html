@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Leaflet Harita -->
+    <!-- Leaflet Harita CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <!-- Firebase SDK (v8) -->
@@ -25,6 +25,7 @@
             --brand-card: #1f1f22;
             --accent-red: #ef4444;
             --accent-green: #22c55e;
+            --accent-orange: #f97316;
             --accent-blue: #3b82f6;
             --text-main: #ffffff;
             --text-muted: #a3a3a3;
@@ -39,6 +40,7 @@
         .stat-icon { width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
         .stat-icon.gold { background: rgba(252, 186, 3, 0.15); color: var(--brand-yellow); }
         .stat-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+        .stat-icon.orange { background: rgba(249, 115, 22, 0.15); color: var(--accent-orange); }
         .stat-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
 
         .panel-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.5rem; }
@@ -167,8 +169,9 @@
 
         .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
         .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-busy-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
+        .badge-resting { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
         .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
-        .badge-busy { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
         .badge-city { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
 
         .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
@@ -241,7 +244,6 @@
             outline: none;
         }
 
-        /* حاوية البحث المخصصة وقائمة الاقتراحات التلقائية */
         .autocomplete-wrapper {
             position: relative;
             width: 100%;
@@ -307,7 +309,7 @@
 </head>
 <body>
 
-    <!-- 1. شاشة تسجيل الدخول الإداري -->
+    <!-- 1. شاشة الدخول الإداري -->
     <div id="adminAuthBox" class="auth-overlay">
         <div class="auth-box">
             <h2 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</h2>
@@ -327,7 +329,7 @@
         </div>
     </div>
 
-    <!-- 2. واجهة التحكم الإدارية الرئيسية -->
+    <!-- 2. لوحة التحكم الرئيسية -->
     <div class="admin-wrap" id="adminContent" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:10px;">
             <h1 style="color:var(--brand-yellow); font-size:1.4rem;"><i class="fa-solid fa-gauge-high"></i> إدارة تكسي البلد (الرادار وقاعدة الأماكن السورية)</h1>
@@ -336,7 +338,7 @@
             </div>
         </div>
 
-        <!-- إحصائيات سريعة -->
+        <!-- بطاقات الإحصائيات السريعة -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon gold"><i class="fa-solid fa-users"></i></div>
@@ -344,7 +346,11 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
-                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">متاح للعمل الآن</h4><p id="adminStatActive" style="font-size:1.2rem; font-weight:800;">0</p></div>
+                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">متاح وفارغ (أخضر)</h4><p id="adminStatActive" style="font-size:1.2rem; font-weight:800;">0</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fa-solid fa-user-tag"></i></div>
+                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">معه راكب (برتقالي)</h4><p id="adminStatBusy" style="font-size:1.2rem; font-weight:800;">0</p></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon red"><i class="fa-solid fa-calendar-xmark"></i></div>
@@ -352,7 +358,7 @@
             </div>
         </div>
 
-        <!-- الرادار الحي والبحث الجغرافي الذكي -->
+        <!-- الرادار المباشر والبحث الجغرافي -->
         <div class="panel-card">
             <div class="panel-header-flex">
                 <h3 style="font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي والبحث الجغرافي السوري</h3>
@@ -394,9 +400,9 @@
             </form>
         </div>
 
-        <!-- قائمة السائقين -->
+        <!-- جدول قائمة السائقين -->
         <div class="panel-card">
-            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-list"></i> قائمة السائقين والتكليف المباشر</h3>
+            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-list"></i> قائمة السائقين وحالة الركاب الحية</h3>
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
@@ -407,8 +413,8 @@
                             <th>الهاتف</th>
                             <th>كلمة السر</th>
                             <th>السيارة</th>
-                            <th>الحالة</th>
-                            <th>الأيام</th>
+                            <th>الحالة والراكب</th>
+                            <th>الأيام المتبقية</th>
                             <th>العمليات</th>
                         </tr>
                     </thead>
@@ -418,7 +424,7 @@
         </div>
     </div>
 
-    <!-- نافذة تعيين المشوار وحساب المسار التفاعلي مع القوائم المخصصة -->
+    <!-- نافذة تعيين المشوار وحساب المسار التفاعلي -->
     <div id="assignModal" class="modal-wrap" style="display:none;">
         <div class="modal-card">
             <h3 style="color:var(--brand-yellow); margin-bottom:4px;"><i class="fa-solid fa-paper-plane"></i> تعيين مهمة توصيل وحساب المسار</h3>
@@ -447,7 +453,7 @@
 
                     <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:2px;">المكان أو لصق رابط الموقع (Link):</label>
                     <div class="autocomplete-wrapper">
-                        <input type="text" id="assignPickup" class="form-input" autocomplete="off" placeholder="اكتب حرف (مثلاً: ب، كنيسة، جامع)..." oninput="handleCustomInput('pickup')" onfocus="handleCustomInput('pickup')" required>
+                        <input type="text" id="assignPickup" class="form-input" autocomplete="off" placeholder="اكتب أول حرف أو الصق رابطاً..." oninput="handleCustomInput('pickup')" onfocus="handleCustomInput('pickup')" required>
                         <div id="pickupSuggestions" class="suggestions-dropdown"></div>
                     </div>
                 </div>
@@ -474,7 +480,7 @@
 
                     <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:2px;">المكان أو لصق رابط الموقع (Link):</label>
                     <div class="autocomplete-wrapper">
-                        <input type="text" id="assignDropoff" class="form-input" autocomplete="off" placeholder="اكتب حرف (مثلاً: ب، كنيسة، جامع)..." oninput="handleCustomInput('dropoff')" onfocus="handleCustomInput('dropoff')" required>
+                        <input type="text" id="assignDropoff" class="form-input" autocomplete="off" placeholder="اكتب أول حرف أو الصق رابطاً..." oninput="handleCustomInput('dropoff')" onfocus="handleCustomInput('dropoff')" required>
                         <div id="dropoffSuggestions" class="suggestions-dropdown"></div>
                     </div>
                 </div>
@@ -493,12 +499,12 @@
             <!-- خريطة رسم وتعديل المسار -->
             <div id="assignMap"></div>
             <p style="font-size:0.75rem; color:#888; margin-top:-6px; margin-bottom:8px; text-align:center;">
-                💡 يمكنك سحب العلامة الخضراء أو الحمراء لتعديل الموقع بدقة أو لصق رابط الموقع في الحقول أعلاه.
+                💡 يمكنك سحب النقطة الخضراء أو الحمراء لتعديل الموقع بدقة أو لصق رابط الموقع في الحقول أعلاه.
             </p>
 
             <!-- ملاحظات إضافية -->
-            <label style="font-size:0.8rem; color:var(--brand-yellow); font-weight: bold; display:block; margin-bottom:2px;">📝 ملاحظات إضافية للكابتن (رقم هاتف الزبون، تعليمات):</label>
-            <input type="text" id="assignExtraNote" class="form-input" placeholder="مثال: رقم الزبون 0988... / البناء جانب الصيدلية">
+            <label style="font-size:0.8rem; color:var(--brand-yellow); font-weight: bold; display:block; margin-bottom:2px;">📝 ملاحظات إضافية للكابتن (رقم هاتف الزبون، تفاصيل المكان):</label>
+            <input type="text" id="assignExtraNote" class="form-input" placeholder="مثال: رقم الزبون 0988... / البناء جانب الصيدلية طابق ثاني">
 
             <div class="price-box">
                 <div style="font-size: 0.85rem; color: #a3a3a3; margin-bottom: 2px;" id="assignCalcStatus">المسافة المقدرة: 4.0 كم</div>
@@ -564,9 +570,9 @@
         let routePolyline = null;
         let mapClickSelectMode = 'pickup';
 
-        // قاعدة البيانات الجغرافية السورية الموسعة (بوابات، كنائس، جوامع، مشافي، معالم)
+        // قاعدة البيانات الجغرافية السورية الموسعة
         const syriaPlacesDatabase = [
-            // --- دمشق: بوابات، كنائس، جوامع، مشافي، معالم ---
+            // بوابات دمشق
             { name: "باب توما", en: "Bab Touma", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5145, lng: 36.3160, priority: 8 },
             { name: "باب شرقي", en: "Bab Sharqi", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5098, lng: 36.3205, priority: 8 },
             { name: "باب الجابية", en: "Bab Al-Jabiya", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5085, lng: 36.3015, priority: 8 },
@@ -576,7 +582,7 @@
             { name: "باب الفراديس", en: "Bab Al-Faradis", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5140, lng: 36.3080, priority: 8 },
             { name: "باب سريجة", en: "Bab Sreijeh", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5090, lng: 36.2990, priority: 8 },
 
-            // كنائس دمشق
+            // كنائس
             { name: "كنيسة الزيتون (كاتدرائية سيدة النياح)", en: "Al-Zaytoun Church", cat: "كنائس", gov: "دمشق", lat: 33.5095, lng: 36.3135, priority: 11 },
             { name: "كنيسة القديس بولس الرسول (باب كيسان)", en: "Saint Paul Church", cat: "كنائس", gov: "دمشق", lat: 33.5052, lng: 36.3192, priority: 11 },
             { name: "كنيسة حنانيا الرسول (باب شرقي)", en: "Saint Ananias Chapel", cat: "كنائس", gov: "دمشق", lat: 33.5122, lng: 36.3175, priority: 11 },
@@ -584,7 +590,7 @@
             { name: "كنيسة الصليب المقدس (القصاع)", en: "Holy Cross Church Qasaa", cat: "كنائس", gov: "دمشق", lat: 33.5225, lng: 36.3210, priority: 11 },
             { name: "كنيسة القديس يوحنا الدمشقي (القصور)", en: "St John of Damascus", cat: "كنائس", gov: "دمشق", lat: 33.5280, lng: 36.3160, priority: 11 },
 
-            // جوامع ومساجد دمشق
+            // جوامع ومساجد
             { name: "جامع بني أمية الكبير (الجامع الأموي)", en: "Umayyad Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.5118, lng: 36.3065, priority: 11 },
             { name: "جامع العثمان (المزرعة)", en: "Al-Othman Mosque Mazraa", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.5265, lng: 36.2990, priority: 11 },
             { name: "جامع الروضة (الروضة)", en: "Al-Rawda Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.5218, lng: 36.2818, priority: 11 },
@@ -593,9 +599,8 @@
             { name: "جامع المرابط (المهاجرين)", en: "Al-Murabit Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.5270, lng: 36.2730, priority: 11 },
             { name: "جامع الدقاق (الميدان)", en: "Al-Dakkak Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.4910, lng: 36.3010, priority: 11 },
             { name: "جامع الحسن (الميدان)", en: "Al-Hassan Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.4880, lng: 36.3005, priority: 11 },
-            { name: "جامع التكية السليمانية", en: "Tekkiye Sulaymaniyah Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.5125, lng: 36.2915, priority: 11 },
 
-            // مشافي دمشق
+            // مشافي
             { name: "مشفى المواساة الجامعي", en: "Al Mouwasat Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5080, lng: 36.2690, priority: 1 },
             { name: "مشفى الأسد الجامعي", en: "Al Assad University Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5090, lng: 36.2660, priority: 1 },
             { name: "مشفى الأطفال الجامعي", en: "Children Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5075, lng: 36.2680, priority: 1 },
@@ -604,9 +609,8 @@
             { name: "مشفى ابن النفيس", en: "Ibn Al Nafees Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5550, lng: 36.3210, priority: 1 },
             { name: "مشفى الهلال الأحمر (شارع بغداد)", en: "Red Crescent Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5230, lng: 36.3040, priority: 1 },
             { name: "مشفى تشرين العسكري", en: "Tishreen Military Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5600, lng: 36.3150, priority: 1 },
-            { name: "مشفى العيون الجراحي", en: "Eye Surgical Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5065, lng: 36.2670, priority: 1 },
 
-            // كراجات وجسور وأوتوسترادات دمشق
+            // كراجات وجسور
             { name: "كراج السيدة زينب (الجنوبي)", en: "Southern Bus Terminal", cat: "كراجات ونقل", gov: "دمشق", lat: 33.4830, lng: 36.3120, priority: 3 },
             { name: "كراج العباسيين (الشمالي)", en: "Abbassiyin Bus Station", cat: "كراجات ونقل", gov: "دمشق", lat: 33.5310, lng: 36.3310, priority: 3 },
             { name: "كراج السومرية", en: "Al Somariah Bus Terminal", cat: "كراجات ونقل", gov: "دمشق", lat: 33.4790, lng: 36.2110, priority: 3 },
@@ -617,7 +621,7 @@
             { name: "أوتوستراد المزة", en: "Mazzeh Highway", cat: "شوارع وطرق", gov: "دمشق", lat: 33.5015, lng: 36.2486, priority: 7 },
             { name: "أوتوستراد العدوي", en: "Al-Adawi Highway", cat: "شوارع وطرق", gov: "دمشق", lat: 33.5350, lng: 36.3150, priority: 7 },
 
-            // مولات وأسواق دمشق
+            // مولات وأسواق
             { name: "شام سيتي سنتر (المزة)", en: "Cham City Center", cat: "مولات وتسوق", gov: "دمشق", lat: 33.5035, lng: 36.2480, priority: 9 },
             { name: "ماسة بلازا (المالكي)", en: "Massa Plaza", cat: "مولات وتسوق", gov: "دمشق", lat: 33.5220, lng: 36.2750, priority: 9 },
             { name: "قاسيون مول (مساكن برزة)", en: "Qasioun Mall", cat: "مولات وتسوق", gov: "دمشق", lat: 33.5590, lng: 36.3210, priority: 9 },
@@ -627,12 +631,11 @@
             { name: "سوق الصالحية", en: "Al-Salihiyah Market", cat: "أسواق شعبية", gov: "دمشق", lat: 33.5210, lng: 36.2930, priority: 9 },
             { name: "سوق الشعلان", en: "Al-Shaalan Market", cat: "أسواق شعبية", gov: "دمشق", lat: 33.5180, lng: 36.2900, priority: 9 },
 
-            // --- ريف دمشق ---
+            // ريف دمشق
             { name: "مطار دمشق الدولي", en: "Damascus International Airport", cat: "مطارات", gov: "ريف دمشق", lat: 33.4110, lng: 36.5150, priority: 2 },
             { name: "مقام السيدة زينب", en: "Sayyidah Zaynab Shrine", cat: "معالم دينية", gov: "ريف دمشق", lat: 33.4440, lng: 36.3410, priority: 11 },
             { name: "دير سيدة صيدنايا", en: "Sednaya Monastery", cat: "كنائس وأديرة", gov: "ريف دمشق", lat: 33.6930, lng: 36.3740, priority: 11 },
             { name: "دير مار تقلا (معلولا)", en: "Mar Taqla Maaloula", cat: "كنائس وأديرة", gov: "ريف دمشق", lat: 33.8450, lng: 36.5450, priority: 11 },
-            { name: "دير مار سركيس وباخوس (معلولا)", en: "Mar Sarkis Maaloula", cat: "كنائس وأديرة", gov: "ريف دمشق", lat: 33.8480, lng: 36.5410, priority: 11 },
             { name: "مدينة جرمانا", en: "Jaramana", cat: "مدن وبلدات", gov: "ريف دمشق", lat: 33.4833, lng: 36.3500, priority: 12 },
             { name: "مدينة قدسيا", en: "Qudsaya", cat: "مدن وبلدات", gov: "ريف دمشق", lat: 33.5650, lng: 36.2100, priority: 12 },
             { name: "مدينة صحنايا", en: "Sahnaya", cat: "مدن وبلدات", gov: "ريف دمشق", lat: 33.4350, lng: 36.2400, priority: 12 },
@@ -645,71 +648,40 @@
             { name: "منطقة يعفور", en: "Yafour", cat: "مدن وبلدات", gov: "ريف دمشق", lat: 33.5500, lng: 36.0650, priority: 12 },
             { name: "منطقة الصبورة", en: "Al-Sabboura", cat: "مدن وبلدات", gov: "ريف دمشق", lat: 33.5450, lng: 36.1000, priority: 12 },
 
-            // --- حلب ---
-            { name: "جامع حلب الكبير (الأموي)", en: "Great Mosque of Aleppo", cat: "جوامع ومساجد", gov: "حلب", lat: 36.1990, lng: 37.1568, priority: 11 },
-            { name: "كنيسة القديس إشعيا (حي السريان)", en: "Saint Isaiah Church Aleppo", cat: "كنائس", gov: "حلب", lat: 36.2190, lng: 37.1480, priority: 11 },
-            { name: "كنيسة الأربعين شهيداً (الجديدة)", en: "Forty Martyrs Cathedral", cat: "كنائس", gov: "حلب", lat: 36.2065, lng: 37.1560, priority: 11 },
-            { name: "مشفى الرازي (حلب)", en: "Al Razi Hospital", cat: "مشافي ومراكز طبية", gov: "حلب", lat: 36.2110, lng: 37.1420, priority: 1 },
-            { name: "مشفى الجامعة (حلب)", en: "Aleppo University Hospital", cat: "مشافي ومراكز طبية", gov: "حلب", lat: 36.2080, lng: 37.1230, priority: 1 },
-            { name: "قلعة حلب", en: "Citadel of Aleppo", cat: "معالم أثرية", gov: "حلب", lat: 36.1992, lng: 37.1628, priority: 11 },
-            { name: "مطار حلب الدولي", en: "Aleppo International Airport", cat: "مطارات", gov: "حلب", lat: 36.1800, lng: 37.2240, priority: 2 },
-            { name: "جامعة حلب", en: "University of Aleppo", cat: "جامعات", gov: "حلب", lat: 36.2090, lng: 37.1210, priority: 6 },
-            { name: "كراج الراموسة (حلب)", en: "Ramouseh Bus Station", cat: "كراجات ونقل", gov: "حلب", lat: 36.1680, lng: 37.1350, priority: 3 },
-
-            // --- اللاذقية ---
-            { name: "جامع المغربي (اللاذقية)", en: "Al-Maghrebi Mosque", cat: "جوامع ومساجد", gov: "اللاذقية", lat: 35.5180, lng: 35.7820, priority: 11 },
-            { name: "جامع العجان (الشيخ ضاهر)", en: "Al-Ajjan Mosque", cat: "جوامع ومساجد", gov: "اللاذقية", lat: 35.5215, lng: 35.7840, priority: 11 },
-            { name: "كنيسة القديس جاورجيوس (الصليبة)", en: "St. George Church Latakia", cat: "كنائس", gov: "اللاذقية", lat: 35.5195, lng: 35.7830, priority: 11 },
-            { name: "كنيسة قلب يسوع الأقدس (اللاتين)", en: "Latin Church Latakia", cat: "كنائس", gov: "اللاذقية", lat: 35.5230, lng: 35.7800, priority: 11 },
+            // باقي المحافظات
             { name: "مشفى تشرين الجامعي (اللاذقية)", en: "Tishreen University Hospital", cat: "مشافي ومراكز طبية", gov: "اللاذقية", lat: 35.5320, lng: 35.8050, priority: 1 },
             { name: "مشفى الأسد الوطني (اللاذقية)", en: "National Hospital Latakia", cat: "مشافي ومراكز طبية", gov: "اللاذقية", lat: 35.5250, lng: 35.7910, priority: 1 },
-            { name: "جامعة تشرين (اللاذقية)", en: "Tishreen University", cat: "جامعات", gov: "اللاذقية", lat: 35.5340, lng: 35.8080, priority: 6 },
+            { name: "كنيسة القديس جاورجيوس (الصليبة)", en: "St. George Church Latakia", cat: "كنائس", gov: "اللاذقية", lat: 35.5195, lng: 35.7830, priority: 11 },
             { name: "حي الصليبة (اللاذقية)", en: "Sleibeh Latakia", cat: "أحياء وشوارع", gov: "اللاذقية", lat: 35.5210, lng: 35.7820, priority: 12 },
             { name: "مشروع السابع (اللاذقية)", en: "7th Project Latakia", cat: "أحياء وشوارع", gov: "اللاذقية", lat: 35.5420, lng: 35.7950, priority: 12 },
             { name: "حي الزراعة (اللاذقية)", en: "Al-Ziraa Latakia", cat: "أحياء وشوارع", gov: "اللاذقية", lat: 35.5350, lng: 35.8020, priority: 12 },
             { name: "مدينة جبلة", en: "Jableh", cat: "مدن وبلدات", gov: "اللاذقية", lat: 35.3610, lng: 35.9260, priority: 12 },
-
-            // --- طرطوس ---
-            { name: "كاتدرائية طرطوس (متحف طرطوس)", en: "Tartus Cathedral", cat: "كنائس ومعالم", gov: "طرطوس", lat: 34.8920, lng: 35.8745, priority: 11 },
-            { name: "جامع أويس القرني (طرطوس)", en: "Owais Al-Qarni Mosque", cat: "جوامع ومساجد", gov: "طرطوس", lat: 34.8870, lng: 35.8820, priority: 11 },
             { name: "مشفى الباسل (طرطوس)", en: "Al Basel Hospital Tartus", cat: "مشافي ومراكز طبية", gov: "طرطوس", lat: 34.8950, lng: 35.8890, priority: 1 },
-            { name: "جامعة طرطوس", en: "Tartus University", cat: "جامعات", gov: "طرطوس", lat: 34.8960, lng: 35.8850, priority: 6 },
-            { name: "كراج البولمان (طرطوس)", en: "Tartus Bus Station", cat: "كراجات ونقل", gov: "طرطوس", lat: 34.8910, lng: 35.8890, priority: 3 },
+            { name: "مدينة طرطوس (المركز)", en: "Tartus City Center", cat: "مدن وبلدات", gov: "طرطوس", lat: 34.8890, lng: 35.8866, priority: 12 },
             { name: "مدينة بانياس", en: "Baniyas", cat: "مدن وبلدات", gov: "طرطوس", lat: 35.1820, lng: 35.9400, priority: 12 },
             { name: "مدينة صافيتا", en: "Safita", cat: "مدن وبلدات", gov: "طرطوس", lat: 34.8210, lng: 36.1180, priority: 12 },
-
-            // --- حمص ---
             { name: "جامع خالد بن الوليد (حمص)", en: "Khalid ibn al-Walid Mosque", cat: "جوامع ومساجد", gov: "حمص", lat: 34.7365, lng: 36.7160, priority: 11 },
-            { name: "كنيسة أم الزنار (حمص القديمة)", en: "Saint Mary Church of the Holy Belt", cat: "كنائس", gov: "حمص", lat: 34.7290, lng: 36.7190, priority: 11 },
-            { name: "كنيسة مار إليان (حمص)", en: "Saint Elian Church", cat: "كنائس", gov: "حمص", lat: 34.7315, lng: 36.7215, priority: 11 },
+            { name: "كنيسة أم الزنار (حمص القديمة)", en: "Saint Mary Church of Holy Belt", cat: "كنائس", gov: "حمص", lat: 34.7290, lng: 36.7190, priority: 11 },
             { name: "المشفى الوطني (حمص)", en: "Homs National Hospital", cat: "مشافي ومراكز طبية", gov: "حمص", lat: 34.7310, lng: 36.7110, priority: 1 },
-            { name: "جامعة البعث (حمص)", en: "Al-Baath University", cat: "جامعات", gov: "حمص", lat: 34.7140, lng: 36.7050, priority: 6 },
-            { name: "قلعة الحصن", en: "Krak des Chevaliers", cat: "معالم أثرية", gov: "حمص", lat: 34.7565, lng: 36.2940, priority: 11 },
-
-            // --- حماة ---
-            { name: "جامع النوري ونواعير حماة", en: "Al-Nuri Mosque & Norias", cat: "معالم دينية وتاريخية", gov: "حماة", lat: 35.1340, lng: 36.7520, priority: 11 },
-            { name: "كنيسة رقاد السيدة العذراء (المدينة)", en: "Dormition of the Theotokos Hama", cat: "كنائس", gov: "حماة", lat: 35.1325, lng: 36.7540, priority: 11 },
+            { name: "جامع النوري ونواعير حماة", en: "Al-Nuri Mosque & Norias", cat: "معالم تاريخية", gov: "حماة", lat: 35.1340, lng: 36.7520, priority: 11 },
             { name: "المشفى الوطني (حماة)", en: "Hama National Hospital", cat: "مشافي ومراكز طبية", gov: "حماة", lat: 35.1320, lng: 36.7580, priority: 1 },
-            { name: "جامعة حماة", en: "Hama University", cat: "جامعات", gov: "حماة", lat: 35.1380, lng: 36.7510, priority: 6 },
-            { name: "مدينة مصياف", en: "Masyaf", cat: "مدن وبلدات", gov: "حماة", lat: 35.0650, lng: 36.3420, priority: 12 },
-
-            // --- باقي المحافظات ---
-            { name: "الجامع العمري (درعا البلد)", en: "Al-Omari Mosque Daraa", cat: "جوامع ومساجد", gov: "درعا", lat: 32.6180, lng: 36.1030, priority: 11 },
+            { name: "قلعة حلب", en: "Citadel of Aleppo", cat: "معالم أثرية", gov: "حلب", lat: 36.1992, lng: 37.1628, priority: 11 },
+            { name: "مشفى الرازي (حلب)", en: "Al Razi Hospital", cat: "مشافي ومراكز طبية", gov: "حلب", lat: 36.2110, lng: 37.1420, priority: 1 },
             { name: "مشفى درعا الوطني", en: "Daraa National Hospital", cat: "مشافي ومراكز طبية", gov: "درعا", lat: 32.6280, lng: 36.1040, priority: 1 },
-            { name: "مشفى السويداء الوطني", en: "As-Suwayda National Hospital", cat: "مشافي ومراكز طبية", gov: "السويداء", lat: 32.7110, lng: 36.5710, priority: 1 },
+            { name: "مشفى السويداء الوطني", en: "As-Suwayda Hospital", cat: "مشافي ومراكز طبية", gov: "السويداء", lat: 32.7110, lng: 36.5710, priority: 1 },
             { name: "مدينة القنيطرة (المركز)", en: "Quneitra", cat: "مدن وبلدات", gov: "القنيطرة", lat: 33.1250, lng: 35.8200, priority: 12 },
             { name: "المشفى الوطني (إدلب)", en: "Idlib National Hospital", cat: "مشافي ومراكز طبية", gov: "إدلب", lat: 35.9320, lng: 36.6350, priority: 1 },
-            { name: "المشفى الوطني (الرقة)", en: "Raqqa National Hospital", cat: "مشافي ومراكز طبية", gov: "الرقة", lat: 35.9520, lng: 39.0120, priority: 1 },
+            { name: "المشفى الوطني (الرقة)", en: "Raqqa Hospital", cat: "مشافي ومراكز طبية", gov: "الرقة", lat: 35.9520, lng: 39.0120, priority: 1 },
             { name: "الجسر المعلق (دير الزور)", en: "Suspension Bridge Deir ez-Zor", cat: "معالم", gov: "دير الزور", lat: 35.3410, lng: 40.1490, priority: 11 },
             { name: "المشفى الوطني (الحسكة)", en: "Al-Hasakah Hospital", cat: "مشافي ومراكز طبية", gov: "الحسكة", lat: 36.5020, lng: 40.7520, priority: 1 },
-            { name: "كنيسة السيدة العذراء (القامشلي)", en: "Virgin Mary Church Qamishli", cat: "كنائس", gov: "الحسكة", lat: 37.0510, lng: 41.2220, priority: 11 }
+            { name: "مدينة القامشلي", en: "Qamishli", cat: "مدن وبلدات", gov: "الحسكة", lat: 37.0500, lng: 41.2200, priority: 12 }
         ];
 
         const rifDimashqKeywords = [
             'ريف دمشق', 'جرمانا', 'قدسيا', 'صحنايا', 'داريا', 'معضمية', 
             'التل', 'الكسوة', 'دوما', 'حرستا', 'الصبورة', 'يعفور', 
             'اشرفية صحنايا', 'عين ترما', 'كفر بطنا', 'سقبا', 'عربين', 'جديدة عرطوز',
-            'قطنا', 'معربا', 'المليحة', 'السيدة زينب', 'الهامة', 'ضاحية قدسيا'
+            'قطنا', 'معربا', 'المليحة', 'السيدة زينب', 'الهامة', 'ضاحية قدسيا', 'صيدنايا', 'معلولا'
         ];
 
         const damascusCityKeywords = [
@@ -732,14 +704,14 @@
             return t;
         }
 
-        // نظام الاقتراحات المخصص (لا يظهر حتى يكتب أول حرف، وبنفس المحافظة حصراً)
+        // نظام الاقتراحات الذكي (لا يظهر حتى يكتب أول حرف، وبنفس المحافظة حصراً)
         function handleCustomInput(type) {
             const inputEl = document.getElementById(type === 'pickup' ? 'assignPickup' : 'assignDropoff');
             const govVal = document.getElementById(type === 'pickup' ? 'assignPickupGov' : 'assignDropoffGov').value;
             const dropdownEl = document.getElementById(type === 'pickup' ? 'pickupSuggestions' : 'dropoffSuggestions');
             const val = inputEl.value.trim();
 
-            // 1. فحص إذا كان هناك رابط ملصق
+            // فحص إذا كان هناك رابط ملصق
             const coords = extractCoordsFromText(val);
             if (coords) {
                 dropdownEl.style.display = 'none';
@@ -767,7 +739,6 @@
                 return arNorm.includes(cleanVal) || enNorm.includes(cleanVal) || catNorm.includes(cleanVal);
             });
 
-            // ترتيب حسب الأولوية
             matched.sort((a, b) => a.priority - b.priority);
 
             if (matched.length === 0) {
@@ -799,7 +770,7 @@
             dropdownEl.style.display = 'block';
         }
 
-        // إغلاق القوائم عند النقر خارجها
+        // إغلاق القوائم عند النقر في مكان آخر
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.autocomplete-wrapper')) {
                 document.getElementById('pickupSuggestions').style.display = 'none';
@@ -876,6 +847,7 @@
             }
         });
 
+        // الاستماع الفوري لبيانات السائقين وحالات الركاب
         driversRef.on('value', (snapshot) => {
             const data = snapshot.val();
             driversList = [];
@@ -887,8 +859,11 @@
             updateMapMarkers();
         });
 
+        // حساب الأيام المتبقية بدقة
         function calculateDays(expiryTimestamp) {
-            const diff = expiryTimestamp - Date.now();
+            if (!expiryTimestamp) return 0;
+            const exp = parseInt(expiryTimestamp);
+            const diff = exp - Date.now();
             return diff <= 0 ? 0 : Math.ceil(diff / (1000 * 60 * 60 * 24));
         }
 
@@ -936,6 +911,7 @@
             radarMap.flyTo([33.5138, 36.2765], 13);
         }
 
+        // تحديث إشارات السائقين على الخريطة (الألوان: أخضر = متاح، برتقالي = معه راكب، أصفر = استراحة، أحمر = منتهي)
         function updateMapMarkers() {
             if(!radarMap) return;
             for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
@@ -944,20 +920,36 @@
             driversList.forEach(d => {
                 if(d.lat && d.lng) {
                     const daysLeft = calculateDays(d.expiryTimestamp);
-                    const color = daysLeft <= 0 ? '#ef4444' : (d.isOnline ? '#22c55e' : '#fcba03');
-                    const statusText = daysLeft <= 0 ? 'منتهي' : (d.isOnline ? 'متاح للعمل' : 'استراحة');
-                    
+                    const isExp = daysLeft <= 0;
+                    const hasPassenger = (d.hasPassenger === true || d.status === 'busy' || d.passengerStatus === 'with_passenger');
+
+                    let color = '#fcba03'; // أصفر (استراحة)
+                    let statusLabel = 'استراحة';
+
+                    if (isExp) {
+                        color = '#ef4444'; // أحمر
+                        statusLabel = 'منتهي';
+                    } else if (d.isOnline) {
+                        if (hasPassenger) {
+                            color = '#f97316'; // برتقالي: معه راكب
+                            statusLabel = 'معه راكب (مشغول)';
+                        } else {
+                            color = '#22c55e'; // أخضر: فارغ ومتاح
+                            statusLabel = 'متاح للعمل (فارغ)';
+                        }
+                    }
+
                     const radarIcon = L.divIcon({
-                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5); cursor:pointer;">🚖 ${d.name} (${d.city || 'دمشق'})</div>`,
-                        iconSize: [85, 25]
+                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5); cursor:pointer;">🚖 ${d.name} (${statusLabel})</div>`,
+                        iconSize: [115, 25]
                     });
 
                     const popupContent = `
                         <div style="font-size:0.85rem; line-height:1.5;">
-                            <strong style="color:var(--brand-yellow); font-size:1rem;">${d.name}</strong> (${d.car})<br>
+                            <strong style="color:var(--brand-yellow); font-size:1rem;">${d.name}</strong> (${d.car || ''})<br>
                             📍 المنطقة: <b>${d.city || 'دمشق'}</b><br>
                             🔑 رمز الدخول: <code>${d.password || 'غير محدد'}</code><br>
-                            🟢 الحالة: <b>${statusText}</b> (باقٍ ${daysLeft} يوم)<br>
+                            الحالة: <b style="color:${color};">${statusLabel}</b> (باقٍ ${daysLeft} يوم)<br>
                             <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
                                 <button onclick="openAssignModal('${d.fbKey}')" style="background:#22c55e; color:#fff; border:none; padding:7px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
                                     <i class="fa-solid fa-taxi"></i> تكليف بمهمة وتحديد المسار
@@ -982,10 +974,12 @@
 
         function updateStats() {
             document.getElementById('adminStatDrivers').innerText = driversList.length;
-            document.getElementById('adminStatActive').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) > 0 && d.isOnline).length;
+            document.getElementById('adminStatActive').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) > 0 && d.isOnline && !d.hasPassenger && d.status !== 'busy').length;
+            document.getElementById('adminStatBusy').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) > 0 && d.isOnline && (d.hasPassenger || d.status === 'busy')).length;
             document.getElementById('adminStatExpired').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) <= 0).length;
         }
 
+        // عرض جدول السائقين مع تمييز حالة الركاب
         function renderTable() {
             const tbody = document.getElementById('adminTableBody');
             tbody.innerHTML = '';
@@ -998,7 +992,21 @@
             driversList.forEach(d => {
                 const daysLeft = calculateDays(d.expiryTimestamp);
                 const isExp = daysLeft <= 0;
-                const statusBadge = isExp ? `<span class="badge badge-expired">منتهي</span>` : (d.isOnline ? `<span class="badge badge-active">متاح</span>` : `<span class="badge badge-busy">استراحة</span>`);
+                const hasPassenger = (d.hasPassenger === true || d.status === 'busy' || d.passengerStatus === 'with_passenger');
+
+                let statusBadge = '';
+                if (isExp) {
+                    statusBadge = `<span class="badge badge-expired">منتهي</span>`;
+                } else if (d.isOnline) {
+                    if (hasPassenger) {
+                        statusBadge = `<span class="badge badge-busy-orange">لديه راكب 🟠</span>`;
+                    } else {
+                        statusBadge = `<span class="badge badge-active">متاح وفارغ 🟢</span>`;
+                    }
+                } else {
+                    statusBadge = `<span class="badge badge-resting">استراحة 🟡</span>`;
+                }
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>
@@ -1013,7 +1021,7 @@
                         <strong style="color:var(--brand-yellow);">${d.password || '1234'}</strong>
                         <button onclick="adminChangePassword('${d.fbKey}')" style="background:transparent;border:none;color:var(--accent-blue);cursor:pointer;margin-right:4px;" title="تغيير كلمة السر"><i class="fa-solid fa-pen"></i></button>
                     </td>
-                    <td>${d.car}</td>
+                    <td>${d.car || '-'}</td>
                     <td>${statusBadge}</td>
                     <td><strong style="color:${isExp?'#ef4444':'#fcba03'};">${daysLeft} يوم</strong></td>
                     <td>
@@ -1027,6 +1035,7 @@
             });
         }
 
+        // قواعد التسعير: فتحة 5000 + 5000/كم، حد أدنى 20000، تقريب لـ 5000، ضرب 1.5 للريف
         function calculatePrice(km, isCrossRegion) {
             const baseFare = 5000;
             const perKm = 5000;
@@ -1215,7 +1224,7 @@
             if(!driver) return;
             activeAssignDriver = driver;
 
-            document.getElementById('assignDriverInfo').innerText = `إرسال طلب مباشر إلى الكابتن: ${driver.name} (${driver.car})`;
+            document.getElementById('assignDriverInfo').innerText = `إرسال طلب مباشر إلى الكابتن: ${driver.name} (${driver.car || ''})`;
             
             document.getElementById('assignPickupGov').value = 'دمشق';
             document.getElementById('assignDropoffGov').value = 'دمشق';
@@ -1327,7 +1336,10 @@ ${dropoff}${dropoffMapLink}
                 car: car,
                 city: 'دمشق',
                 expiryTimestamp: Date.now() + (days * 24 * 60 * 60 * 1000),
-                isOnline: true,
+                isOnline: false,
+                hasPassenger: false,
+                passengerStatus: 'available',
+                status: 'offline',
                 lat: 33.5138 + (Math.random() - 0.5) * 0.03,
                 lng: 36.2765 + (Math.random() - 0.5) * 0.03
             });
