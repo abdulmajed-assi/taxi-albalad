@@ -4,17 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة الإدارة والرادار الجغرافي | تكسي البلد</title>
-    
-    <!-- Fonts & Icons -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Leaflet Harita CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-    <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -31,20 +27,89 @@
             --text-muted: #a3a3a3;
         }
 
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--brand-black); color: var(--text-main); min-height: 100vh; padding: 1.2rem 1rem; }
-        .admin-wrap { max-width: 1200px; margin: 0 auto; }
-        
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .stat-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 12px; padding: 1rem; display: flex; align-items: center; gap: 10px; }
-        .stat-icon { width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        .stat-icon.gold { background: rgba(252, 186, 3, 0.15); color: var(--brand-yellow); }
-        .stat-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
-        .stat-icon.orange { background: rgba(249, 115, 22, 0.15); color: var(--accent-orange); }
-        .stat-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        .panel-card { background: var(--brand-card); border: 1px solid rgba(252, 186, 3, 0.3); border-radius: 14px; padding: 1.2rem; margin-bottom: 1.5rem; }
-        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--brand-black);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 1.2rem 1rem;
+        }
+
+        button, input, select, textarea {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+
+        .admin-wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--brand-card);
+            border: 1px solid rgba(252, 186, 3, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .stat-icon.gold {
+            background: rgba(252, 186, 3, 0.15);
+            color: var(--brand-yellow);
+        }
+
+        .stat-icon.green {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent-green);
+        }
+
+        .stat-icon.orange {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--accent-orange);
+        }
+
+        .stat-icon.red {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+        }
+
+        .panel-card {
+            background: var(--brand-card);
+            border: 1px solid rgba(252, 186, 3, 0.3);
+            border-radius: 14px;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
         .panel-header-flex {
             display: flex;
             justify-content: space-between;
@@ -62,10 +127,6 @@
             margin-bottom: 10px;
         }
 
-        @media (max-width: 600px) {
-            .radar-controls-wrap { grid-template-columns: 1fr; }
-        }
-
         .search-input-group {
             display: flex;
             align-items: center;
@@ -78,12 +139,12 @@
 
         .search-input-group input {
             flex: 1;
+            min-width: 0;
             background: transparent;
             border: none;
             outline: none;
             padding: 10px 14px;
             color: #fff;
-            font-family: 'Cairo', sans-serif;
             font-size: 0.95rem;
             font-weight: 700;
         }
@@ -101,14 +162,44 @@
             font-size: 0.95rem;
         }
 
-        #radarMap { width: 100%; height: 480px; border-radius: 10px; border: 1.5px solid var(--brand-yellow); }
-        
-        table { width: 100%; border-collapse: collapse; text-align: inherit; }
-        th, td { padding: 10px; border-bottom: 1px solid rgba(252, 186, 3, 0.2); font-size: 0.85rem; }
-        th { background: #141414; color: var(--text-muted); }
-        
-        .btn-action { background: var(--brand-yellow); color: #000; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; transition: transform 0.1s; }
-        .btn-action:hover { transform: scale(1.05); }
+        #radarMap {
+            width: 100%;
+            height: 480px;
+            border-radius: 10px;
+            border: 1.5px solid var(--brand-yellow);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: inherit;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(252, 186, 3, 0.2);
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: #141414;
+            color: var(--text-muted);
+        }
+
+        .btn-action {
+            background: var(--brand-yellow);
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.05);
+        }
 
         .btn-assign {
             background: #22c55e;
@@ -124,12 +215,23 @@
             font-size: 0.8rem;
             transition: transform 0.1s;
         }
-        .btn-assign:hover { transform: scale(1.05); background: #16a34a; }
-        
+
+        .btn-assign:hover {
+            transform: scale(1.05);
+            background: #16a34a;
+        }
+
         .form-input {
-            width: 100%; padding: 10px; border-radius: 8px;
-            border: 1px solid #444; background: #fff; color: #000;
-            outline: none; margin-bottom: 4px; font-weight: 700; font-size: 0.95rem;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #fff;
+            color: #000;
+            outline: none;
+            margin-bottom: 4px;
+            font-weight: 700;
+            font-size: 0.95rem;
         }
 
         .phone-input-group {
@@ -161,24 +263,100 @@
             outline: none;
             padding: 11px;
             width: 100%;
+            min-width: 0;
             font-weight: 800;
             font-size: 1.05rem;
             color: #000;
             direction: ltr;
         }
 
-        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
-        .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
-        .badge-busy-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
-        .badge-resting { background: rgba(252, 186, 3, 0.2); color: var(--brand-yellow); border: 1px solid var(--brand-yellow); }
-        .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
-        .badge-city { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            display: inline-block;
+        }
 
-        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .auth-box { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 2.2rem 1.8rem; max-width: 380px; width: 100%; text-align: center; }
+        .badge-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
 
-        .modal-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .modal-card { background: var(--brand-card); border: 2px solid var(--brand-yellow); border-radius: 16px; padding: 1.5rem; max-width: 620px; width: 100%; text-align: right; max-height: 95vh; overflow-y: auto; }
+        .badge-busy-orange {
+            background: rgba(249, 115, 22, 0.2);
+            color: var(--accent-orange);
+            border: 1px solid var(--accent-orange);
+        }
+
+        .badge-resting {
+            background: rgba(252, 186, 3, 0.2);
+            color: var(--brand-yellow);
+            border: 1px solid var(--brand-yellow);
+        }
+
+        .badge-expired {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .badge-city {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+        }
+
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #111;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .auth-box {
+            background: var(--brand-card);
+            border: 2px solid var(--brand-yellow);
+            border-radius: 16px;
+            padding: 2.2rem 1.8rem;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-card {
+            background: var(--brand-card);
+            border: 2px solid var(--brand-yellow);
+            border-radius: 16px;
+            padding: 1.5rem;
+            max-width: 620px;
+            width: 100%;
+            text-align: right;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
 
         #assignMap {
             width: 100%;
@@ -237,7 +415,6 @@
             border: 1px solid var(--brand-yellow);
             background: #28282b;
             color: #fff;
-            font-family: 'Cairo', sans-serif;
             font-size: 0.85rem;
             font-weight: bold;
             margin-bottom: 6px;
@@ -301,78 +478,149 @@
             text-align: right !important;
             font-family: 'Cairo', sans-serif !important;
         }
+
         .leaflet-popup-tip {
             background: #1c1c1e !important;
             border: 1px solid var(--brand-yellow) !important;
         }
+
+        @media (max-width: 600px) {
+            .radar-controls-wrap {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
-<body>
 
-    <!-- 1. شاشة الدخول الإداري -->
+<body>
     <div id="adminAuthBox" class="auth-overlay">
         <div class="auth-box">
-            <h2 style="color:var(--brand-yellow); margin-bottom:6px;"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</h2>
-            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:18px;">تسجيل الدخول إلى النظام الإداري لتكسي البلد</p>
-            
-            <form onsubmit="handleAdminLogin(event)" style="text-align: right;">
-                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">اسم المستخدم:</label>
-                <input type="text" id="adminUserInput" class="form-input" autocomplete="off" required style="direction: ltr; font-weight: 800;">
-                
-                <label style="font-size: 0.85rem; color: var(--brand-yellow); font-weight: 700; margin-bottom: 5px; display: block;">كلمة المرور:</label>
-                <input type="password" id="adminPinInput" class="form-input" required style="direction: ltr; font-weight: 800;">
-                
-                <button type="submit" class="btn-action" style="width:100%; padding:13px; font-size:1.1rem; margin-top: 6px;">
+            <h2 style="color:var(--brand-yellow);margin-bottom:6px;">
+                <i class="fa-solid fa-user-shield"></i> لوحة الإدارة
+            </h2>
+
+            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:18px;">
+                تسجيل الدخول إلى النظام الإداري لتكسي البلد
+            </p>
+
+            <form onsubmit="handleAdminLogin(event)" style="text-align:right;">
+                <label for="adminUserInput"
+                       style="font-size:0.85rem;color:var(--brand-yellow);font-weight:700;display:block;margin-bottom:5px;">
+                    اسم المستخدم:
+                </label>
+
+                <input type="text"
+                       id="adminUserInput"
+                       class="form-input"
+                       autocomplete="off"
+                       required
+                       style="direction:ltr;font-weight:800;">
+
+                <label for="adminPinInput"
+                       style="font-size:0.85rem;color:var(--brand-yellow);font-weight:700;display:block;margin-bottom:5px;">
+                    كلمة المرور:
+                </label>
+
+                <input type="password"
+                       id="adminPinInput"
+                       class="form-input"
+                       required
+                       style="direction:ltr;font-weight:800;">
+
+                <button type="submit"
+                        class="btn-action"
+                        style="width:100%;padding:13px;font-size:1.1rem;margin-top:6px;">
                     <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- 2. لوحة التحكم الرئيسية -->
     <div class="admin-wrap" id="adminContent" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; gap:10px;">
-            <h1 style="color:var(--brand-yellow); font-size:1.4rem;"><i class="fa-solid fa-gauge-high"></i> إدارة تكسي البلد (الرادار وقاعدة الأماكن السورية)</h1>
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <button onclick="adminLogout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;">خروج</button>
-            </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:10px;">
+            <h1 style="color:var(--brand-yellow);font-size:1.4rem;">
+                <i class="fa-solid fa-gauge-high"></i>
+                إدارة تكسي البلد (الرادار وقاعدة الأماكن السورية)
+            </h1>
+
+            <button onclick="adminLogout()"
+                    style="background:rgba(239,68,68,0.2);border:1px solid var(--accent-red);color:var(--accent-red);padding:5px 12px;border-radius:8px;cursor:pointer;font-weight:700;">
+                خروج
+            </button>
         </div>
 
-        <!-- بطاقات الإحصائيات السريعة -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon gold"><i class="fa-solid fa-users"></i></div>
-                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">إجمالي السائقين</h4><p id="adminStatDrivers" style="font-size:1.2rem; font-weight:800;">0</p></div>
+                <div class="stat-icon gold">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <h4 style="font-size:0.75rem;color:var(--text-muted);">
+                        إجمالي السائقين
+                    </h4>
+                    <p id="adminStatDrivers" style="font-size:1.2rem;font-weight:800;">0</p>
+                </div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
-                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">متاح وفارغ (أخضر)</h4><p id="adminStatActive" style="font-size:1.2rem; font-weight:800;">0</p></div>
+                <div class="stat-icon green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <h4 style="font-size:0.75rem;color:var(--text-muted);">
+                        متاح وفارغ (أخضر)
+                    </h4>
+                    <p id="adminStatActive" style="font-size:1.2rem;font-weight:800;">0</p>
+                </div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-icon orange"><i class="fa-solid fa-user-tag"></i></div>
-                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">معه راكب (برتقالي)</h4><p id="adminStatBusy" style="font-size:1.2rem; font-weight:800;">0</p></div>
+                <div class="stat-icon orange">
+                    <i class="fa-solid fa-user-tag"></i>
+                </div>
+                <div>
+                    <h4 style="font-size:0.75rem;color:var(--text-muted);">
+                        معه راكب (برتقالي)
+                    </h4>
+                    <p id="adminStatBusy" style="font-size:1.2rem;font-weight:800;">0</p>
+                </div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-icon red"><i class="fa-solid fa-calendar-xmark"></i></div>
-                <div><h4 style="font-size:0.75rem; color:var(--text-muted);">منتهي الاشتراك</h4><p id="adminStatExpired" style="font-size:1.2rem; font-weight:800;">0</p></div>
+                <div class="stat-icon red">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                </div>
+                <div>
+                    <h4 style="font-size:0.75rem;color:var(--text-muted);">
+                        منتهي الاشتراك
+                    </h4>
+                    <p id="adminStatExpired" style="font-size:1.2rem;font-weight:800;">0</p>
+                </div>
             </div>
         </div>
 
-        <!-- الرادار المباشر والبحث الجغرافي -->
         <div class="panel-card">
             <div class="panel-header-flex">
-                <h3 style="font-size:1.1rem; color:var(--brand-yellow);"><i class="fa-solid fa-radar"></i> رادار المراقبة الحي والبحث الجغرافي السوري</h3>
+                <h3 style="font-size:1.1rem;color:var(--brand-yellow);">
+                    <i class="fa-solid fa-location-dot"></i>
+                    رادار المراقبة الحي والبحث الجغرافي السوري
+                </h3>
             </div>
 
             <div class="radar-controls-wrap">
                 <div class="search-input-group">
-                    <input type="text" id="areaSearchInput" placeholder="اكتب للبحث (مشفى، كنيسة، جامع، بوابة، مول، جسر، شارع، حي في سوريا...)" onkeypress="handleSearchKeyPress(event)">
+                    <input type="text"
+                           id="areaSearchInput"
+                           placeholder="اكتب للبحث (مشفى، كنيسة، جامع، بوابة، مول، جسر، شارع، حي في سوريا...)"
+                           onkeypress="handleSearchKeyPress(event)">
+
                     <button class="btn-search" onclick="searchLocationAndDrivers()">
                         <i class="fa-solid fa-magnifying-glass"></i> بحث
                     </button>
                 </div>
 
-                <button onclick="resetRadarView()" style="background:#333; color:#fff; border:1px solid #555; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.85rem;">
+                <button onclick="resetRadarView()"
+                        style="background:#333;color:#fff;border:1px solid #555;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;">
                     <i class="fa-solid fa-rotate-left"></i> عرض الكل
                 </button>
             </div>
@@ -380,34 +628,69 @@
             <div id="radarMap"></div>
         </div>
 
-        <!-- إضافة كابتن جديد -->
         <div class="panel-card">
-            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-user-plus"></i> تسجيل كابتن جديد وتحديد كلمة السر</h3>
+            <h3 style="margin-bottom:10px;font-size:1rem;">
+                <i class="fa-solid fa-user-plus"></i>
+                تسجيل كابتن جديد وتحديد كلمة السر
+            </h3>
+
             <form onsubmit="addNewDriver(event)">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
-                    <input type="text" id="newDName" class="form-input" placeholder="اسم السائق (مثلاً: أحمد)" required>
-                    
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;">
+                    <input type="text"
+                           id="newDName"
+                           class="form-input"
+                           placeholder="اسم السائق (مثلاً: أحمد)"
+                           required>
+
                     <div class="phone-input-group">
                         <span class="country-prefix">+963</span>
-                        <input type="tel" id="newDPhoneLocal" placeholder="962750014" required>
+                        <input type="tel"
+                               id="newDPhoneLocal"
+                               placeholder="962750014"
+                               required>
                     </div>
 
-                    <input type="text" id="newDPass" class="form-input" placeholder="كلمة المرور (PIN)" required>
-                    <input type="text" id="newDCar" class="form-input" placeholder="السيارة واللوحة (كيا 12345)" required>
-                    <input type="number" id="newDDays" class="form-input" value="7" min="1" placeholder="أيام الاشتراك" required>
+                    <input type="text"
+                           id="newDPass"
+                           class="form-input"
+                           placeholder="كلمة المرور (PIN)"
+                           required>
+
+                    <input type="text"
+                           id="newDCar"
+                           class="form-input"
+                           placeholder="السيارة واللوحة (كيا 12345)"
+                           required>
+
+                    <input type="number"
+                           id="newDDays"
+                           class="form-input"
+                           value="7"
+                           min="1"
+                           step="1"
+                           placeholder="أيام الاشتراك"
+                           required>
                 </div>
-                <button type="submit" class="btn-action" style="margin-top: 6px; padding: 11px 20px;">إضافة وتفعيل السائق وإرسال بيانات الدخول</button>
+
+                <button type="submit"
+                        class="btn-action"
+                        style="margin-top:6px;padding:11px 20px;">
+                    إضافة وتفعيل السائق وإرسال بيانات الدخول
+                </button>
             </form>
         </div>
 
-        <!-- جدول قائمة السائقين -->
         <div class="panel-card">
-            <h3 style="margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-list"></i> قائمة السائقين وحالة الركاب الحية</h3>
+            <h3 style="margin-bottom:10px;font-size:1rem;">
+                <i class="fa-solid fa-list"></i>
+                قائمة السائقين وحالة الركاب الحية
+            </h3>
+
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
                         <tr>
-                            <th style="background:#1f2937; color:#fcba03;">إرسال طلب</th>
+                            <th style="background:#1f2937;color:#fcba03;">إرسال طلب</th>
                             <th>السائق</th>
                             <th>المحافظة الحالية</th>
                             <th>الهاتف</th>
@@ -424,17 +707,25 @@
         </div>
     </div>
 
-    <!-- نافذة تعيين المشوار وحساب المسار التفاعلي -->
     <div id="assignModal" class="modal-wrap" style="display:none;">
         <div class="modal-card">
-            <h3 style="color:var(--brand-yellow); margin-bottom:4px;"><i class="fa-solid fa-paper-plane"></i> تعيين مهمة توصيل وحساب المسار</h3>
-            <p id="assignDriverInfo" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;"></p>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <!-- جانب نقطة الانطلاق -->
-                <div style="background: rgba(34, 197, 94, 0.05); padding: 8px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
-                    <label style="font-size:0.8rem; color:#22c55e; font-weight: bold; display:block; margin-bottom:2px;">📍 محافظة الانطلاق:</label>
-                    <select id="assignPickupGov" class="select-gov-tab" onchange="onGovChange('pickup')">
+            <h3 style="color:var(--brand-yellow);margin-bottom:4px;">
+                <i class="fa-solid fa-paper-plane"></i>
+                تعيين مهمة توصيل وحساب المسار
+            </h3>
+
+            <p id="assignDriverInfo"
+               style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;"></p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="background:rgba(34,197,94,0.05);padding:8px;border-radius:8px;border:1px solid rgba(34,197,94,0.2);">
+                    <label style="font-size:0.8rem;color:#22c55e;font-weight:bold;display:block;margin-bottom:2px;">
+                        📍 محافظة الانطلاق:
+                    </label>
+
+                    <select id="assignPickupGov"
+                            class="select-gov-tab"
+                            onchange="onGovChange('pickup')">
                         <option value="دمشق" selected>دمشق</option>
                         <option value="ريف دمشق">ريف دمشق</option>
                         <option value="حلب">حلب</option>
@@ -451,17 +742,31 @@
                         <option value="الحسكة">الحسكة</option>
                     </select>
 
-                    <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:2px;">المكان أو لصق رابط الموقع (Link):</label>
+                    <label style="font-size:0.75rem;color:#aaa;display:block;margin-bottom:2px;">
+                        المكان أو لصق رابط الموقع (Link):
+                    </label>
+
                     <div class="autocomplete-wrapper">
-                        <input type="text" id="assignPickup" class="form-input" autocomplete="off" placeholder="اكتب أول حرف أو الصق رابطاً..." oninput="handleCustomInput('pickup')" onfocus="handleCustomInput('pickup')" required>
+                        <input type="text"
+                               id="assignPickup"
+                               class="form-input"
+                               autocomplete="off"
+                               placeholder="اكتب أول حرف أو الصق رابطاً..."
+                               oninput="handleCustomInput('pickup')"
+                               onfocus="handleCustomInput('pickup')"
+                               required>
                         <div id="pickupSuggestions" class="suggestions-dropdown"></div>
                     </div>
                 </div>
 
-                <!-- جانب نقطة الوصول -->
-                <div style="background: rgba(239, 68, 68, 0.05); padding: 8px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
-                    <label style="font-size:0.8rem; color:#ef4444; font-weight: bold; display:block; margin-bottom:2px;">🏁 محافظة الوصول (النزول):</label>
-                    <select id="assignDropoffGov" class="select-gov-tab" onchange="onGovChange('dropoff')">
+                <div style="background:rgba(239,68,68,0.05);padding:8px;border-radius:8px;border:1px solid rgba(239,68,68,0.2);">
+                    <label style="font-size:0.8rem;color:#ef4444;font-weight:bold;display:block;margin-bottom:2px;">
+                        🏁 محافظة الوصول (النزول):
+                    </label>
+
+                    <select id="assignDropoffGov"
+                            class="select-gov-tab"
+                            onchange="onGovChange('dropoff')">
                         <option value="دمشق" selected>دمشق</option>
                         <option value="ريف دمشق">ريف دمشق</option>
                         <option value="حلب">حلب</option>
@@ -478,78 +783,213 @@
                         <option value="الحسكة">الحسكة</option>
                     </select>
 
-                    <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:2px;">المكان أو لصق رابط الموقع (Link):</label>
+                    <label style="font-size:0.75rem;color:#aaa;display:block;margin-bottom:2px;">
+                        المكان أو لصق رابط الموقع (Link):
+                    </label>
+
                     <div class="autocomplete-wrapper">
-                        <input type="text" id="assignDropoff" class="form-input" autocomplete="off" placeholder="اكتب أول حرف أو الصق رابطاً..." oninput="handleCustomInput('dropoff')" onfocus="handleCustomInput('dropoff')" required>
+                        <input type="text"
+                               id="assignDropoff"
+                               class="form-input"
+                               autocomplete="off"
+                               placeholder="اكتب أول حرف أو الصق رابطاً..."
+                               oninput="handleCustomInput('dropoff')"
+                               onfocus="handleCustomInput('dropoff')"
+                               required>
                         <div id="dropoffSuggestions" class="suggestions-dropdown"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- أزرار وضع الخريطة -->
-            <div class="map-select-mode-btns" style="margin-top: 10px;">
-                <button type="button" id="btnPickModePickup" class="btn-mode active-pickup" onclick="setSelectMode('pickup')">
-                    <i class="fa-solid fa-location-dot"></i> تحديد الانطلاق بالنقر على الخريطة
+            <div class="map-select-mode-btns" style="margin-top:10px;">
+                <button type="button"
+                        id="btnPickModePickup"
+                        class="btn-mode active-pickup"
+                        onclick="setSelectMode('pickup')">
+                    <i class="fa-solid fa-location-dot"></i>
+                    تحديد الانطلاق بالنقر على الخريطة
                 </button>
-                <button type="button" id="btnPickModeDropoff" class="btn-mode" onclick="setSelectMode('dropoff')">
-                    <i class="fa-solid fa-flag-checkered"></i> تحديد الوجهة بالنقر على الخريطة
+
+                <button type="button"
+                        id="btnPickModeDropoff"
+                        class="btn-mode"
+                        onclick="setSelectMode('dropoff')">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    تحديد الوجهة بالنقر على الخريطة
                 </button>
             </div>
 
-            <!-- خريطة رسم وتعديل المسار -->
             <div id="assignMap"></div>
-            <p style="font-size:0.75rem; color:#888; margin-top:-6px; margin-bottom:8px; text-align:center;">
+
+            <p style="font-size:0.75rem;color:#888;margin-top:-6px;margin-bottom:8px;text-align:center;">
                 💡 يمكنك سحب النقطة الخضراء أو الحمراء لتعديل الموقع بدقة أو لصق رابط الموقع في الحقول أعلاه.
             </p>
 
-            <!-- ملاحظات إضافية -->
-            <label style="font-size:0.8rem; color:var(--brand-yellow); font-weight: bold; display:block; margin-bottom:2px;">📝 ملاحظات إضافية للكابتن (رقم هاتف الزبون، تفاصيل المكان):</label>
-            <input type="text" id="assignExtraNote" class="form-input" placeholder="مثال: رقم الزبون 0988... / البناء جانب الصيدلية طابق ثاني">
+            <label style="font-size:0.8rem;color:var(--brand-yellow);font-weight:bold;display:block;margin-bottom:2px;">
+                📝 ملاحظات إضافية للكابتن (رقم هاتف الزبون، تفاصيل المكان):
+            </label>
+
+            <input type="text"
+                   id="assignExtraNote"
+                   class="form-input"
+                   placeholder="مثال: رقم الزبون 0988... / البناء جانب الصيدلية طابق ثاني">
 
             <div class="price-box">
-                <div style="font-size: 0.85rem; color: #a3a3a3; margin-bottom: 2px;" id="assignCalcStatus">المسافة المقدرة: 4.0 كم</div>
-                الأجرة الإجمالية المقدرة: <span id="assignPriceText">20,000</span> ليرة سورية <span id="assignPriceShortText" style="color:#22c55e;">(200)</span>
+                <div id="assignCalcStatus"
+                     style="font-size:0.85rem;color:#a3a3a3;margin-bottom:2px;">
+                    المسافة المقدرة: 4.0 كم
+                </div>
+                الأجرة الإجمالية المقدرة:
+                <span id="assignPriceText">20,000</span>
+                ليرة سورية
+                <span id="assignPriceShortText" style="color:#22c55e;">(200)</span>
             </div>
 
-            <div style="display:flex; gap:8px;">
-                <button onclick="confirmAndSendAssignment()" class="btn-action" style="background:#25d366; color:#fff; flex:2; padding:11px;">
-                    <i class="fa-brands fa-whatsapp"></i> إرسال تفاصيل المهمة مع الروابط عبر واتساب
+            <div style="display:flex;gap:8px;">
+                <button onclick="confirmAndSendAssignment()"
+                        class="btn-action"
+                        style="background:#25d366;color:#fff;flex:2;padding:11px;">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    إرسال تفاصيل المهمة مع الروابط عبر واتساب
                 </button>
-                <button onclick="closeAssignModal()" style="background:#333; color:#fff; border:none; padding:11px 16px; border-radius:6px; cursor:pointer; font-weight:700;">
+
+                <button onclick="closeAssignModal()"
+                        style="background:#333;color:#fff;border:none;padding:11px 16px;border-radius:6px;cursor:pointer;font-weight:700;">
                     إلغاء
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- نافذة تأكيد الإضافة ومشاركة بيانات الدخول -->
     <div id="infoModal" class="modal-wrap" style="display:none;">
         <div class="modal-card">
-            <h3 style="color:var(--brand-yellow); margin-bottom:10px;"><i class="fa-solid fa-circle-check" style="color:var(--accent-green);"></i> تم تسجيل السائق بنجاح!</h3>
-            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">نص الرسالة المجهز مع رابط تحميل التطبيق المباشر (APK):</p>
-            <textarea id="modalMsgText" style="width:100%; height:170px; background:#111; color:#fff; border:1px solid #444; border-radius:8px; padding:10px; font-size:0.85rem; font-family:'Cairo'; outline:none; resize:none;" readonly></textarea>
-            
-            <div style="display:flex; gap:8px; margin-top:12px;">
-                <button onclick="copyModalText()" class="btn-action" style="flex:1; padding:10px;"><i class="fa-solid fa-copy"></i> نسخ نص الرسالة</button>
-                <button onclick="openWhatsAppDirect()" class="btn-action" style="background:#25d366; color:#fff; flex:1; padding:10px;"><i class="fa-brands fa-whatsapp"></i> فتح واتساب الآن</button>
-                <button onclick="closeModal()" style="background:#333; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:700;">إغلاق</button>
+            <h3 style="color:var(--brand-yellow);margin-bottom:10px;">
+                <i class="fa-solid fa-circle-check" style="color:var(--accent-green);"></i>
+                بيانات السائق
+            </h3>
+
+            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;">
+                نص الرسالة المجهز مع رابط تحميل التطبيق المباشر (APK):
+            </p>
+
+            <textarea id="modalMsgText"
+                      style="width:100%;height:170px;background:#111;color:#fff;border:1px solid #444;border-radius:8px;padding:10px;font-size:0.85rem;outline:none;resize:none;"
+                      readonly></textarea>
+
+            <div style="display:flex;gap:8px;margin-top:12px;">
+                <button onclick="copyModalText()"
+                        class="btn-action"
+                        style="flex:1;padding:10px;">
+                    <i class="fa-solid fa-copy"></i> نسخ نص الرسالة
+                </button>
+
+                <button onclick="openWhatsAppDirect()"
+                        class="btn-action"
+                        style="background:#25d366;color:#fff;flex:1;padding:10px;">
+                    <i class="fa-brands fa-whatsapp"></i> فتح واتساب الآن
+                </button>
+
+                <button onclick="closeModal()"
+                        style="background:#333;color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;font-weight:700;">
+                    إغلاق
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
+    <div id="subscriptionModal"
+         class="modal-wrap"
+         style="display:none;"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="subscriptionTitle">
+        <div class="modal-card" style="max-width:460px;">
+            <h3 id="subscriptionTitle"
+                style="color:var(--brand-yellow);margin-bottom:12px;">
+                تعديل اشتراك السائق
+            </h3>
+
+            <p id="subscriptionDriverName" style="margin-bottom:8px;"></p>
+
+            <p id="subscriptionCurrentDays"
+               style="color:var(--text-muted);margin-bottom:16px;"></p>
+
+            <form onsubmit="saveSubscriptionDays(event)">
+                <label for="subscriptionMode">نوع التعديل</label>
+
+                <select id="subscriptionMode"
+                        class="form-input"
+                        onchange="updateSubscriptionPreview()"
+                        style="margin:6px 0 14px;">
+                    <option value="add">إضافة أيام</option>
+                    <option value="subtract">خصم أيام</option>
+                    <option value="set">تحديد عدد الأيام المتبقية مباشرة</option>
+                </select>
+
+                <label for="subscriptionDaysInput" id="subscriptionDaysLabel">
+                    عدد الأيام المراد إضافتها
+                </label>
+
+                <input id="subscriptionDaysInput"
+                       class="form-input"
+                       type="number"
+                       min="1"
+                       step="1"
+                       value="7"
+                       required
+                       oninput="updateSubscriptionPreview()"
+                       style="margin:6px 0 14px;">
+
+                <p id="subscriptionPreview"
+                   aria-live="polite"
+                   style="color:var(--brand-yellow);margin-bottom:12px;"></p>
+
+                <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;">
+                    إذا وصل المتبقي إلى صفر ينتهي الاشتراك.
+                    الحفظ يعتمد على أحدث تاريخ انتهاء في قاعدة البيانات.
+                </p>
+
+                <p id="subscriptionError"
+                   role="alert"
+                   style="color:var(--accent-red);margin-bottom:12px;"></p>
+
+                <div style="display:flex;gap:10px;">
+                    <button type="submit"
+                            id="subscriptionSaveButton"
+                            class="btn-action"
+                            style="flex:1;padding:12px;">
+                        حفظ التعديل
+                    </button>
+
+                    <button type="button"
+                            id="subscriptionCancelButton"
+                            onclick="closeSubscriptionModal()"
+                            class="btn-action"
+                            style="background:#444;color:#fff;padding:12px;">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
         const ADMIN_USERNAME = "Jonathan";
         const ADMIN_PASSWORD = "Aassi1981";
-        
-        const firebaseConfig = { databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/" };
+
+        const firebaseConfig = {
+            databaseURL: "https://taxialbalad-85453-default-rtdb.europe-west1.firebasedatabase.app/"
+        };
+
         firebase.initializeApp(firebaseConfig);
+
         const db = firebase.database();
         const driversRef = db.ref('drivers');
 
-        const DRIVER_APK_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1GKPtOOmHlLhADw2EwoaZasEfjLdYm2y4";
+        const DRIVER_APK_DOWNLOAD_URL =
+            "https://drive.google.com/uc?export=download&id=1GKPtOOmHlLhADw2EwoaZasEfjLdYm2y4";
 
         let radarMap;
         let driverMarkers = {};
@@ -557,7 +997,6 @@
         let currentModalPhone = "";
         let currentModalMsg = "";
 
-        // متغيرات التكليف والخريطة
         let activeAssignDriver = null;
         let currentCalculatedKm = 4.0;
         let isCrossRegionTrip = false;
@@ -570,9 +1009,11 @@
         let routePolyline = null;
         let mapClickSelectMode = 'pickup';
 
-        // قاعدة البيانات الجغرافية السورية الموسعة
+        const SUBSCRIPTION_DAY_MS = 24 * 60 * 60 * 1000;
+        let subscriptionDriverKey = null;
+        let subscriptionSaving = false;
+
         const syriaPlacesDatabase = [
-            // بوابات دمشق
             { name: "باب توما", en: "Bab Touma", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5145, lng: 36.3160, priority: 8 },
             { name: "باب شرقي", en: "Bab Sharqi", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5098, lng: 36.3205, priority: 8 },
             { name: "باب الجابية", en: "Bab Al-Jabiya", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5085, lng: 36.3015, priority: 8 },
@@ -582,7 +1023,6 @@
             { name: "باب الفراديس", en: "Bab Al-Faradis", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5140, lng: 36.3080, priority: 8 },
             { name: "باب سريجة", en: "Bab Sreijeh", cat: "بوابات دمشق", gov: "دمشق", lat: 33.5090, lng: 36.2990, priority: 8 },
 
-            // كنائس
             { name: "كنيسة الزيتون (كاتدرائية سيدة النياح)", en: "Al-Zaytoun Church", cat: "كنائس", gov: "دمشق", lat: 33.5095, lng: 36.3135, priority: 11 },
             { name: "كنيسة القديس بولس الرسول (باب كيسان)", en: "Saint Paul Church", cat: "كنائس", gov: "دمشق", lat: 33.5052, lng: 36.3192, priority: 11 },
             { name: "كنيسة حنانيا الرسول (باب شرقي)", en: "Saint Ananias Chapel", cat: "كنائس", gov: "دمشق", lat: 33.5122, lng: 36.3175, priority: 11 },
@@ -590,7 +1030,6 @@
             { name: "كنيسة الصليب المقدس (القصاع)", en: "Holy Cross Church Qasaa", cat: "كنائس", gov: "دمشق", lat: 33.5225, lng: 36.3210, priority: 11 },
             { name: "كنيسة القديس يوحنا الدمشقي (القصور)", en: "St John of Damascus", cat: "كنائس", gov: "دمشق", lat: 33.5280, lng: 36.3160, priority: 11 },
 
-            // جوامع ومساجد
             { name: "جامع بني أمية الكبير (الجامع الأموي)", en: "Umayyad Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.5118, lng: 36.3065, priority: 11 },
             { name: "جامع العثمان (المزرعة)", en: "Al-Othman Mosque Mazraa", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.5265, lng: 36.2990, priority: 11 },
             { name: "جامع الروضة (الروضة)", en: "Al-Rawda Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.5218, lng: 36.2818, priority: 11 },
@@ -600,7 +1039,6 @@
             { name: "جامع الدقاق (الميدان)", en: "Al-Dakkak Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.4910, lng: 36.3010, priority: 11 },
             { name: "جامع الحسن (الميدان)", en: "Al-Hassan Mosque", cat: "جوامع ومساجد", gov: "دمشق", lat: 33.4880, lng: 36.3005, priority: 11 },
 
-            // مشافي
             { name: "مشفى المواساة الجامعي", en: "Al Mouwasat Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5080, lng: 36.2690, priority: 1 },
             { name: "مشفى الأسد الجامعي", en: "Al Assad University Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5090, lng: 36.2660, priority: 1 },
             { name: "مشفى الأطفال الجامعي", en: "Children Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5075, lng: 36.2680, priority: 1 },
@@ -610,7 +1048,6 @@
             { name: "مشفى الهلال الأحمر (شارع بغداد)", en: "Red Crescent Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5230, lng: 36.3040, priority: 1 },
             { name: "مشفى تشرين العسكري", en: "Tishreen Military Hospital", cat: "مشافي ومراكز طبية", gov: "دمشق", lat: 33.5600, lng: 36.3150, priority: 1 },
 
-            // كراجات وجسور
             { name: "كراج السيدة زينب (الجنوبي)", en: "Southern Bus Terminal", cat: "كراجات ونقل", gov: "دمشق", lat: 33.4830, lng: 36.3120, priority: 3 },
             { name: "كراج العباسيين (الشمالي)", en: "Abbassiyin Bus Station", cat: "كراجات ونقل", gov: "دمشق", lat: 33.5310, lng: 36.3310, priority: 3 },
             { name: "كراج السومرية", en: "Al Somariah Bus Terminal", cat: "كراجات ونقل", gov: "دمشق", lat: 33.4790, lng: 36.2110, priority: 3 },
@@ -621,7 +1058,6 @@
             { name: "أوتوستراد المزة", en: "Mazzeh Highway", cat: "شوارع وطرق", gov: "دمشق", lat: 33.5015, lng: 36.2486, priority: 7 },
             { name: "أوتوستراد العدوي", en: "Al-Adawi Highway", cat: "شوارع وطرق", gov: "دمشق", lat: 33.5350, lng: 36.3150, priority: 7 },
 
-            // مولات وأسواق
             { name: "شام سيتي سنتر (المزة)", en: "Cham City Center", cat: "مولات وتسوق", gov: "دمشق", lat: 33.5035, lng: 36.2480, priority: 9 },
             { name: "ماسة بلازا (المالكي)", en: "Massa Plaza", cat: "مولات وتسوق", gov: "دمشق", lat: 33.5220, lng: 36.2750, priority: 9 },
             { name: "قاسيون مول (مساكن برزة)", en: "Qasioun Mall", cat: "مولات وتسوق", gov: "دمشق", lat: 33.5590, lng: 36.3210, priority: 9 },
@@ -631,7 +1067,6 @@
             { name: "سوق الصالحية", en: "Al-Salihiyah Market", cat: "أسواق شعبية", gov: "دمشق", lat: 33.5210, lng: 36.2930, priority: 9 },
             { name: "سوق الشعلان", en: "Al-Shaalan Market", cat: "أسواق شعبية", gov: "دمشق", lat: 33.5180, lng: 36.2900, priority: 9 },
 
-            // ريف دمشق
             { name: "مطار دمشق الدولي", en: "Damascus International Airport", cat: "مطارات", gov: "ريف دمشق", lat: 33.4110, lng: 36.5150, priority: 2 },
             { name: "مقام السيدة زينب", en: "Sayyidah Zaynab Shrine", cat: "معالم دينية", gov: "ريف دمشق", lat: 33.4440, lng: 36.3410, priority: 11 },
             { name: "دير سيدة صيدنايا", en: "Sednaya Monastery", cat: "كنائس وأديرة", gov: "ريف دمشق", lat: 33.6930, lng: 36.3740, priority: 11 },
@@ -648,7 +1083,6 @@
             { name: "منطقة يعفور", en: "Yafour", cat: "مدن وبلدات", gov: "ريف دمشق", lat: 33.5500, lng: 36.0650, priority: 12 },
             { name: "منطقة الصبورة", en: "Al-Sabboura", cat: "مدن وبلدات", gov: "ريف دمشق", lat: 33.5450, lng: 36.1000, priority: 12 },
 
-            // باقي المحافظات
             { name: "مشفى تشرين الجامعي (اللاذقية)", en: "Tishreen University Hospital", cat: "مشافي ومراكز طبية", gov: "اللاذقية", lat: 35.5320, lng: 35.8050, priority: 1 },
             { name: "مشفى الأسد الوطني (اللاذقية)", en: "National Hospital Latakia", cat: "مشافي ومراكز طبية", gov: "اللاذقية", lat: 35.5250, lng: 35.7910, priority: 1 },
             { name: "كنيسة القديس جاورجيوس (الصليبة)", en: "St. George Church Latakia", cat: "كنائس", gov: "اللاذقية", lat: 35.5195, lng: 35.7830, priority: 11 },
@@ -678,19 +1112,21 @@
         ];
 
         const rifDimashqKeywords = [
-            'ريف دمشق', 'جرمانا', 'قدسيا', 'صحنايا', 'داريا', 'معضمية', 
-            'التل', 'الكسوة', 'دوما', 'حرستا', 'الصبورة', 'يعفور', 
-            'اشرفية صحنايا', 'عين ترما', 'كفر بطنا', 'سقبا', 'عربين', 'جديدة عرطوز',
-            'قطنا', 'معربا', 'المليحة', 'السيدة زينب', 'الهامة', 'ضاحية قدسيا', 'صيدنايا', 'معلولا'
+            'ريف دمشق', 'جرمانا', 'قدسيا', 'صحنايا', 'داريا', 'معضمية',
+            'التل', 'الكسوة', 'دوما', 'حرستا', 'الصبورة', 'يعفور',
+            'اشرفية صحنايا', 'عين ترما', 'كفر بطنا', 'سقبا', 'عربين',
+            'جديدة عرطوز', 'قطنا', 'معربا', 'المليحة', 'السيدة زينب',
+            'الهامة', 'ضاحية قدسيا', 'صيدنايا', 'معلولا'
         ];
 
         const damascusCityKeywords = [
-            'دمشق', 'المزة', 'الميدان', 'الصالحية', 'الشعلان', 'الشاغور', 
-            'الحميدية', 'الحريقة', 'المزرعة', 'شارع بغداد', 'برزة', 
-            'كفرسوسة', 'ركن الدين', 'العباسيين', 'ابو رمانة', 'القصور', 
-            'شارع الحمراء', 'الحجاز', 'المهاجرين', 'الشهبندر', 'شارع الثورة', 
-            'الزاهرة', 'العدوي', 'التضامن', 'القابون', 'ميسلون', 'سوق مدحت باشا',
-            'باب توما', 'باب شرقي', 'باب الجابية', 'باب كيسان', 'باب الصغير'
+            'دمشق', 'المزة', 'الميدان', 'الصالحية', 'الشعلان', 'الشاغور',
+            'الحميدية', 'الحريقة', 'المزرعة', 'شارع بغداد', 'برزة',
+            'كفرسوسة', 'ركن الدين', 'العباسيين', 'ابو رمانة', 'القصور',
+            'شارع الحمراء', 'الحجاز', 'المهاجرين', 'الشهبندر',
+            'شارع الثورة', 'الزاهرة', 'العدوي', 'التضامن', 'القابون',
+            'ميسلون', 'سوق مدحت باشا', 'باب توما', 'باب شرقي',
+            'باب الجابية', 'باب كيسان', 'باب الصغير'
         ];
 
         function normalizeSearchText(text) {
@@ -704,25 +1140,36 @@
             return t;
         }
 
-        // نظام الاقتراحات الذكي (لا يظهر حتى يكتب أول حرف، وبنفس المحافظة حصراً)
         function handleCustomInput(type) {
-            const inputEl = document.getElementById(type === 'pickup' ? 'assignPickup' : 'assignDropoff');
-            const govVal = document.getElementById(type === 'pickup' ? 'assignPickupGov' : 'assignDropoffGov').value;
-            const dropdownEl = document.getElementById(type === 'pickup' ? 'pickupSuggestions' : 'dropoffSuggestions');
-            const val = inputEl.value.trim();
+            const inputEl = document.getElementById(
+                type === 'pickup' ? 'assignPickup' : 'assignDropoff'
+            );
 
-            // فحص إذا كان هناك رابط ملصق
+            const govVal = document.getElementById(
+                type === 'pickup' ? 'assignPickupGov' : 'assignDropoffGov'
+            ).value;
+
+            const dropdownEl = document.getElementById(
+                type === 'pickup' ? 'pickupSuggestions' : 'dropoffSuggestions'
+            );
+
+            const val = inputEl.value.trim();
             const coords = extractCoordsFromText(val);
+
             if (coords) {
                 dropdownEl.style.display = 'none';
-                inputEl.value = `موقع عبر الرابط (${coords[0].toFixed(4)}, ${coords[1].toFixed(4)})`;
-                if (type === 'pickup') updatePickupPoint(coords, false);
-                else updateDropoffPoint(coords, false);
+                inputEl.value =
+                    `موقع عبر الرابط (${coords[0].toFixed(4)}, ${coords[1].toFixed(4)})`;
+
+                if (type === 'pickup') {
+                    updatePickupPoint(coords, false);
+                } else {
+                    updateDropoffPoint(coords, false);
+                }
                 return;
             }
 
-            // لا تظهر القائمة حتى يُكتب حرف واحد على الأقل
-            if (!val || val.length === 0) {
+            if (!val) {
                 dropdownEl.style.display = 'none';
                 dropdownEl.innerHTML = '';
                 return;
@@ -730,13 +1177,16 @@
 
             const cleanVal = normalizeSearchText(val);
 
-            // تصفية الأماكن التابعة للمحافظة المختارة فقط والتي تطابق الحروف
-            let matched = syriaPlacesDatabase.filter(p => {
+            const matched = syriaPlacesDatabase.filter(p => {
                 if (p.gov !== govVal) return false;
+
                 const arNorm = normalizeSearchText(p.name);
                 const enNorm = (p.en || '').toLowerCase();
                 const catNorm = normalizeSearchText(p.cat);
-                return arNorm.includes(cleanVal) || enNorm.includes(cleanVal) || catNorm.includes(cleanVal);
+
+                return arNorm.includes(cleanVal)
+                    || enNorm.includes(cleanVal)
+                    || catNorm.includes(cleanVal);
             });
 
             matched.sort((a, b) => a.priority - b.priority);
@@ -748,30 +1198,34 @@
             }
 
             dropdownEl.innerHTML = '';
+
             matched.slice(0, 15).forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
+
                 div.innerHTML = `
                     <span><b>${item.name}</b></span>
                     <span class="suggestion-category">${item.cat}</span>
                 `;
+
                 div.onclick = () => {
                     inputEl.value = item.name;
                     dropdownEl.style.display = 'none';
+
                     if (type === 'pickup') {
                         updatePickupPoint([item.lat, item.lng], false);
                     } else {
                         updateDropoffPoint([item.lat, item.lng], false);
                     }
                 };
+
                 dropdownEl.appendChild(div);
             });
 
             dropdownEl.style.display = 'block';
         }
 
-        // إغلاق القوائم عند النقر في مكان آخر
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', e => {
             if (!e.target.closest('.autocomplete-wrapper')) {
                 document.getElementById('pickupSuggestions').style.display = 'none';
                 document.getElementById('dropoffSuggestions').style.display = 'none';
@@ -779,50 +1233,96 @@
         });
 
         function onGovChange(type) {
-            const inputEl = document.getElementById(type === 'pickup' ? 'assignPickup' : 'assignDropoff');
+            const inputEl = document.getElementById(
+                type === 'pickup' ? 'assignPickup' : 'assignDropoff'
+            );
+
             inputEl.value = '';
-            document.getElementById(type === 'pickup' ? 'pickupSuggestions' : 'dropoffSuggestions').style.display = 'none';
+
+            document.getElementById(
+                type === 'pickup' ? 'pickupSuggestions' : 'dropoffSuggestions'
+            ).style.display = 'none';
+
             inputEl.focus();
         }
 
         function extractCoordsFromText(text) {
             if (!text) return null;
             text = text.trim();
-            const direct = text.match(/^(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)$/);
-            if (direct) return [parseFloat(direct[1]), parseFloat(direct[3])];
 
-            const gmapsQ = text.match(/[?&]q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)/);
-            if (gmapsQ) return [parseFloat(gmapsQ[1]), parseFloat(gmapsQ[3])];
+            const direct = text.match(
+                /^(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)$/
+            );
 
-            const gmapsAt = text.match(/@(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)/);
-            if (gmapsAt) return [parseFloat(gmapsAt[1]), parseFloat(gmapsAt[3])];
+            if (direct) {
+                return [parseFloat(direct[1]), parseFloat(direct[3])];
+            }
 
-            const osmMatch = text.match(/#map=\d+\/(-?\d+(\.\d+)?)\/(-?\d+(\.\d+)?)/);
-            if (osmMatch) return [parseFloat(osmMatch[1]), parseFloat(osmMatch[3])];
+            const gmapsQ = text.match(
+                /[?&]q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)/
+            );
+
+            if (gmapsQ) {
+                return [parseFloat(gmapsQ[1]), parseFloat(gmapsQ[3])];
+            }
+
+            const gmapsAt = text.match(
+                /@(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)/
+            );
+
+            if (gmapsAt) {
+                return [parseFloat(gmapsAt[1]), parseFloat(gmapsAt[3])];
+            }
+
+            const osmMatch = text.match(
+                /#map=\d+\/(-?\d+(\.\d+)?)\/(-?\d+(\.\d+)?)/
+            );
+
+            if (osmMatch) {
+                return [parseFloat(osmMatch[1]), parseFloat(osmMatch[3])];
+            }
 
             return null;
         }
 
         function cleanSyrianPhone(raw) {
-            let d = raw.toString().replace(/[^0-9]/g, '');
-            if (d.startsWith('00963')) d = d.substring(2);
-            if (d.startsWith('9630')) d = '963' + d.substring(4);
-            else if (d.startsWith('0')) d = '963' + d.substring(1);
-            else if (!d.startsWith('963')) d = '963' + d;
+            let d = String(raw || '').replace(/[^0-9]/g, '');
+
+            if (d.startsWith('00963')) {
+                d = d.substring(2);
+            }
+
+            if (d.startsWith('9630')) {
+                d = '963' + d.substring(4);
+            } else if (d.startsWith('0')) {
+                d = '963' + d.substring(1);
+            } else if (!d.startsWith('963')) {
+                d = '963' + d;
+            }
+
             return d;
         }
 
         function getWhatsAppUrl(phone, msg) {
             const clean = cleanSyrianPhone(phone);
             const encoded = encodeURIComponent(msg);
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            return isMobile ? `https://wa.me/${clean}?text=${encoded}` : `https://web.whatsapp.com/send?phone=${clean}&text=${encoded}`;
+
+            const isMobile =
+                /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+            return isMobile
+                ? `https://wa.me/${clean}?text=${encoded}`
+                : `https://web.whatsapp.com/send?phone=${clean}&text=${encoded}`;
         }
 
         function handleAdminLogin(e) {
             e.preventDefault();
-            const inputUser = document.getElementById('adminUserInput').value.trim();
-            const inputPass = document.getElementById('adminPinInput').value.trim();
+
+            const inputUser =
+                document.getElementById('adminUserInput').value.trim();
+
+            const inputPass =
+                document.getElementById('adminPinInput').value.trim();
 
             if (inputUser === ADMIN_USERNAME && inputPass === ADMIN_PASSWORD) {
                 sessionStorage.setItem('admin_auth', 'true');
@@ -847,53 +1347,101 @@
             }
         });
 
-        // الاستماع الفوري لبيانات السائقين وحالات الركاب
-        driversRef.on('value', (snapshot) => {
+        driversRef.on('value', snapshot => {
             const data = snapshot.val();
             driversList = [];
-            if(data) {
-                Object.keys(data).forEach(key => driversList.push({ ...data[key], fbKey: key }));
+
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    driversList.push({
+                        ...data[key],
+                        fbKey: key
+                    });
+                });
             }
+
             renderTable();
             updateStats();
             updateMapMarkers();
+
+            if (subscriptionDriverKey && !subscriptionSaving) {
+                updateSubscriptionPreview();
+            }
         });
 
-        // حساب الأيام المتبقية بدقة
         function calculateDays(expiryTimestamp) {
-            if (!expiryTimestamp) return 0;
-            const exp = parseInt(expiryTimestamp);
+            const exp = Number(expiryTimestamp);
+
+            if (!Number.isFinite(exp) || exp <= 0) return 0;
+
             const diff = exp - Date.now();
-            return diff <= 0 ? 0 : Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+            return diff <= 0
+                ? 0
+                : Math.ceil(diff / SUBSCRIPTION_DAY_MS);
         }
 
         function initRadarMap() {
-            if(radarMap) { radarMap.invalidateSize(); return; }
+            if (radarMap) {
+                radarMap.invalidateSize();
+                return;
+            }
+
             radarMap = L.map('radarMap').setView([33.5138, 36.2765], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(radarMap);
+
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                { attribution: '© OpenStreetMap' }
+            ).addTo(radarMap);
+
             updateMapMarkers();
         }
 
         async function searchLocationAndDrivers() {
-            const query = document.getElementById('areaSearchInput').value.trim();
+            const query =
+                document.getElementById('areaSearchInput').value.trim();
+
             if (!query) {
                 alert("يرجى إدخال اسم المكان أولاً!");
                 return;
             }
 
+            if (!radarMap) {
+                initRadarMap();
+            }
+
             const cleanQ = normalizeSearchText(query);
-            let matched = syriaPlacesDatabase.filter(p => normalizeSearchText(p.name).includes(cleanQ) || (p.en && p.en.toLowerCase().includes(cleanQ)));
+
+            const matched = syriaPlacesDatabase.filter(p =>
+                normalizeSearchText(p.name).includes(cleanQ)
+                || (p.en && p.en.toLowerCase().includes(cleanQ))
+            );
+
             if (matched.length > 0) {
                 matched.sort((a, b) => a.priority - b.priority);
-                radarMap.flyTo([matched[0].lat, matched[0].lng], 16, { duration: 1.5 });
+
+                radarMap.flyTo(
+                    [matched[0].lat, matched[0].lng],
+                    16,
+                    { duration: 1.5 }
+                );
+
                 return;
             }
 
             try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=sy&q=${encodeURIComponent(query)}`);
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&countrycodes=sy&q=${encodeURIComponent(query)}`
+                );
+
                 const data = await res.json();
+
                 if (data && data.length > 0) {
-                    radarMap.flyTo([parseFloat(data[0].lat), parseFloat(data[0].lon)], 15, { duration: 1.5 });
+                    radarMap.flyTo(
+                        [parseFloat(data[0].lat), parseFloat(data[0].lon)],
+                        15,
+                        { duration: 1.5 }
+                    );
                 } else {
                     alert(`لم يتم العثور على موقع باسم (${query}) في سوريا.`);
                 }
@@ -903,150 +1451,257 @@
         }
 
         function handleSearchKeyPress(e) {
-            if (e.key === 'Enter') searchLocationAndDrivers();
+            if (e.key === 'Enter') {
+                searchLocationAndDrivers();
+            }
         }
 
         function resetRadarView() {
             document.getElementById('areaSearchInput').value = '';
+
+            if (!radarMap) {
+                initRadarMap();
+            }
+
             radarMap.flyTo([33.5138, 36.2765], 13);
         }
 
-        // تحديث إشارات السائقين على الخريطة (الألوان: أخضر = متاح، برتقالي = معه راكب، أصفر = استراحة، أحمر = منتهي)
         function updateMapMarkers() {
-            if(!radarMap) return;
-            for(let id in driverMarkers) { radarMap.removeLayer(driverMarkers[id]); }
+            if (!radarMap) return;
+
+            for (let id in driverMarkers) {
+                radarMap.removeLayer(driverMarkers[id]);
+            }
+
             driverMarkers = {};
 
             driversList.forEach(d => {
-                if(d.lat && d.lng) {
+                if (d.lat && d.lng) {
                     const daysLeft = calculateDays(d.expiryTimestamp);
                     const isExp = daysLeft <= 0;
-                    const hasPassenger = (d.hasPassenger === true || d.status === 'busy' || d.passengerStatus === 'with_passenger');
 
-                    let color = '#fcba03'; // أصفر (استراحة)
+                    const hasPassenger =
+                        d.hasPassenger === true
+                        || d.status === 'busy'
+                        || d.passengerStatus === 'with_passenger';
+
+                    let color = '#fcba03';
                     let statusLabel = 'استراحة';
 
                     if (isExp) {
-                        color = '#ef4444'; // أحمر
+                        color = '#ef4444';
                         statusLabel = 'منتهي';
                     } else if (d.isOnline) {
                         if (hasPassenger) {
-                            color = '#f97316'; // برتقالي: معه راكب
+                            color = '#f97316';
                             statusLabel = 'معه راكب (مشغول)';
                         } else {
-                            color = '#22c55e'; // أخضر: فارغ ومتاح
+                            color = '#22c55e';
                             statusLabel = 'متاح للعمل (فارغ)';
                         }
                     }
 
                     const radarIcon = L.divIcon({
-                        html: `<div style="background:${color}; color:#000; padding:3px 8px; border-radius:12px; font-weight:900; font-size:10px; border:2px solid #fff; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5); cursor:pointer;">🚖 ${d.name} (${statusLabel})</div>`,
+                        html: `
+                            <div style="background:${color};color:#000;padding:3px 8px;border-radius:12px;font-weight:900;font-size:10px;border:2px solid #fff;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.5);cursor:pointer;">
+                                🚖 ${d.name} (${statusLabel})
+                            </div>
+                        `,
                         iconSize: [115, 25]
                     });
 
                     const popupContent = `
-                        <div style="font-size:0.85rem; line-height:1.5;">
-                            <strong style="color:var(--brand-yellow); font-size:1rem;">${d.name}</strong> (${d.car || ''})<br>
+                        <div style="font-size:0.85rem;line-height:1.5;">
+                            <strong style="color:var(--brand-yellow);font-size:1rem;">
+                                ${d.name}
+                            </strong>
+                            (${d.car || ''})<br>
+
                             📍 المنطقة: <b>${d.city || 'دمشق'}</b><br>
                             🔑 رمز الدخول: <code>${d.password || 'غير محدد'}</code><br>
-                            الحالة: <b style="color:${color};">${statusLabel}</b> (باقٍ ${daysLeft} يوم)<br>
-                            <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
-                                <button onclick="openAssignModal('${d.fbKey}')" style="background:#22c55e; color:#fff; border:none; padding:7px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
-                                    <i class="fa-solid fa-taxi"></i> تكليف بمهمة وتحديد المسار
+                            الحالة: <b style="color:${color};">${statusLabel}</b>
+                            (باقٍ ${daysLeft} يوم)<br>
+
+                            <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;">
+                                <button onclick="openAssignModal('${d.fbKey}')"
+                                        style="background:#22c55e;color:#fff;border:none;padding:7px 10px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:0.8rem;">
+                                    <i class="fa-solid fa-taxi"></i>
+                                    تكليف بمهمة وتحديد المسار
                                 </button>
-                                <button onclick="directDriverChat('${d.phone}')" style="background:#25d366; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.8rem;">
-                                    <i class="fa-brands fa-whatsapp"></i> محادثة واتساب سريعة
+
+                                <button onclick="directDriverChat('${d.phone}')"
+                                        style="background:#25d366;color:#fff;border:none;padding:6px 10px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:0.8rem;">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                    محادثة واتساب سريعة
                                 </button>
                             </div>
                         </div>
                     `;
 
-                    driverMarkers[d.fbKey] = L.marker([d.lat, d.lng], { icon: radarIcon }).addTo(radarMap).bindPopup(popupContent);
+                    driverMarkers[d.fbKey] = L.marker(
+                        [d.lat, d.lng],
+                        { icon: radarIcon }
+                    ).addTo(radarMap).bindPopup(popupContent);
                 }
             });
         }
 
         function directDriverChat(phone) {
-            const clean = cleanSyrianPhone(phone);
-            const waUrl = getWhatsAppUrl(clean, 'مرحباً كابتن، من إدارة تكسي البلد.');
+            const waUrl = getWhatsAppUrl(
+                phone,
+                'مرحباً كابتن، من إدارة تكسي البلد.'
+            );
+
             window.open(waUrl, '_blank');
         }
 
         function updateStats() {
-            document.getElementById('adminStatDrivers').innerText = driversList.length;
-            document.getElementById('adminStatActive').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) > 0 && d.isOnline && !d.hasPassenger && d.status !== 'busy').length;
-            document.getElementById('adminStatBusy').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) > 0 && d.isOnline && (d.hasPassenger || d.status === 'busy')).length;
-            document.getElementById('adminStatExpired').innerText = driversList.filter(d => calculateDays(d.expiryTimestamp) <= 0).length;
+            document.getElementById('adminStatDrivers').innerText =
+                driversList.length;
+
+            document.getElementById('adminStatActive').innerText =
+                driversList.filter(d =>
+                    calculateDays(d.expiryTimestamp) > 0
+                    && d.isOnline
+                    && !d.hasPassenger
+                    && d.status !== 'busy'
+                ).length;
+
+            document.getElementById('adminStatBusy').innerText =
+                driversList.filter(d =>
+                    calculateDays(d.expiryTimestamp) > 0
+                    && d.isOnline
+                    && (d.hasPassenger || d.status === 'busy')
+                ).length;
+
+            document.getElementById('adminStatExpired').innerText =
+                driversList.filter(d =>
+                    calculateDays(d.expiryTimestamp) <= 0
+                ).length;
         }
 
-        // عرض جدول السائقين مع تمييز حالة الركاب
         function renderTable() {
             const tbody = document.getElementById('adminTableBody');
             tbody.innerHTML = '';
 
-            if(driversList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:1rem;">لا يوجد سائقين مسجلين حالياً.</td></tr>`;
+            if (driversList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9"
+                            style="text-align:center;color:var(--text-muted);padding:1rem;">
+                            لا يوجد سائقين مسجلين حالياً.
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
             driversList.forEach(d => {
                 const daysLeft = calculateDays(d.expiryTimestamp);
                 const isExp = daysLeft <= 0;
-                const hasPassenger = (d.hasPassenger === true || d.status === 'busy' || d.passengerStatus === 'with_passenger');
+
+                const hasPassenger =
+                    d.hasPassenger === true
+                    || d.status === 'busy'
+                    || d.passengerStatus === 'with_passenger';
 
                 let statusBadge = '';
+
                 if (isExp) {
-                    statusBadge = `<span class="badge badge-expired">منتهي</span>`;
+                    statusBadge =
+                        '<span class="badge badge-expired">منتهي</span>';
                 } else if (d.isOnline) {
-                    if (hasPassenger) {
-                        statusBadge = `<span class="badge badge-busy-orange">لديه راكب 🟠</span>`;
-                    } else {
-                        statusBadge = `<span class="badge badge-active">متاح وفارغ 🟢</span>`;
-                    }
+                    statusBadge = hasPassenger
+                        ? '<span class="badge badge-busy-orange">لديه راكب 🟠</span>'
+                        : '<span class="badge badge-active">متاح وفارغ 🟢</span>';
                 } else {
-                    statusBadge = `<span class="badge badge-resting">استراحة 🟡</span>`;
+                    statusBadge =
+                        '<span class="badge badge-resting">استراحة 🟡</span>';
                 }
 
                 const tr = document.createElement('tr');
+
                 tr.innerHTML = `
                     <td>
-                        <button onclick="openAssignModal('${d.fbKey}')" class="btn-assign" title="إرسال طلب ومهمة للكابتن">
+                        <button onclick="openAssignModal('${d.fbKey}')"
+                                class="btn-assign"
+                                title="إرسال طلب ومهمة للكابتن">
                             <i class="fa-solid fa-taxi"></i> تكليف
                         </button>
                     </td>
+
                     <td><strong>${d.name}</strong></td>
-                    <td><span class="badge badge-city"><i class="fa-solid fa-location-arrow"></i> ${d.city || 'دمشق'}</span></td>
-                    <td dir="ltr">+${cleanSyrianPhone(d.phone)}</td>
+
                     <td>
-                        <strong style="color:var(--brand-yellow);">${d.password || '1234'}</strong>
-                        <button onclick="adminChangePassword('${d.fbKey}')" style="background:transparent;border:none;color:var(--accent-blue);cursor:pointer;margin-right:4px;" title="تغيير كلمة السر"><i class="fa-solid fa-pen"></i></button>
+                        <span class="badge badge-city">
+                            <i class="fa-solid fa-location-arrow"></i>
+                            ${d.city || 'دمشق'}
+                        </span>
                     </td>
+
+                    <td dir="ltr">+${cleanSyrianPhone(d.phone)}</td>
+
+                    <td>
+                        <strong style="color:var(--brand-yellow);">
+                            ${d.password || '1234'}
+                        </strong>
+
+                        <button onclick="adminChangePassword('${d.fbKey}')"
+                                style="background:transparent;border:none;color:var(--accent-blue);cursor:pointer;margin-right:4px;"
+                                title="تغيير كلمة السر">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                    </td>
+
                     <td>${d.car || '-'}</td>
                     <td>${statusBadge}</td>
-                    <td><strong style="color:${isExp?'#ef4444':'#fcba03'};">${daysLeft} يوم</strong></td>
+
                     <td>
-                        <button onclick="addDays('${d.fbKey}', 7)" class="btn-action">+7</button>
-                        <button onclick="addDays('${d.fbKey}', 30)" class="btn-action">+30</button>
-                        <button onclick="resendWelcomeMessage('${d.fbKey}')" style="background:transparent;border:1px solid var(--accent-green);color:var(--accent-green);border-radius:6px;padding:4px 8px;cursor:pointer;margin-right:4px;" title="إعادة إرسال بيانات الدخول عبر واتساب"><i class="fa-brands fa-whatsapp"></i></button>
-                        <button onclick="deleteDriver('${d.fbKey}')" style="background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;padding:4px;cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                        <strong style="color:${isExp ? '#ef4444' : '#fcba03'};">
+                            ${daysLeft} يوم
+                        </strong>
+                    </td>
+
+                    <td>
+                        <button onclick="openSubscriptionModal('${d.fbKey}')"
+                                class="btn-action">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            تعديل الاشتراك
+                        </button>
+
+                        <button onclick="resendWelcomeMessage('${d.fbKey}')"
+                                style="background:transparent;border:1px solid var(--accent-green);color:var(--accent-green);border-radius:6px;padding:4px 8px;cursor:pointer;margin-right:4px;"
+                                title="إعادة إرسال بيانات الدخول عبر واتساب">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </button>
+
+                        <button onclick="deleteDriver('${d.fbKey}')"
+                                style="background:transparent;border:1px solid #ef4444;color:#ef4444;border-radius:6px;padding:4px;cursor:pointer;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </td>
                 `;
+
                 tbody.appendChild(tr);
             });
         }
 
-        // قواعد التسعير: فتحة 5000 + 5000/كم، حد أدنى 20000، تقريب لـ 5000، ضرب 1.5 للريف
         function calculatePrice(km, isCrossRegion) {
             const baseFare = 5000;
             const perKm = 5000;
+
             let total = baseFare + (km * perKm);
+
             if (isCrossRegion) {
                 total = total * 1.5;
             }
+
             let rounded = Math.ceil(total / 5000) * 5000;
+
             if (rounded < 20000) {
                 rounded = 20000;
             }
+
             return rounded * 1.25;
         }
 
@@ -1054,29 +1709,58 @@
             const p = (pickup || '').toLowerCase();
             const d = (dropoff || '').toLowerCase();
 
-            const isPickupRif = rifDimashqKeywords.some(kw => p.includes(kw));
-            const isDropoffRif = rifDimashqKeywords.some(kw => d.includes(kw));
+            const isPickupRif =
+                rifDimashqKeywords.some(kw => p.includes(kw));
 
-            const isPickupCity = damascusCityKeywords.some(kw => p.includes(kw)) && !isPickupRif;
-            const isDropoffCity = damascusCityKeywords.some(kw => d.includes(kw)) && !isDropoffRif;
+            const isDropoffRif =
+                rifDimashqKeywords.some(kw => d.includes(kw));
 
-            return (isPickupCity && isDropoffRif) || (isPickupRif && isDropoffCity);
+            const isPickupCity =
+                damascusCityKeywords.some(kw => p.includes(kw))
+                && !isPickupRif;
+
+            const isDropoffCity =
+                damascusCityKeywords.some(kw => d.includes(kw))
+                && !isDropoffRif;
+
+            return (isPickupCity && isDropoffRif)
+                || (isPickupRif && isDropoffCity);
         }
 
         async function reverseGeocode(lat, lon) {
             try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar`);
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar`
+                );
+
                 const data = await res.json();
+
                 if (data && data.address) {
                     const a = data.address;
                     const parts = [];
-                    if (a.road) parts.push(a.road);
-                    if (a.neighbourhood || a.suburb || a.quarter) parts.push(a.neighbourhood || a.suburb || a.quarter);
-                    if (a.city_district || a.city || a.town || a.village) parts.push(a.city_district || a.city || a.town || a.village);
-                    if (parts.length > 0) return parts.join('، ');
-                    if (data.display_name) return data.display_name.split(',').slice(0, 3).join('، ');
+
+                    if (a.road) {
+                        parts.push(a.road);
+                    }
+
+                    if (a.neighbourhood || a.suburb || a.quarter) {
+                        parts.push(a.neighbourhood || a.suburb || a.quarter);
+                    }
+
+                    if (a.city_district || a.city || a.town || a.village) {
+                        parts.push(a.city_district || a.city || a.town || a.village);
+                    }
+
+                    if (parts.length > 0) {
+                        return parts.join('، ');
+                    }
+
+                    if (data.display_name) {
+                        return data.display_name.split(',').slice(0, 3).join('، ');
+                    }
                 }
             } catch (e) {}
+
             return `موقع (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
         }
 
@@ -1085,10 +1769,15 @@
                 assignMap.invalidateSize();
                 return;
             }
-            assignMap = L.map('assignMap').setView([33.5138, 36.2765], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(assignMap);
 
-            assignMap.on('click', async (e) => {
+            assignMap = L.map('assignMap').setView([33.5138, 36.2765], 13);
+
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                { attribution: '© OpenStreetMap' }
+            ).addTo(assignMap);
+
+            assignMap.on('click', async e => {
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
 
@@ -1103,8 +1792,10 @@
 
         function setSelectMode(mode) {
             mapClickSelectMode = mode;
+
             const btnP = document.getElementById('btnPickModePickup');
             const btnD = document.getElementById('btnPickModeDropoff');
+
             if (mode === 'pickup') {
                 btnP.className = 'btn-mode active-pickup';
                 btnD.className = 'btn-mode';
@@ -1116,20 +1807,28 @@
 
         async function updatePickupPoint(coords, fetchName = false) {
             if (!assignMap) return;
+
             currentPickupCoords = coords;
 
             if (!pickupMarker) {
                 const iconP = L.divIcon({
-                    html: '<div style="background:#22c55e; color:#000; width:28px; height:28px; border-radius:50%; border:3px solid #fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; box-shadow:0 3px 6px rgba(0,0,0,0.4);">📍</div>',
+                    html: '<div style="background:#22c55e;color:#000;width:28px;height:28px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;box-shadow:0 3px 6px rgba(0,0,0,0.4);">📍</div>',
                     iconSize: [28, 28],
                     iconAnchor: [14, 14]
                 });
-                pickupMarker = L.marker(coords, { icon: iconP, draggable: true }).addTo(assignMap);
+
+                pickupMarker = L.marker(coords, {
+                    icon: iconP,
+                    draggable: true
+                }).addTo(assignMap);
+
                 pickupMarker.on('dragend', async () => {
                     const pos = pickupMarker.getLatLng();
                     currentPickupCoords = [pos.lat, pos.lng];
+
                     const name = await reverseGeocode(pos.lat, pos.lng);
                     document.getElementById('assignPickup').value = name;
+
                     recalculateRouteAndPrice();
                 });
             } else {
@@ -1140,25 +1839,34 @@
                 const name = await reverseGeocode(coords[0], coords[1]);
                 document.getElementById('assignPickup').value = name;
             }
+
             recalculateRouteAndPrice();
         }
 
         async function updateDropoffPoint(coords, fetchName = false) {
             if (!assignMap) return;
+
             currentDropoffCoords = coords;
 
             if (!dropoffMarker) {
                 const iconD = L.divIcon({
-                    html: '<div style="background:#ef4444; color:#fff; width:28px; height:28px; border-radius:50%; border:3px solid #fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; box-shadow:0 3px 6px rgba(0,0,0,0.4);">🏁</div>',
+                    html: '<div style="background:#ef4444;color:#fff;width:28px;height:28px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;box-shadow:0 3px 6px rgba(0,0,0,0.4);">🏁</div>',
                     iconSize: [28, 28],
                     iconAnchor: [14, 14]
                 });
-                dropoffMarker = L.marker(coords, { icon: iconD, draggable: true }).addTo(assignMap);
+
+                dropoffMarker = L.marker(coords, {
+                    icon: iconD,
+                    draggable: true
+                }).addTo(assignMap);
+
                 dropoffMarker.on('dragend', async () => {
                     const pos = dropoffMarker.getLatLng();
                     currentDropoffCoords = [pos.lat, pos.lng];
+
                     const name = await reverseGeocode(pos.lat, pos.lng);
                     document.getElementById('assignDropoff').value = name;
+
                     recalculateRouteAndPrice();
                 });
             } else {
@@ -1169,6 +1877,7 @@
                 const name = await reverseGeocode(coords[0], coords[1]);
                 document.getElementById('assignDropoff').value = name;
             }
+
             recalculateRouteAndPrice();
         }
 
@@ -1177,62 +1886,120 @@
 
             const p1 = pickupMarker.getLatLng();
             const p2 = dropoffMarker.getLatLng();
-            const pickupName = document.getElementById('assignPickup').value;
-            const dropoffName = document.getElementById('assignDropoff').value;
 
-            isCrossRegionTrip = checkCrossRegionTrip(pickupName, dropoffName);
-            document.getElementById('assignCalcStatus').innerText = "جاري رسم المسار وحساب الكلفة بدقة...";
+            const pickupName =
+                document.getElementById('assignPickup').value;
 
-            let routeGeometry = [[p1.lat, p1.lng], [p2.lat, p2.lng]];
+            const dropoffName =
+                document.getElementById('assignDropoff').value;
+
+            isCrossRegionTrip =
+                checkCrossRegionTrip(pickupName, dropoffName);
+
+            document.getElementById('assignCalcStatus').innerText =
+                "جاري رسم المسار وحساب الكلفة بدقة...";
+
+            let routeGeometry = [
+                [p1.lat, p1.lng],
+                [p2.lat, p2.lng]
+            ];
 
             try {
-                const url = `https://router.project-osrm.org/route/v1/driving/${p1.lng},${p1.lat};${p2.lng},${p2.lat}?overview=full&geometries=geojson`;
+                const url =
+                    `https://router.project-osrm.org/route/v1/driving/${p1.lng},${p1.lat};${p2.lng},${p2.lat}?overview=full&geometries=geojson`;
+
                 const res = await fetch(url);
                 const data = await res.json();
+
                 if (data && data.routes && data.routes.length > 0) {
-                    currentCalculatedKm = Math.max(1, parseFloat((data.routes[0].distance / 1000).toFixed(1)));
-                    routeGeometry = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                    currentCalculatedKm = Math.max(
+                        1,
+                        parseFloat(
+                            (data.routes[0].distance / 1000).toFixed(1)
+                        )
+                    );
+
+                    routeGeometry =
+                        data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
                 } else {
-                    const crow = Math.hypot((p1.lat - p2.lat) * 111, (p1.lng - p2.lng) * 95);
-                    currentCalculatedKm = Math.max(1, parseFloat((crow * 1.35).toFixed(1)));
+                    const crow = Math.hypot(
+                        (p1.lat - p2.lat) * 111,
+                        (p1.lng - p2.lng) * 95
+                    );
+
+                    currentCalculatedKm = Math.max(
+                        1,
+                        parseFloat((crow * 1.35).toFixed(1))
+                    );
                 }
             } catch (e) {
-                const crow = Math.hypot((p1.lat - p2.lat) * 111, (p1.lng - p2.lng) * 95);
-                currentCalculatedKm = Math.max(1, parseFloat((crow * 1.35).toFixed(1)));
+                const crow = Math.hypot(
+                    (p1.lat - p2.lat) * 111,
+                    (p1.lng - p2.lng) * 95
+                );
+
+                currentCalculatedKm = Math.max(
+                    1,
+                    parseFloat((crow * 1.35).toFixed(1))
+                );
             }
 
             if (routePolyline) {
                 assignMap.removeLayer(routePolyline);
             }
-            routePolyline = L.polyline(routeGeometry, { color: '#3b82f6', weight: 5, opacity: 0.85 }).addTo(assignMap);
-            assignMap.fitBounds(routePolyline.getBounds(), { padding: [30, 30] });
 
-            let statusText = `المسافة المقدرة: ${currentCalculatedKm} كم`;
+            routePolyline = L.polyline(routeGeometry, {
+                color: '#3b82f6',
+                weight: 5,
+                opacity: 0.85
+            }).addTo(assignMap);
+
+            assignMap.fitBounds(
+                routePolyline.getBounds(),
+                { padding: [30, 30] }
+            );
+
+            let statusText =
+                `المسافة المقدرة: ${currentCalculatedKm} كم`;
+
             if (isCrossRegionTrip) {
-                statusText += ` (رحلة بين دمشق وريفها: تسعيرة مضاعفة × 1.5)`;
+                statusText +=
+                    ' (رحلة بين دمشق وريفها: تسعيرة مضاعفة × 1.5)';
             }
-            document.getElementById('assignCalcStatus').innerText = statusText;
 
-            const price = calculatePrice(currentCalculatedKm, isCrossRegionTrip);
+            document.getElementById('assignCalcStatus').innerText =
+                statusText;
+
+            const price = calculatePrice(
+                currentCalculatedKm,
+                isCrossRegionTrip
+            );
+
             const shortPrice = Math.floor(price / 100);
-            document.getElementById('assignPriceText').innerText = price.toLocaleString();
-            document.getElementById('assignPriceShortText').innerText = `(${shortPrice})`;
+
+            document.getElementById('assignPriceText').innerText =
+                price.toLocaleString();
+
+            document.getElementById('assignPriceShortText').innerText =
+                `(${shortPrice})`;
         }
 
         function openAssignModal(fbKey) {
             const driver = driversList.find(d => d.fbKey === fbKey);
-            if(!driver) return;
+            if (!driver) return;
+
             activeAssignDriver = driver;
 
-            document.getElementById('assignDriverInfo').innerText = `إرسال طلب مباشر إلى الكابتن: ${driver.name} (${driver.car || ''})`;
-            
+            document.getElementById('assignDriverInfo').innerText =
+                `إرسال طلب مباشر إلى الكابتن: ${driver.name} (${driver.car || ''})`;
+
             document.getElementById('assignPickupGov').value = 'دمشق';
             document.getElementById('assignDropoffGov').value = 'دمشق';
 
             document.getElementById('assignPickup').value = '';
             document.getElementById('assignDropoff').value = '';
             document.getElementById('assignExtraNote').value = '';
-            
+
             document.getElementById('pickupSuggestions').style.display = 'none';
             document.getElementById('dropoffSuggestions').style.display = 'none';
 
@@ -1241,23 +2008,44 @@
             currentPickupCoords = null;
             currentDropoffCoords = null;
 
-            document.getElementById('assignCalcStatus').innerText = `المسافة المقدرة: 4.0 كم`;
+            document.getElementById('assignCalcStatus').innerText =
+                'المسافة المقدرة: 4.0 كم';
+
             const initialPrice = calculatePrice(4.0, false);
-            document.getElementById('assignPriceText').innerText = initialPrice.toLocaleString();
-            document.getElementById('assignPriceShortText').innerText = `(${Math.floor(initialPrice / 100)})`;
+
+            document.getElementById('assignPriceText').innerText =
+                initialPrice.toLocaleString();
+
+            document.getElementById('assignPriceShortText').innerText =
+                `(${Math.floor(initialPrice / 100)})`;
 
             document.getElementById('assignModal').style.display = 'flex';
             setSelectMode('pickup');
 
             setTimeout(() => {
                 initAssignMap();
-                const center = (driver.lat && driver.lng) ? [driver.lat, driver.lng] : [33.5138, 36.2765];
+
+                const center = driver.lat && driver.lng
+                    ? [driver.lat, driver.lng]
+                    : [33.5138, 36.2765];
+
                 assignMap.setView(center, 13);
                 assignMap.invalidateSize();
 
-                if (pickupMarker) { assignMap.removeLayer(pickupMarker); pickupMarker = null; }
-                if (dropoffMarker) { assignMap.removeLayer(dropoffMarker); dropoffMarker = null; }
-                if (routePolyline) { assignMap.removeLayer(routePolyline); routePolyline = null; }
+                if (pickupMarker) {
+                    assignMap.removeLayer(pickupMarker);
+                    pickupMarker = null;
+                }
+
+                if (dropoffMarker) {
+                    assignMap.removeLayer(dropoffMarker);
+                    dropoffMarker = null;
+                }
+
+                if (routePolyline) {
+                    assignMap.removeLayer(routePolyline);
+                    routePolyline = null;
+                }
             }, 250);
         }
 
@@ -1267,35 +2055,53 @@
         }
 
         function confirmAndSendAssignment() {
-            if(!activeAssignDriver) return;
+            if (!activeAssignDriver) return;
 
-            const pickup = document.getElementById('assignPickup').value.trim();
-            const dropoff = document.getElementById('assignDropoff').value.trim();
-            const extraNote = document.getElementById('assignExtraNote').value.trim();
+            const pickup =
+                document.getElementById('assignPickup').value.trim();
 
-            if(!pickup || !dropoff) {
+            const dropoff =
+                document.getElementById('assignDropoff').value.trim();
+
+            const extraNote =
+                document.getElementById('assignExtraNote').value.trim();
+
+            if (!pickup || !dropoff) {
                 alert("يرجى إدخال وتحديد مكان الركوب ومكان النزول!");
                 return;
             }
 
             isCrossRegionTrip = checkCrossRegionTrip(pickup, dropoff);
-            const price = calculatePrice(currentCalculatedKm, isCrossRegionTrip);
+
+            const price = calculatePrice(
+                currentCalculatedKm,
+                isCrossRegionTrip
+            );
+
             const shortPrice = Math.floor(price / 100);
 
             let pickupMapLink = "";
             let dropoffMapLink = "";
 
             if (currentPickupCoords) {
-                pickupMapLink = `\n🔗 *رابط موقع الركوب للزبون على الخريطة:*\nhttps://maps.google.com/?q=${currentPickupCoords[0].toFixed(5)},${currentPickupCoords[1].toFixed(5)}`;
+                pickupMapLink =
+                    `\n🔗 *رابط موقع الركوب للزبون على الخريطة:*\nhttps://maps.google.com/?q=${currentPickupCoords[0].toFixed(5)},${currentPickupCoords[1].toFixed(5)}`;
             }
+
             if (currentDropoffCoords) {
-                dropoffMapLink = `\n🔗 *رابط موقع النزول على الخريطة:*\nhttps://maps.google.com/?q=${currentDropoffCoords[0].toFixed(5)},${currentDropoffCoords[1].toFixed(5)}`;
+                dropoffMapLink =
+                    `\n🔗 *رابط موقع النزول على الخريطة:*\nhttps://maps.google.com/?q=${currentDropoffCoords[0].toFixed(5)},${currentDropoffCoords[1].toFixed(5)}`;
             }
 
-            let regionNote = isCrossRegionTrip ? "\n⚠️ *ملاحظة:* تم احتساب الأجرة بزيادة (1.5×) نظراً لكون المشوار بين دمشق وريفها." : "";
-            let customNoteSection = extraNote ? `\n\n📌 *ملاحظات وتفاصيل إضافية:*\n${extraNote}` : "";
+            const regionNote = isCrossRegionTrip
+                ? "\n⚠️ *ملاحظة:* تم احتساب الأجرة بزيادة (1.5×) نظراً لكون المشوار بين دمشق وريفها."
+                : "";
 
-            const taskMsg = 
+            const customNoteSection = extraNote
+                ? `\n\n📌 *ملاحظات وتفاصيل إضافية:*\n${extraNote}`
+                : "";
+
+            const taskMsg =
 `🚖 *طلب تكسي جديد - تكسي البلد*
 
 مرحباً كابتن ${activeAssignDriver.name}، لديك مهمة توصيل جديدة:
@@ -1311,22 +2117,40 @@ ${dropoff}${dropoffMapLink}
 
 يرجى التوجه فوراً أو فتح الروابط أعلاه لبدء التوجيه الملاحي المباشر.`;
 
-            const waUrl = getWhatsAppUrl(activeAssignDriver.phone, taskMsg);
+            const waUrl = getWhatsAppUrl(
+                activeAssignDriver.phone,
+                taskMsg
+            );
+
             window.open(waUrl, '_blank');
             closeAssignModal();
         }
 
         function addNewDriver(e) {
             e.preventDefault();
-            const name = document.getElementById('newDName').value.trim();
-            const rawInput = document.getElementById('newDPhoneLocal').value.trim();
-            const cleanPhone = cleanSyrianPhone(rawInput);
-            const password = document.getElementById('newDPass').value.trim();
-            const car = document.getElementById('newDCar').value.trim();
-            const days = parseInt(document.getElementById('newDDays').value) || 7;
 
-            if(driversList.some(d => cleanSyrianPhone(d.phone) === cleanPhone)) {
-                alert("رقم الهاتف مسجل مسبقاً!"); return;
+            const name =
+                document.getElementById('newDName').value.trim();
+
+            const rawInput =
+                document.getElementById('newDPhoneLocal').value.trim();
+
+            const cleanPhone = cleanSyrianPhone(rawInput);
+
+            const password =
+                document.getElementById('newDPass').value.trim();
+
+            const car =
+                document.getElementById('newDCar').value.trim();
+
+            const days =
+                parseInt(document.getElementById('newDDays').value) || 7;
+
+            if (driversList.some(d =>
+                cleanSyrianPhone(d.phone) === cleanPhone
+            )) {
+                alert("رقم الهاتف مسجل مسبقاً!");
+                return;
             }
 
             driversRef.push({
@@ -1335,7 +2159,7 @@ ${dropoff}${dropoffMapLink}
                 password: password,
                 car: car,
                 city: 'دمشق',
-                expiryTimestamp: Date.now() + (days * 24 * 60 * 60 * 1000),
+                expiryTimestamp: Date.now() + days * SUBSCRIPTION_DAY_MS,
                 isOnline: false,
                 hasPassenger: false,
                 passengerStatus: 'available',
@@ -1346,15 +2170,16 @@ ${dropoff}${dropoffMapLink}
 
             e.target.reset();
 
-            const infoMsg = `🚖 *مرحباً بك كابتن ${name} في تكسي البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n📥 *رابط تحميل تطبيق الكابتن المباشر (APK):*\n${DRIVER_APK_DOWNLOAD_URL}\n\n🔐 *بيانات الدخول الخاصة بك:*\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *رمز المرور (PIN):* *${password}*\n\n📌 *خطوات التثبيت والبدء:*\n1. حمّل التطبيق وثبّته على هاتفك.\n2. سجّل الدخول برقمك وكلمة المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل الـ GPS لاستقبال المشاوير والظهور على الرادار.`;
+            const infoMsg =
+                `🚖 *مرحباً بك كابتن ${name} في تكسي البلد* 🚖\n\nتم تفعيل اشتراكك بنجاح للعمل معنا لمدة (*${days} أيام*).\n\n📥 *رابط تحميل تطبيق الكابتن المباشر (APK):*\n${DRIVER_APK_DOWNLOAD_URL}\n\n🔐 *بيانات الدخول الخاصة بك:*\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *رمز المرور (PIN):* *${password}*\n\n📌 *خطوات التثبيت والبدء:*\n1. حمّل التطبيق وثبّته على هاتفك.\n2. سجّل الدخول برقمك وكلمة المرور.\n3. اضغط على "بدء العمل" ووافق على تشغيل الـ GPS لاستقبال المشاوير والظهور على الرادار.`;
 
             currentModalPhone = cleanPhone;
             currentModalMsg = infoMsg;
+
             document.getElementById('modalMsgText').value = infoMsg;
             document.getElementById('infoModal').style.display = 'flex';
 
-            const waUrl = getWhatsAppUrl(cleanPhone, infoMsg);
-            window.open(waUrl, '_blank');
+            window.open(getWhatsAppUrl(cleanPhone, infoMsg), '_blank');
         }
 
         function copyModalText() {
@@ -1365,9 +2190,11 @@ ${dropoff}${dropoffMapLink}
         }
 
         function openWhatsAppDirect() {
-            if(currentModalPhone) {
-                const waUrl = getWhatsAppUrl(currentModalPhone, currentModalMsg);
-                window.open(waUrl, '_blank');
+            if (currentModalPhone) {
+                window.open(
+                    getWhatsAppUrl(currentModalPhone, currentModalMsg),
+                    '_blank'
+                );
             }
         }
 
@@ -1377,46 +2204,270 @@ ${dropoff}${dropoffMapLink}
 
         function resendWelcomeMessage(fbKey) {
             const driver = driversList.find(d => d.fbKey === fbKey);
-            if(!driver) return;
+            if (!driver) return;
+
             const cleanPhone = cleanSyrianPhone(driver.phone);
             const daysLeft = calculateDays(driver.expiryTimestamp);
-            const infoMsg = `🚖 *بيانات تطبيق تكسي البلد (كابتن ${driver.name})*\n\n📥 *رابط تحميل التطبيق المباشر:*\n${DRIVER_APK_DOWNLOAD_URL}\n\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *رمز المرور (PIN):* *${driver.password || '1234'}*\n⏳ *الأيام المتبقية:* ${daysLeft} يوم`;
-            
+
+            const infoMsg =
+                `🚖 *بيانات تطبيق تكسي البلد (كابتن ${driver.name})*\n\n📥 *رابط تحميل التطبيق المباشر:*\n${DRIVER_APK_DOWNLOAD_URL}\n\n📱 *رقم الهاتف:* ${cleanPhone}\n🔑 *رمز المرور (PIN):* *${driver.password || '1234'}*\n⏳ *الأيام المتبقية:* ${daysLeft} يوم`;
+
             currentModalPhone = cleanPhone;
             currentModalMsg = infoMsg;
+
             document.getElementById('modalMsgText').value = infoMsg;
             document.getElementById('infoModal').style.display = 'flex';
 
-            const waUrl = getWhatsAppUrl(cleanPhone, infoMsg);
-            window.open(waUrl, '_blank');
+            window.open(getWhatsAppUrl(cleanPhone, infoMsg), '_blank');
         }
 
         function adminChangePassword(fbKey) {
             const driver = driversList.find(d => d.fbKey === fbKey);
-            if(!driver) return;
+            if (!driver) return;
+
             const cleanPhone = cleanSyrianPhone(driver.phone);
-            const newPass = prompt(`أدخل كلمة المرور الجديدة للسائق (${driver.name}):`);
-            if(newPass && newPass.trim() !== "") {
-                driversRef.child(fbKey).update({ password: newPass.trim() });
-                
-                const passMsg = `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في تطبيق *تكسي البلد* إلى: *${newPass.trim()}*\nرابط تحميل التطبيق: ${DRIVER_APK_DOWNLOAD_URL}`;
-                if(confirm("تم تحديث كلمة المرور! هل تود إرسال الرمز الجديد للسائق عبر واتساب؟")) {
-                    const waUrl = getWhatsAppUrl(cleanPhone, passMsg);
-                    window.open(waUrl, '_blank');
+
+            const newPass = prompt(
+                `أدخل كلمة المرور الجديدة للسائق (${driver.name}):`
+            );
+
+            if (newPass && newPass.trim() !== "") {
+                driversRef.child(fbKey).update({
+                    password: newPass.trim()
+                });
+
+                const passMsg =
+                    `مرحباً كابتن ${driver.name}، تم تحديث رمز المرور الخاص بك في تطبيق *تكسي البلد* إلى: *${newPass.trim()}*\nرابط تحميل التطبيق: ${DRIVER_APK_DOWNLOAD_URL}`;
+
+                if (confirm(
+                    "تم تحديث كلمة المرور! هل تود إرسال الرمز الجديد للسائق عبر واتساب؟"
+                )) {
+                    window.open(
+                        getWhatsAppUrl(cleanPhone, passMsg),
+                        '_blank'
+                    );
                 }
             }
         }
 
-        function addDays(fbKey, daysToAdd) {
+        function subscriptionExpiry(currentExpiry, mode, days, now) {
+            const expiry = Number(currentExpiry);
+
+            const base = Number.isFinite(expiry) && expiry > now
+                ? expiry
+                : now;
+
+            if (mode === 'set') {
+                return now + days * SUBSCRIPTION_DAY_MS;
+            }
+
+            if (mode === 'subtract') {
+                return Math.max(
+                    now,
+                    base - days * SUBSCRIPTION_DAY_MS
+                );
+            }
+
+            return base + days * SUBSCRIPTION_DAY_MS;
+        }
+
+        function openSubscriptionModal(fbKey) {
+            if (subscriptionSaving) return;
+
             const driver = driversList.find(d => d.fbKey === fbKey);
-            if(driver) {
-                const base = (driver.expiryTimestamp && driver.expiryTimestamp > Date.now()) ? driver.expiryTimestamp : Date.now();
-                driversRef.child(fbKey).update({ expiryTimestamp: base + (daysToAdd * 24 * 60 * 60 * 1000) });
+            if (!driver) return;
+
+            subscriptionDriverKey = fbKey;
+
+            document.getElementById('subscriptionDriverName').textContent =
+                `الكابتن: ${driver.name}`;
+
+            document.getElementById('subscriptionMode').value = 'add';
+            document.getElementById('subscriptionDaysInput').value = '7';
+            document.getElementById('subscriptionError').textContent = '';
+
+            document.getElementById('subscriptionModal').style.display =
+                'flex';
+
+            updateSubscriptionPreview();
+
+            const input = document.getElementById('subscriptionDaysInput');
+            input.focus();
+            input.select();
+        }
+
+        function closeSubscriptionModal() {
+            if (subscriptionSaving) return;
+
+            document.getElementById('subscriptionModal').style.display =
+                'none';
+
+            subscriptionDriverKey = null;
+        }
+
+        function updateSubscriptionPreview() {
+            const driver = driversList.find(
+                d => d.fbKey === subscriptionDriverKey
+            );
+
+            if (!driver) {
+                document.getElementById('subscriptionPreview').textContent =
+                    'لم يعد السائق موجوداً في القائمة.';
+                return;
+            }
+
+            const mode =
+                document.getElementById('subscriptionMode').value;
+
+            const input =
+                document.getElementById('subscriptionDaysInput');
+
+            input.min = mode === 'set' ? '0' : '1';
+
+            document.getElementById('subscriptionDaysLabel').textContent =
+                mode === 'set'
+                    ? 'عدد الأيام المتبقية الجديد (صفر لإنهاء الاشتراك)'
+                    : mode === 'subtract'
+                        ? 'عدد الأيام المراد خصمها'
+                        : 'عدد الأيام المراد إضافتها';
+
+            document.getElementById('subscriptionCurrentDays').textContent =
+                `المتبقي حالياً: ${calculateDays(driver.expiryTimestamp)} يوم`;
+
+            const days = Number(input.value);
+
+            if (
+                input.value.trim() === ''
+                || !Number.isSafeInteger(days)
+                || days < Number(input.min)
+                || !Number.isSafeInteger(
+                    subscriptionExpiry(
+                        driver.expiryTimestamp,
+                        mode,
+                        days,
+                        Date.now()
+                    )
+                )
+            ) {
+                document.getElementById('subscriptionPreview').textContent =
+                    'أدخل عدداً صحيحاً صالحاً من الأيام.';
+                return;
+            }
+
+            const remaining = calculateDays(
+                subscriptionExpiry(
+                    driver.expiryTimestamp,
+                    mode,
+                    days,
+                    Date.now()
+                )
+            );
+
+            document.getElementById('subscriptionPreview').textContent =
+                remaining > 0
+                    ? `المتبقي بعد التعديل: ${remaining} يوم`
+                    : 'المتبقي بعد التعديل: صفر — الاشتراك منتهي';
+        }
+
+        async function saveSubscriptionDays(event) {
+            event.preventDefault();
+
+            if (subscriptionSaving || !subscriptionDriverKey) return;
+
+            const mode =
+                document.getElementById('subscriptionMode').value;
+
+            const rawDays =
+                document.getElementById('subscriptionDaysInput').value.trim();
+
+            const days = Number(rawDays);
+            const error = document.getElementById('subscriptionError');
+
+            if (
+                !['add', 'subtract', 'set'].includes(mode)
+                || rawDays === ''
+                || !Number.isSafeInteger(days)
+                || days < (mode === 'set' ? 0 : 1)
+                || !Number.isSafeInteger(
+                    Date.now() + days * SUBSCRIPTION_DAY_MS
+                )
+            ) {
+                error.textContent =
+                    'أدخل عدداً صحيحاً صالحاً من الأيام.';
+                return;
+            }
+
+            const fbKey = subscriptionDriverKey;
+
+            const saveButton =
+                document.getElementById('subscriptionSaveButton');
+
+            const controls = [
+                'subscriptionMode',
+                'subscriptionDaysInput',
+                'subscriptionSaveButton',
+                'subscriptionCancelButton'
+            ];
+
+            subscriptionSaving = true;
+
+            controls.forEach(id => {
+                document.getElementById(id).disabled = true;
+            });
+
+            saveButton.textContent = 'جارٍ الحفظ...';
+            error.textContent = '';
+
+            let saved = false;
+
+            try {
+                const result = await driversRef.child(fbKey).transaction(
+                    driver => {
+                        if (!driver || typeof driver !== 'object') return;
+
+                        const expiry = subscriptionExpiry(
+                            driver.expiryTimestamp,
+                            mode,
+                            days,
+                            Date.now()
+                        );
+
+                        if (!Number.isSafeInteger(expiry)) return;
+
+                        return {
+                            ...driver,
+                            expiryTimestamp: expiry
+                        };
+                    },
+                    undefined,
+                    false
+                );
+
+                if (!result.committed) {
+                    throw new Error('not_committed');
+                }
+
+                saved = true;
+            } catch (e) {
+                error.textContent =
+                    'تعذر حفظ التعديل. تحقق من الاتصال وصلاحيات القراءة والكتابة، ومن أن السائق لم يُحذف، ثم حاول مجدداً.';
+            } finally {
+                subscriptionSaving = false;
+
+                controls.forEach(id => {
+                    document.getElementById(id).disabled = false;
+                });
+
+                saveButton.textContent = 'حفظ التعديل';
+            }
+
+            if (saved) {
+                closeSubscriptionModal();
             }
         }
 
         function deleteDriver(fbKey) {
-            if(confirm("حذف السائق نهائياً من النظام؟")) {
+            if (confirm("حذف السائق نهائياً من النظام؟")) {
                 driversRef.child(fbKey).remove();
             }
         }
